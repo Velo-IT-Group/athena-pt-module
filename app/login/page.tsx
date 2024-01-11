@@ -1,7 +1,7 @@
-import Image from 'next/image';
-import AuthForm from './auth-form';
+import React from 'react';
+import AuthForm from '../auth-form';
 
-export default function Home() {
+const LoginPage = () => {
 	return (
 		<div className='row'>
 			<div className='col-6'>
@@ -16,4 +16,6 @@ export default function Home() {
 			</div>
 		</div>
 	);
-}
+};
+
+export default LoginPage;
