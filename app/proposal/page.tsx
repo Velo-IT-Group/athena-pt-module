@@ -10,6 +10,7 @@ import { projectTemplateTickets, projectWorkPlans } from '@/data';
 import { ProjectWorkPlan } from '@/types';
 import { Table, TableBody, TableCaption, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Input } from '@/components/ui/input';
+import ProposalTotalCard from '../proposal-total-card';
 
 const ProposalPage = () => {
 	const [workPlans, setWorkPlans] = useState<Array<ProjectWorkPlan>>(projectWorkPlans);
@@ -25,10 +26,10 @@ const ProposalPage = () => {
 	};
 
 	return (
-		<div className='grid grid-cols-4 gap-6'>
+		<div className='grid grid-cols-4 gap-6 items-start'>
 			<ProjectTemplateForm />
 
-			<div className='grid gap-6 col-span-3'>
+			<div className='grid gap-6 col-span-2'>
 				{workPlans.map((plan, index) => (
 					<Collapsible key={index}>
 						<CollapsibleTrigger className='w-full'>
@@ -84,6 +85,8 @@ const ProposalPage = () => {
 					</Tooltip>
 				</TooltipProvider>
 			</div>
+
+			<ProposalTotalCard />
 		</div>
 	);
 };
