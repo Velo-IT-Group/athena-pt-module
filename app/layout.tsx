@@ -2,8 +2,7 @@ import type { Metadata } from 'next';
 import { Inter } from 'next/font/google';
 import './globals.css';
 import { Toaster } from '@/components/ui/toaster';
-import NavHeader from './nav-header';
-import { Separator } from '@/components/ui/separator';
+import NavHeader from '@/components/NavHeader';
 
 const inter = Inter({ subsets: ['latin'] });
 
@@ -16,9 +15,9 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
 	return (
 		<html lang='en'>
 			<body className={inter.className}>
-				<div className='max-h-screen relative'>
+				<div className='h-screen relative'>
 					<NavHeader />
-					<main className='p-4'>{children}</main>
+					<main className='h-full'>{children}</main>
 				</div>
 				<Toaster />
 			</body>

@@ -12,6 +12,16 @@ export type ProjectType = {
 	inactiveFlag?: boolean;
 };
 
+export type ProjectPhase = {
+	id: number;
+	templateId: number;
+	description: string;
+	markAsMilestoneFlag: boolean;
+	billPhaseSeparately: boolean;
+	wbsCode: string;
+	tickets: Array<ProjectTemplateTicket>;
+};
+
 export type ProjectTemplateTicket = {
 	id: number;
 	projectTemplateId?: number;
@@ -23,6 +33,7 @@ export type ProjectTemplateTicket = {
 	resolution?: string;
 	budgetHours?: number;
 	duration?: number;
+	summary: string;
 	wbsCode?: string;
 	billSeparatelyFlag?: boolean;
 	markAsMilestoneFlag?: boolean;
@@ -91,4 +102,5 @@ export type ProjectWorkPlan = {
 	isNewItem?: boolean;
 	wbsCode?: string;
 	parentPhaseRecID?: number;
+	phases: Array<ProjectPhase>;
 };
