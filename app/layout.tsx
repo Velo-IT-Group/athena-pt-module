@@ -3,6 +3,7 @@ import { Inter } from 'next/font/google';
 import './globals.css';
 import { Toaster } from '@/components/ui/toaster';
 import NavHeader from '@/components/NavHeader';
+import { ThemeProvider } from '@/components/ThemeProvider';
 
 const inter = Inter({ subsets: ['latin'] });
 
@@ -13,13 +14,12 @@ export const metadata: Metadata = {
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
 	return (
-		<html lang='en'>
-			<body className={inter.className}>
-				<div className='h-screen relative'>
-					<NavHeader />
-					<main className='h-full'>{children}</main>
-				</div>
-				<Toaster />
+		<html lang='en' className={inter.className}>
+			<body className='h-screen overflow-hidden'>
+				<ThemeProvider attribute='class' defaultTheme='system' enableSystem disableTransitionOnChange>
+					{children}
+					<Toaster />
+				</ThemeProvider>
 			</body>
 		</html>
 	);
