@@ -1,6 +1,6 @@
 import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { ProjectTemplate } from '@/types';
+import type { ProjectTemplate } from '@/types/manage';
 import { Checkbox } from '@/components/ui/checkbox';
 
 export async function ProjectTemplateForm() {
