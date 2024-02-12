@@ -45,6 +45,15 @@ export const createTask = async (task: TaskInsert): Promise<Array<Task> | Postgr
 	return data ?? error;
 };
 
+export const createProposal = async (proposal: ProposalInsert): Promise<Proposal | undefined> => {
+	const supabase = createClient();
+	const { data, error } = await supabase.from('proposals').insert(proposal).select('*').single();
+
+	if (!data || error) return;
+
+	return data;
+};
+
 export const createPhase = async (phase: PhaseInsert, tickets: Array<ProjectTemplateTicket>): Promise<Phase | undefined> => {
 	const supabase = createClient();
 	const { data, error } = await supabase.from('phases').insert(phase).select().single();
@@ -107,7 +116,7 @@ export const getWorkplan = unstable_cache(
 );
 
 export const getProposal = unstable_cache(
-	async (id: string): Promise<NestedProposal | undefined> => {
+	async (id: string): Promise<(Proposal & { phases: Array<Phase & { tickets: Array<Ticket> }> }) | undefined> => {
 		const supabase = createClient();
 
 		const proposalWithPhasesQuery = supabase
