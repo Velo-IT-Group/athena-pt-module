@@ -1,17 +1,6 @@
 import { ProjectTemplate } from '@/types/manage';
 import axios, { AxiosRequestConfig, AxiosResponse } from 'axios';
-
-export const baseConfig: AxiosRequestConfig = {
-	method: 'get',
-	baseURL: process.env.NEXT_PUBLIC_CW_URL,
-	headers: {
-		clientId: process.env.NEXT_PUBLIC_CW_CLIENT_ID,
-	},
-	auth: {
-		username: process.env.NEXT_PUBLIC_CW_USERNAME!,
-		password: process.env.NEXT_PUBLIC_CW_PASSWORD!,
-	},
-};
+import { baseConfig } from '@/lib/data';
 
 export async function GET(request: Request) {
 	let config: AxiosRequestConfig = {
