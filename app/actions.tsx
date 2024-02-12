@@ -1,6 +1,7 @@
 'use server';
-import { createPhase, createTicket, updatePhase, updateProposal, updateTicket } from '@/lib/data';
+import { createPhase, createProposal, createTicket, updatePhase, updateProposal, updateTicket } from '@/lib/data';
 import { revalidateTag } from 'next/cache';
+import { redirect } from 'next/navigation';
 
 export const handlePhaseUpdate = async (formData: FormData) => {
 	const id = formData.get('id') as string;
@@ -56,4 +57,20 @@ export const handleProposalUpdate = async (formData: FormData) => {
 	await updateProposal(id, { sales_hours: salesLabor, management_hours: projectManagement });
 
 	revalidateTag('proposals');
+};
+
+export const handleProposalInsert = async (formData: FormData) => {
+	'use server';
+	const name = formData.get('name') as string;
+	const templates_used = formData.get('templates_used') as unknown as number;
+
+	const proposal = await createProposal({ name, templates_used: [templates_used] });
+
+	if (!!!proposal) {
+		return redirect(`/proposal/new?message=Couldnt create proposal`);
+	}
+
+	revalidateTag('proposals');
+
+	redirect(`/proposal/${proposal.id}`);
 };
