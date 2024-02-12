@@ -55,7 +55,7 @@ const Proposal = ({ proposal, templates, phases }: Props) => {
 			</div>
 
 			<div className='space-y-4'>
-				<TemplatePicker templates={templates} templates_used={proposal.templates_used} />
+				<TemplatePicker templates={templates} />
 				<ProposalTotalCard proposal={proposal} />
 			</div>
 		</DragDropContext>
