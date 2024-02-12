@@ -1,124 +1,149 @@
 'use client';
-import React, { useState } from 'react';
-import { DragDropContext, Draggable, DropResult, Droppable } from 'react-beautiful-dnd';
-import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
-import { Card, CardDescription, CardHeader, CardTitle } from './ui/card';
-import { Input } from './ui/input';
-import { Table, TableBody, TableCaption, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
+import React from 'react';
+import { Draggable, Droppable } from 'react-beautiful-dnd';
+import { Card, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { PlusIcon } from '@radix-ui/react-icons';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from './ui/tooltip';
+import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from './ui/sheet';
+import { Separator } from './ui/separator';
+import { Input } from './ui/input';
+import { handlePhaseInsert, handleProposalUpdate } from '@/app/actions';
+import { Label } from './ui/label';
+import TicketsList from './TicketsList';
 
 type Props = {
-	phases: Array<NestedPhase>;
+	id: string;
+	phases: Array<Phase & { tickets: Array<Ticket> }>;
 };
 
-const ProposalBuilder = ({ phases }: Props) => {
-	const [items, setItems] = useState<Array<NestedPhase>>(phases ?? []);
-
-	const addPhase = () => {
-		setItems([
-			...items,
-			{
-				id: String(items.length + 1),
-				description: 'New Phase',
-				tickets: [],
-				hours: 0,
-				order: items.length + 1,
-				proposal: '',
-			},
-		]);
-	};
-
-	// a little function to help us with reordering the result
-	const reorder = (list: Array<Phase & { tickets: Array<Ticket> }>, startIndex: number, endIndex: number) => {
-		const result = Array.from(list);
-		const [removed] = result.splice(startIndex, 1);
-		result.splice(endIndex, 0, removed);
-
-		return result;
-	};
-
-	function onDragEnd(result: DropResult) {
-		// dropped outside the list
-		if (!result.destination) {
-			return;
-		}
-
-		const reorderedItems = reorder(items, result.source.index, result.destination.index);
-
-		setItems(reorderedItems);
-	}
-
+const ProposalBuilder = ({ id, phases }: Props) => {
 	return (
-		<div className='bg-muted rounded-xl'>
-			<DragDropContext onDragEnd={onDragEnd}>
-				<Droppable droppableId='droppable'>
-					{(provided, snapshot) => (
-						<div {...provided.droppableProps} ref={provided.innerRef} className='h-full p-4 rounded-xl space-y-4'>
-							{items &&
-								items.length > 0 &&
-								items?.map((item, index) => (
-									<div key={item.id} className='grid gap-6 col-span-2'>
-										<Draggable draggableId={item.id} index={index}>
-											{(provided, snapshot) => {
-												const initialValue = 0;
-												return (
-													<div ref={provided.innerRef} {...provided.draggableProps} {...provided.dragHandleProps}>
-														<Collapsible key={index}>
-															<CollapsibleTrigger className='w-full'>
-																<Card className='flex'>
-																	<CardHeader className='flex flex-row items-center justify-between w-full'>
-																		<div className='flex flex-col items-start'>
-																			<CardTitle>Phase {item?.order}</CardTitle>
-																			<CardDescription>{item?.description ?? 'New Phase'}</CardDescription>
-																		</div>
-																		<div className='flex flex-col items-start'>
-																			<CardTitle>Hours:</CardTitle>
-																			<CardDescription>{item.hours ?? 0}</CardDescription>
-																		</div>
-																	</CardHeader>
-																</Card>
-															</CollapsibleTrigger>
-															<CollapsibleContent className='p-4'>
-																<Table>
-																	<TableBody>
-																		{item.tickets.map((ticket) => (
-																			<TableRow key={ticket.id}>
-																				<TableCell className='font-medium'>Ticket {ticket.order}</TableCell>
-																				<TableCell className='font-medium'>{ticket.summary}</TableCell>
-																				<TableCell>{ticket.summary ?? ''}</TableCell>
-																				<TableCell className='text-right'>{ticket.budget_hours ?? 0.0}</TableCell>
-																			</TableRow>
-																		))}
-																	</TableBody>
-																</Table>
-															</CollapsibleContent>
-														</Collapsible>
+		<>
+			<Droppable droppableId='phases' type='group'>
+				{(provided) => (
+					<div {...provided.droppableProps} ref={provided.innerRef} className='bg-muted rounded-xl p-4'>
+						{phases && phases.length > 0 ? (
+							<ul className='h-full rounded-xl space-y-4'>
+								{phases?.map((phase, index) => {
+									phase;
+									var tickets = phase.tickets ?? [];
+									return (
+										<Sheet key={phase.id}>
+											<SheetTrigger className='w-full'>
+												<Draggable key={phase.id} draggableId={phase.id} index={index}>
+													{(provided) => {
+														return (
+															<Card className='flex' ref={provided.innerRef} {...provided.draggableProps} {...provided.dragHandleProps}>
+																<CardHeader className='flex flex-row items-center justify-between w-full'>
+																	<div className='flex flex-col items-start'>
+																		<CardTitle>Phase {phase.order}</CardTitle>
+																		<CardDescription>{phase?.description ?? 'New Phase'}</CardDescription>
+																	</div>
+																	<div className='flex flex-col items-start'>
+																		<CardTitle>Hours:</CardTitle>
+																		<CardDescription>{phase.hours ?? 0}</CardDescription>
+																	</div>
+																</CardHeader>
+															</Card>
+														);
+													}}
+												</Draggable>
+											</SheetTrigger>
+											<SheetContent className='w-[400px] sm:w-[540px] max-w-none'>
+												<SheetHeader>
+													<SheetTitle>{phase.description}</SheetTitle>
+
+													<div className='grid grid-cols-2 w-full gap-4'>
+														<Card>
+															<CardHeader>
+																<CardDescription>Total Hours</CardDescription>
+																<CardTitle>{phase.hours ?? 0}</CardTitle>
+															</CardHeader>
+														</Card>
+														<Card>
+															<CardHeader>
+																<CardDescription>Total Tickets</CardDescription>
+																<CardTitle>{tickets.length ?? 0}</CardTitle>
+															</CardHeader>
+														</Card>
 													</div>
-												);
-											}}
-										</Draggable>
-									</div>
-								))}
-							{provided.placeholder}
-						</div>
-					)}
-				</Droppable>
-			</DragDropContext>
-			{/* <TooltipProvider>
+
+													<h2 className='font-semibold'>Details</h2>
+													<form action={handleProposalUpdate}>
+														<Input hidden name='id' value={phase.id} readOnly className='hidden' />
+														<div className='grid w-full max-w-sm items-center gap-1.5'>
+															<Label htmlFor='description'>Description</Label>
+															<Input name='description' id='description' defaultValue={phase.description} placeholder='Name goes here...' />
+														</div>
+
+														<Input type='submit' className='hidden' />
+													</form>
+
+													<Separator />
+
+													<div className='space-y-2'>
+														<h3 className='font-medium'>Tickets</h3>
+														<TicketsList tickets={tickets} phase={phase.id} />
+														{/* <div className='bg-muted rounded-xl p-2 space-y-2'>
+															{tickets.map((ticket: Ticket) => (
+																<TicketListItem key={ticket.id} ticket={ticket} />
+															))}
+														</div> */}
+													</div>
+												</SheetHeader>
+												{/* <SheetFooter>
+													<TooltipProvider>
+														<Tooltip>
+															<TooltipTrigger className='w-full' asChild>
+																<form action={handleTicketInsert}>
+																	<input name='phase' value={item.id} className='hidden' />
+																	<input name='summary' value={'New Ticket'} className='hidden' />
+																	<input name='order' value={tickets.length + 1} className='hidden' />
+																	<Button variant='outline' size='icon'>
+																		<PlusIcon className='h-4 w-4' />
+																	</Button>
+																</form>
+															</TooltipTrigger>
+															<TooltipContent>
+																<p>Add new ticket</p>
+															</TooltipContent>
+														</Tooltip>
+													</TooltipProvider>
+												</SheetFooter> */}
+											</SheetContent>
+										</Sheet>
+									);
+								})}
+								{provided.placeholder}
+							</ul>
+						) : (
+							<div className='flex items-center justify-center w-full border border-dashed rounded-xl p-4'>
+								<p className='text-muted-foreground'>Drag a template here or create a new ticket by clicking the plus button below</p>
+							</div>
+						)}
+					</div>
+				)}
+			</Droppable>
+
+			<TooltipProvider>
 				<Tooltip>
-					<TooltipTrigger className='w-full'>
-						<Button onClick={() => addPhase()} variant='outline' size='icon'>
-							<PlusIcon className='h-4 w-4' />
-						</Button>
+					<TooltipTrigger className='w-full' asChild>
+						<form action={handlePhaseInsert}>
+							<input name='proposal' defaultValue={id} className='hidden' />
+							<input name='description' defaultValue={'New Phase'} className='hidden' />
+							<input name='order' defaultValue={phases.length + 1} className='hidden' />
+							<Button variant='outline' size='icon'>
+								<PlusIcon className='h-4 w-4' />
+							</Button>
+						</form>
 					</TooltipTrigger>
 					<TooltipContent>
 						<p>Add new phase</p>
 					</TooltipContent>
 				</Tooltip>
-			</TooltipProvider> */}
-		</div>
+			</TooltipProvider>
+		</>
 	);
 };
 
