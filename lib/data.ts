@@ -72,7 +72,7 @@ export const createTicket = async (ticket: TicketInset, tasks: Array<ProjectTemp
 // READ FUNCTIONS
 
 export const getPhases = unstable_cache(
-	async (id: string): Promise<Array<Phase> | undefined> => {
+	async (id: string): Promise<Array<Phase & { tickets: Array<Ticket> }> | undefined> => {
 		const supabase = createClient();
 		const { data, error } = await supabase.from('phases').select('*, tickets(*)').eq('proposal', id).order('order');
 
