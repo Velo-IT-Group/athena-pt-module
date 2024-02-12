@@ -1,6 +1,5 @@
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
-import createSupabaseServerClient from '@/lib/supabase/server';
 import { Button } from '@/components/ui/button';
 import { HoverCard, HoverCardContent, HoverCardTrigger } from '@/components/ui/hover-card';
 import { Label } from '@/components/ui/label';
@@ -10,8 +9,7 @@ import { CalendarIcon, PaperPlaneIcon } from '@radix-ui/react-icons';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Input } from '@/components/ui/input';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
-
-const tags = Array.from({ length: 50 }).map((_, i, a) => `v1.2.0-beta.${a.length - i}`);
+import { getProposal } from '@/lib/data';
 
 const discussion = [
 	{
@@ -59,20 +57,9 @@ type Props = {
 };
 
 const ProposalReviewPage = async ({ params }: Props) => {
-	const supabase = await createSupabaseServerClient();
-	const { data: proposal, error } = await supabase
-		.from('proposals')
-		.select('*, phases(*, tickets(*))')
-		.eq('id', params.id)
-		.order('order', { referencedTable: 'phases', ascending: true })
-		.single();
+	const proposal = await getProposal(params.id);
 
-	async function submit(formData: FormData) {
-		'use server';
-		const message = formData.get('message');
-
-		// ...
-	}
+	if (!proposal) return <div></div>;
 
 	return (
 		<div className='h-full bg-neutral-50 grid grid-cols-5 gap-24 py-12 px-24'>
@@ -225,7 +212,7 @@ const ProposalReviewPage = async ({ params }: Props) => {
 				<CardContent>
 					<div className='space-y-4'>
 						<Separator />
-						{proposal?.phases.map((phase) => (
+						{proposal?.phases?.map((phase) => (
 							<div className='space-y-2' key={phase.id}>
 								<h3 className='text-sm font-medium tracking-tight'>{phase.description}</h3>
 								<ul className='list-disc list-inside px-4'>
