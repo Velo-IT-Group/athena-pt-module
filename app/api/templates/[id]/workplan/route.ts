@@ -1,6 +1,6 @@
 import axios, { AxiosRequestConfig, AxiosResponse } from 'axios';
 import { baseConfig } from '../../route';
-import { ProjectWorkPlan } from '@/types';
+import { ProjectWorkPlan } from '@/types/manage';
 
 export async function GET(request: Request, { params }: { params: { id: string } }) {
 	const id = params.id; // 'a', 'b', or 'c'
