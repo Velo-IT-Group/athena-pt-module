@@ -1,4 +1,4 @@
-import { ProjectTemplate } from '@/types';
+import { ProjectTemplate } from '@/types/manage';
 import axios, { AxiosRequestConfig, AxiosResponse } from 'axios';
 
 export const baseConfig: AxiosRequestConfig = {
@@ -19,6 +19,8 @@ export async function GET(request: Request) {
 		url: '/project/projectTemplates',
 		params: {
 			fields: 'id,name,description',
+			pageSize: 1000,
+			orderBy: 'name',
 		},
 	};
 
