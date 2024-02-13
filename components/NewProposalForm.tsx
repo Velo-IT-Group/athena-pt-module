@@ -20,7 +20,14 @@ const NewProposalForm = ({ templates }: Props) => {
 
 			<div>
 				<Label htmlFor='project_templates'>Project Template</Label>
-				<Select>
+				<select multiple name='templates_used'>
+					{templates.map((template) => (
+						<option key={template.id} value={String(template.id)}>
+							{template.name}
+						</option>
+					))}
+				</select>
+				{/* <Select name='templates_used'>
 					<SelectTrigger tabIndex={2}>
 						<SelectValue placeholder='Select a template' />
 					</SelectTrigger>
@@ -34,7 +41,7 @@ const NewProposalForm = ({ templates }: Props) => {
 							))}
 						</SelectGroup>
 					</SelectContent>
-				</Select>
+				</Select> */}
 			</div>
 
 			<SubmitButton tabIndex={3}>Submit</SubmitButton>
