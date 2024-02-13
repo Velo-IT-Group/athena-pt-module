@@ -1,5 +1,5 @@
 'use server';
-import { createPhase, createProposal, createTicket, updatePhase, updateProposal, updateTicket } from '@/lib/data';
+import { createPhase, createProposal, createTicket, deleteProposal, newTemplate, updatePhase, updateProposal, updateTicket } from '@/lib/data';
 import { revalidateTag } from 'next/cache';
 import { redirect } from 'next/navigation';
 
@@ -50,6 +50,13 @@ export const handlePhaseInsert = async (formData: FormData) => {
 	revalidateTag('phases');
 };
 
+export const handleProposalDelete = async (id: string) => {
+	'use server';
+	await deleteProposal(id);
+
+	revalidateTag('proposals');
+};
+
 export const handleProposalUpdate = async (formData: FormData) => {
 	const id = formData.get('id') as string;
 	const salesLabor = formData.get('sales-labor') as unknown as number;
@@ -60,17 +67,33 @@ export const handleProposalUpdate = async (formData: FormData) => {
 };
 
 export const handleProposalInsert = async (formData: FormData) => {
-	'use server';
 	const name = formData.get('name') as string;
-	const templates_used = formData.get('templates_used') as unknown as number;
+	const templates_used = formData.getAll('templates_used') as unknown as number[];
 
-	const proposal = await createProposal({ name, templates_used: [templates_used] });
+	console.log(templates_used);
+
+	const proposal = await createProposal({ name, templates_used: templates_used });
 
 	if (!!!proposal) {
 		return redirect(`/proposal/new?message=Couldnt create proposal`);
 	}
 
+	if (templates_used) {
+		await Promise.all(templates_used.map((template) => newTemplate(template, proposal.id)));
+	}
+
 	revalidateTag('proposals');
 
 	redirect(`/proposal/${proposal.id}`);
+};
+
+export const handleNewTemplateInsert = async (draggableId: string, proposalId: string, startingIndex?: number) => {
+	const phases = await newTemplate(parseInt(draggableId), proposalId, startingIndex ?? 0);
+
+	if (!!!phases) {
+		return;
+	}
+
+	revalidateTag('proposals');
+	revalidateTag('phases');
 };
