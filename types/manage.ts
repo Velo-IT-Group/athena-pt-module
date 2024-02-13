@@ -31,7 +31,7 @@ export type ProjectTemplateTicket = {
 	notes?: string;
 	internalAnalysis?: string;
 	resolution?: string;
-	budgetHours?: number;
+	budgetHours: number;
 	duration?: number;
 	summary: string;
 	wbsCode?: string;
