@@ -39,8 +39,8 @@ const ProposalIdLayout = async ({ params, children }: Props) => {
 	};
 
 	return (
-		<>
-			<div className='p-4 flex gap-2'>
+		<div className='h-screen flex flex-col items-start w-full'>
+			<div className='p-4 flex gap-2 w-full'>
 				<h1 className='text-xl font-semibold'>{proposal?.name}</h1>
 				<AlertDialog>
 					<AlertDialogTrigger>
@@ -80,8 +80,8 @@ const ProposalIdLayout = async ({ params, children }: Props) => {
 
 			<Separator />
 
-			<div className='grid grid-cols-5 gap-4 p-4 items-start'>{children}</div>
-		</>
+			<div className='grid grid-cols-5 gap-4 p-4 items-start h-full overflow-hidden'>{children}</div>
+		</div>
 	);
 };
 
