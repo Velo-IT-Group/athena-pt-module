@@ -11,6 +11,7 @@ import { Input } from './ui/input';
 import { handlePhaseInsert, handleProposalUpdate } from '@/app/actions';
 import { Label } from './ui/label';
 import TicketsList from './TicketsList';
+import { ScrollArea } from './ui/scroll-area';
 
 type Props = {
 	id: string;
@@ -24,75 +25,76 @@ const ProposalBuilder = ({ id, phases }: Props) => {
 				{(provided) => (
 					<div {...provided.droppableProps} ref={provided.innerRef} className='bg-muted rounded-xl p-4'>
 						{phases && phases.length > 0 ? (
-							<ul className='h-full rounded-xl space-y-4'>
-								{phases?.map((phase, index) => {
-									phase;
-									var tickets = phase.tickets ?? [];
-									return (
-										<Sheet key={phase.id}>
-											<SheetTrigger className='w-full'>
-												<Draggable key={phase.id} draggableId={phase.id} index={index}>
-													{(provided) => {
-														return (
-															<Card className='flex' ref={provided.innerRef} {...provided.draggableProps} {...provided.dragHandleProps}>
-																<CardHeader className='flex flex-row items-center justify-between w-full'>
-																	<div className='flex flex-col items-start'>
-																		<CardTitle>Phase {phase.order}</CardTitle>
-																		<CardDescription>{phase?.description ?? 'New Phase'}</CardDescription>
-																	</div>
-																	<div className='flex flex-col items-start'>
-																		<CardTitle>Hours:</CardTitle>
-																		<CardDescription>{phase.hours ?? 0}</CardDescription>
-																	</div>
+							<ScrollArea className='h-[800px]'>
+								<ul className='h-full rounded-xl space-y-4'>
+									{phases?.map((phase, index) => {
+										phase;
+										var tickets = phase.tickets ?? [];
+										return (
+											<Sheet key={phase.id}>
+												<SheetTrigger className='w-full'>
+													<Draggable key={phase.id} draggableId={phase.id} index={index}>
+														{(provided) => {
+															return (
+																<Card className='flex' ref={provided.innerRef} {...provided.draggableProps} {...provided.dragHandleProps}>
+																	<CardHeader className='flex flex-row items-center justify-between w-full'>
+																		<div className='flex flex-col items-start'>
+																			<CardTitle>Phase {phase.order}</CardTitle>
+																			<CardDescription>{phase?.description ?? 'New Phase'}</CardDescription>
+																		</div>
+																		<div className='flex flex-col items-start'>
+																			<CardTitle>Hours:</CardTitle>
+																			<CardDescription>{phase.hours ?? 0}</CardDescription>
+																		</div>
+																	</CardHeader>
+																</Card>
+															);
+														}}
+													</Draggable>
+												</SheetTrigger>
+												<SheetContent className='w-[400px] sm:w-[540px] max-w-none'>
+													<SheetHeader>
+														<SheetTitle>{phase.description}</SheetTitle>
+
+														<div className='grid grid-cols-2 w-full gap-4'>
+															<Card>
+																<CardHeader>
+																	<CardDescription>Total Hours</CardDescription>
+																	<CardTitle>{phase.hours ?? 0}</CardTitle>
 																</CardHeader>
 															</Card>
-														);
-													}}
-												</Draggable>
-											</SheetTrigger>
-											<SheetContent className='w-[400px] sm:w-[540px] max-w-none'>
-												<SheetHeader>
-													<SheetTitle>{phase.description}</SheetTitle>
-
-													<div className='grid grid-cols-2 w-full gap-4'>
-														<Card>
-															<CardHeader>
-																<CardDescription>Total Hours</CardDescription>
-																<CardTitle>{phase.hours ?? 0}</CardTitle>
-															</CardHeader>
-														</Card>
-														<Card>
-															<CardHeader>
-																<CardDescription>Total Tickets</CardDescription>
-																<CardTitle>{tickets.length ?? 0}</CardTitle>
-															</CardHeader>
-														</Card>
-													</div>
-
-													<h2 className='font-semibold'>Details</h2>
-													<form action={handleProposalUpdate}>
-														<Input hidden name='id' value={phase.id} readOnly className='hidden' />
-														<div className='grid w-full max-w-sm items-center gap-1.5'>
-															<Label htmlFor='description'>Description</Label>
-															<Input name='description' id='description' defaultValue={phase.description} placeholder='Name goes here...' />
+															<Card>
+																<CardHeader>
+																	<CardDescription>Total Tickets</CardDescription>
+																	<CardTitle>{tickets.length ?? 0}</CardTitle>
+																</CardHeader>
+															</Card>
 														</div>
 
-														<Input type='submit' className='hidden' />
-													</form>
+														<h2 className='font-semibold'>Details</h2>
+														<form action={handleProposalUpdate}>
+															<Input hidden name='id' value={phase.id} readOnly className='hidden' />
+															<div className='grid w-full max-w-sm items-center gap-1.5'>
+																<Label htmlFor='description'>Description</Label>
+																<Input name='description' id='description' defaultValue={phase.description} placeholder='Name goes here...' />
+															</div>
 
-													<Separator />
+															<Input type='submit' className='hidden' />
+														</form>
 
-													<div className='space-y-2'>
-														<h3 className='font-medium'>Tickets</h3>
-														<TicketsList tickets={tickets} phase={phase.id} />
-														{/* <div className='bg-muted rounded-xl p-2 space-y-2'>
+														<Separator />
+
+														<div className='space-y-2'>
+															<h3 className='font-medium'>Tickets</h3>
+															<TicketsList tickets={tickets} phase={phase.id} />
+															{/* <div className='bg-muted rounded-xl p-2 space-y-2'>
 															{tickets.map((ticket: Ticket) => (
 																<TicketListItem key={ticket.id} ticket={ticket} />
 															))}
 														</div> */}
-													</div>
-												</SheetHeader>
-												{/* <SheetFooter>
+														</div>
+													</SheetHeader>
+													{/* <SheetFooter>
 													<TooltipProvider>
 														<Tooltip>
 															<TooltipTrigger className='w-full' asChild>
@@ -111,12 +113,13 @@ const ProposalBuilder = ({ id, phases }: Props) => {
 														</Tooltip>
 													</TooltipProvider>
 												</SheetFooter> */}
-											</SheetContent>
-										</Sheet>
-									);
-								})}
-								{provided.placeholder}
-							</ul>
+												</SheetContent>
+											</Sheet>
+										);
+									})}
+									{provided.placeholder}
+								</ul>
+							</ScrollArea>
 						) : (
 							<div className='flex items-center justify-center w-full border border-dashed rounded-xl p-4'>
 								<p className='text-muted-foreground'>Drag a template here or create a new ticket by clicking the plus button below</p>
