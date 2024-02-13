@@ -15,8 +15,7 @@ import {
 	DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { ContextMenu, ContextMenuContent, ContextMenuItem, ContextMenuShortcut, ContextMenuTrigger } from '@/components/ui/context-menu';
-import { createClient } from '@/utils/supabase/client';
-import { revalidatePath, revalidateTag } from 'next/cache';
+import { handleProposalDelete } from '@/app/actions';
 
 type Props = {
 	proposal: Proposal;
@@ -28,15 +27,6 @@ let USDollar = new Intl.NumberFormat('en-US', {
 });
 
 const ProposalMenuItem = ({ proposal }: Props) => {
-	const deleteItem = async () => {
-		const supabase = createClient();
-		const { error } = await supabase.from('proposals').delete().eq('id', proposal.id);
-		if (error) {
-			console.log(error);
-		}
-		revalidateTag('proposals');
-	};
-
 	return (
 		<ContextMenu>
 			<ContextMenuTrigger>
@@ -94,7 +84,7 @@ const ProposalMenuItem = ({ proposal }: Props) => {
 			</ContextMenuTrigger>
 			<ContextMenuContent className='w-64'>
 				<ContextMenuItem>Duplicate</ContextMenuItem>
-				<ContextMenuItem inset onClick={deleteItem}>
+				<ContextMenuItem inset onClick={() => handleProposalDelete(proposal.id)}>
 					Delete <ContextMenuShortcut>⌘</ContextMenuShortcut>
 				</ContextMenuItem>
 			</ContextMenuContent>
