@@ -11,8 +11,10 @@ export async function GET(request: Request, { params }: { params: { id: string }
 	};
 
 	try {
-		const response: AxiosResponse<ProjectWorkPlan, Error> = await axios.request(config);
-		return Response.json(response.data);
+		const response: AxiosResponse<ProjectWorkPlan> = await axios.request(config);
+		if (response.statusText !== 'OK') throw Error;
+
+		return Response.json(response.data as ProjectWorkPlan);
 	} catch (error) {
 		return new Response(`Error: ${error}`, {
 			status: 400,
