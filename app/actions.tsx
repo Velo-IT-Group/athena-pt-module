@@ -1,5 +1,17 @@
 'use server';
-import { createPhase, createProposal, createTicket, deleteProposal, newTemplate, updatePhase, updateProposal, updateTicket } from '@/lib/data';
+import {
+	createPhase,
+	createProposal,
+	createTask,
+	createTicket,
+	deletePhase,
+	deleteProposal,
+	deleteTicket,
+	newTemplate,
+	updatePhase,
+	updateProposal,
+	updateTicket,
+} from '@/lib/data';
 import { revalidateTag } from 'next/cache';
 import { redirect } from 'next/navigation';
 
@@ -39,6 +51,19 @@ export const handleTicketInsert = async (formData: FormData) => {
 	revalidateTag('proposals');
 };
 
+export const handleTaskInsert = async (formData: FormData) => {
+	const summary = formData.get('summary') as string;
+	const notes = formData.get('notes') as string;
+	const priority = formData.get('priority') as unknown as number;
+	const ticket = formData.get('ticket') as string;
+
+	await createTask({ summary, notes, priority, ticket });
+
+	revalidateTag('tickets');
+	revalidateTag('phases');
+	revalidateTag('proposals');
+};
+
 export const handlePhaseInsert = async (formData: FormData) => {
 	const description = formData.get('description') as string;
 	const order = formData.get('order') as unknown as number;
@@ -55,6 +80,22 @@ export const handleProposalDelete = async (id: string) => {
 	await deleteProposal(id);
 
 	revalidateTag('proposals');
+};
+
+export const handleTicketDelete = async (id: string) => {
+	'use server';
+	await deleteTicket(id);
+
+	revalidateTag('proposals');
+	revalidateTag('phases');
+};
+
+export const handlePhaseDelete = async (id: string) => {
+	'use server';
+	await deletePhase(id);
+
+	revalidateTag('proposals');
+	revalidateTag('phases');
 };
 
 export const handleProposalUpdate = async (formData: FormData) => {
