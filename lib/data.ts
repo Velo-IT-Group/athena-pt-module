@@ -148,6 +148,14 @@ export const getWorkplan = async (id: number): Promise<ProjectWorkPlan | undefin
 	return response.data;
 };
 
+export const getProducts = async (): Promise<Array<CatalogItem> | undefined> => {
+	const result = await fetch(`http://localhost:3000/api/products`, { next: { tags: ['products'] } });
+
+	const data = await result.json();
+
+	return data;
+};
+
 export const getProposal = unstable_cache(
 	async (id: string): Promise<(Proposal & { phases: Array<Phase & { tickets: Array<Ticket & { tasks: Array<Task> }> }> }) | undefined> => {
 		const supabase = createClient();
