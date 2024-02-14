@@ -1,5 +1,5 @@
 import axios, { AxiosRequestConfig, AxiosResponse } from 'axios';
-import { ProjectPhase, ProjectTemplate, ProjectTemplateTask, ProjectTemplateTicket, ProjectWorkPlan } from '@/types/manage';
+import { CatalogItem, ProjectPhase, ProjectTemplate, ProjectTemplateTask, ProjectTemplateTicket, ProjectWorkPlan } from '@/types/manage';
 import { PostgrestError } from '@supabase/supabase-js';
 import { createClient } from '@/utils/supabase/client';
 import { unstable_cache } from 'next/cache';
@@ -121,7 +121,7 @@ export const createTicket = async (ticket: TicketInset, tasks: Array<ProjectTemp
 export const getPhases = unstable_cache(
 	async (id: string): Promise<Array<Phase & { tickets: Array<Ticket> }> | undefined> => {
 		const supabase = createClient();
-		const { data, error } = await supabase.from('phases').select('*, tickets(*)').eq('proposal', id).order('order');
+		const { data, error } = await supabase.from('phases').select('*, tickets(*, tasks(*))').eq('proposal', id).order('order');
 
 		if (!data || error) {
 			console.error(error);
@@ -149,12 +149,12 @@ export const getWorkplan = async (id: number): Promise<ProjectWorkPlan | undefin
 };
 
 export const getProposal = unstable_cache(
-	async (id: string): Promise<(Proposal & { phases: Array<Phase & { tickets: Array<Ticket> }> }) | undefined> => {
+	async (id: string): Promise<(Proposal & { phases: Array<Phase & { tickets: Array<Ticket & { tasks: Array<Task> }> }> }) | undefined> => {
 		const supabase = createClient();
 
 		const proposalWithPhasesQuery = supabase
 			.from('proposals')
-			.select('*, phases(*, tickets(*))')
+			.select('*, phases(*, tickets(*, tasks(*)))')
 			.eq('id', id)
 			.order('order', { referencedTable: 'phases', ascending: true })
 			.single();
@@ -180,7 +180,8 @@ export const getProposals = unstable_cache(
 
 		const { data: proposal, error } = await supabase
 			.from('proposals')
-			.select('*, phases(*, tickets(*))')
+			.select('*, phases(*, tickets(*, tasks(*)))')
+			.order('updated_at')
 			.order('order', { referencedTable: 'phases', ascending: true });
 
 		return proposal ?? [];
