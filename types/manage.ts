@@ -94,3 +94,11 @@ export type ProjectWorkPlan = {
 	templatedId: number;
 	phases: Array<ProjectPhase>;
 };
+
+export type CatalogItem = {
+	id: number;
+	identifier: string;
+	description: string;
+	price: number;
+	cost: number;
+};
