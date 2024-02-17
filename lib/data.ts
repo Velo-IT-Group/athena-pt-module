@@ -256,15 +256,16 @@ export const getProposals = unstable_cache(
 	async () => {
 		const supabase = createClient();
 
-		const proposalsWithSectionsQuery = supabase
-			.from('proposals')
-			.select('*, phases(*, tickets(*, tasks(*)))')
-			.order('updated_at', { ascending: false })
-			.order('order', { referencedTable: 'phases', ascending: true });
+		const proposalsWithSectionsQuery = supabase.from('proposals').select('*').order('updated_at', { ascending: false });
 
 		type ProposalWithSections = QueryData<typeof proposalsWithSectionsQuery>;
 
 		const { data: proposal, error } = await proposalsWithSectionsQuery;
+
+		if (!proposal || error) {
+			console.error(error);
+			return;
+		}
 
 		return proposal as ProposalWithSections;
 	},
