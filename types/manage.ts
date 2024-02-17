@@ -2,7 +2,8 @@ export type ProjectTemplate = {
 	id: number;
 	name: string;
 	description?: string;
-	type: ProjectType;
+	type?: ProjectType;
+	workplan: ProjectWorkPlan;
 };
 
 export type ProjectType = {
@@ -91,7 +92,7 @@ export type ProjectTemplateTask = {
 };
 
 export type ProjectWorkPlan = {
-	templatedId: number;
+	templateId: number;
 	phases: Array<ProjectPhase>;
 };
 

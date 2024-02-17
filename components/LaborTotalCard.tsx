@@ -3,6 +3,7 @@ import { handleProposalUpdate } from '@/app/actions';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { Separator } from '@/components/ui/separator';
 
 type Props = {
 	proposal: Proposal;
@@ -13,39 +14,39 @@ let USDollar = new Intl.NumberFormat('en-US', {
 	currency: 'USD',
 });
 
-const ProposalTotalCard = ({ proposal }: Props) => {
+const LaborTotalCard = ({ proposal }: Props) => {
 	return (
 		<Card>
-			<CardHeader>
+			<CardHeader className='space-y-6'>
 				<CardTitle>Totals</CardTitle>
-				<CardDescription>Deploy your new project in one-click.</CardDescription>
+				<Separator />
 			</CardHeader>
 			<CardContent>
 				<form action={handleProposalUpdate}>
 					<div className='grid w-full items-center gap-4'>
 						<input name='id' defaultValue={proposal.id} className='hidden' />
 						<div className='flex flex-col space-y-1.5'>
-							<Label htmlFor='total-labor-hours'>Total Labor Hours</Label>
+							<Label htmlFor='labor_hours'>Total Labor Hours</Label>
 							<p className='text-sm font-medium text-muted-foreground'>{proposal.labor_hours}</p>
 						</div>
 						<div className='flex flex-col space-y-1.5'>
-							<Label htmlFor='sales-labor'>Sales Ticket and Proposal Work</Label>
-							<Input name='sales-labor' type='number' defaultValue={proposal.sales_hours} placeholder='Total Labor Hours' />
+							<Label htmlFor='sales_hours'>Sales Ticket and Proposal Work</Label>
+							<Input name='sales_hours' type='number' defaultValue={proposal.sales_hours} placeholder='Total Labor Hours' />
 						</div>
 						<div className='flex flex-col space-y-1.5'>
-							<Label htmlFor='project-management'>Project Management</Label>
-							<Input name='project-management' type='number' defaultValue={proposal.management_hours} placeholder='Total Labor Hours' />
+							<Label htmlFor='management_hours'>Project Management</Label>
+							<Input name='management_hours' type='number' defaultValue={proposal.management_hours} placeholder='Total Labor Hours' />
 						</div>
 						<div className='flex flex-col space-y-1.5'>
-							<Label htmlFor='hours-required'>Hours Required</Label>
+							<Label htmlFor='hours_required'>Hours Required</Label>
 							<p className='text-sm font-medium text-muted-foreground'>{proposal.hours_required}</p>
 						</div>
 						<div className='flex flex-col space-y-1.5'>
-							<Label htmlFor='labor-rate'>Labor Rate</Label>
+							<Label htmlFor='labor_rate'>Labor Rate</Label>
 							<p className='text-sm font-medium text-muted-foreground'>{USDollar.format(Number(proposal.labor_rate))}</p>
 						</div>
 						<div className='flex flex-col space-y-1.5'>
-							<Label htmlFor='total-labor-price'>Total Labor Price</Label>
+							<Label htmlFor='total_labor_pricee'>Total Labor Price</Label>
 							<p className='text-sm font-medium text-muted-foreground'>{USDollar.format(Number(proposal.total_labor_price))}</p>
 						</div>
 					</div>
@@ -56,4 +57,4 @@ const ProposalTotalCard = ({ proposal }: Props) => {
 	);
 };
 
-export default ProposalTotalCard;
+export default LaborTotalCard;

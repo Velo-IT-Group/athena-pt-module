@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button';
 import { headers } from 'next/headers';
 import { createClient } from '@/utils/supabase/server';
 import { redirect } from 'next/navigation';
-import SubmitButton from './SubmitButton';
+import SubmitButton from '@/components/SubmitButton';
 
 export default function AuthForm({ searchParams }: { searchParams?: { message: string } }) {
 	const signIn = async (formData: FormData) => {

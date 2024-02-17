@@ -1,6 +1,6 @@
 'use client';
 import React from 'react';
-import { Draggable } from 'react-beautiful-dnd';
+import { Draggable, Droppable } from 'react-beautiful-dnd';
 import PhaseListItem from './PhaseListItem';
 
 type Props = {
@@ -9,21 +9,26 @@ type Props = {
 
 const PhasesList = ({ phases }: Props) => {
 	return (
-		<>
-			{phases?.map((phase, index) => {
-				return (
-					<Draggable key={phase.id} draggableId={phase.id} index={index}>
-						{(provided) => {
-							return (
-								<div ref={provided.innerRef} {...provided.draggableProps} {...provided.dragHandleProps}>
-									<PhaseListItem phase={phase} tickets={phase.tickets} order={index + 1} />
-								</div>
-							);
-						}}
-					</Draggable>
-				);
-			})}
-		</>
+		<Droppable droppableId='phases' type='droppablePhaseItem'>
+			{(provided) => (
+				<div {...provided.droppableProps} ref={provided.innerRef} className='overflow-scroll space-y-2'>
+					{phases?.map((phase, index) => {
+						return (
+							<Draggable key={phase.id} draggableId={phase.id} index={index}>
+								{(provided) => {
+									return (
+										<div ref={provided.innerRef} {...provided.draggableProps} {...provided.dragHandleProps}>
+											<PhaseListItem key={phase.id} phase={phase} tickets={phase.tickets} order={index + 1} />
+										</div>
+									);
+								}}
+							</Draggable>
+						);
+					})}
+					{provided.placeholder}
+				</div>
+			)}
+		</Droppable>
 	);
 };
 

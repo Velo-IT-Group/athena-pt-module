@@ -27,25 +27,63 @@ export type Database = {
 					hours: number | null;
 					id: string;
 					order: number;
-					proposal: string;
+					section: string | null;
+					strategy_ticket: string | null;
 				};
 				Insert: {
 					description: string;
 					hours?: number | null;
 					id?: string;
 					order: number;
-					proposal: string;
+					section?: string | null;
+					strategy_ticket?: string | null;
 				};
 				Update: {
 					description?: string;
 					hours?: number | null;
 					id?: string;
 					order?: number;
-					proposal?: string;
+					section?: string | null;
+					strategy_ticket?: string | null;
 				};
 				Relationships: [
 					{
-						foreignKeyName: 'phases_proposal_fkey';
+						foreignKeyName: 'public_phases_section_fkey';
+						columns: ['section'];
+						isOneToOne: false;
+						referencedRelation: 'sections';
+						referencedColumns: ['id'];
+					}
+				];
+			};
+			products: {
+				Row: {
+					catalog_item_id: number | null;
+					extended_price: number;
+					id: string;
+					price: number | null;
+					proposal: string;
+					quantity: number;
+				};
+				Insert: {
+					catalog_item_id?: number | null;
+					extended_price: number;
+					id?: string;
+					price?: number | null;
+					proposal: string;
+					quantity?: number;
+				};
+				Update: {
+					catalog_item_id?: number | null;
+					extended_price?: number;
+					id?: string;
+					price?: number | null;
+					proposal?: string;
+					quantity?: number;
+				};
+				Relationships: [
+					{
+						foreignKeyName: 'public_products_proposal_fkey';
 						columns: ['proposal'];
 						isOneToOne: false;
 						referencedRelation: 'proposals';
@@ -109,6 +147,7 @@ export type Database = {
 					name: string;
 					organization: string | null;
 					sales_hours: number;
+					service_ticket: number | null;
 					templates_used: number[] | null;
 					total_labor_price: number;
 					updated_at: string;
@@ -123,6 +162,7 @@ export type Database = {
 					name: string;
 					organization?: string | null;
 					sales_hours?: number;
+					service_ticket?: number | null;
 					templates_used?: number[] | null;
 					total_labor_price?: number;
 					updated_at?: string;
@@ -137,6 +177,7 @@ export type Database = {
 					name?: string;
 					organization?: string | null;
 					sales_hours?: number;
+					service_ticket?: number | null;
 					templates_used?: number[] | null;
 					total_labor_price?: number;
 					updated_at?: string;
@@ -147,6 +188,38 @@ export type Database = {
 						columns: ['organization'];
 						isOneToOne: false;
 						referencedRelation: 'organizations';
+						referencedColumns: ['id'];
+					}
+				];
+			};
+			sections: {
+				Row: {
+					created_at: string;
+					id: string;
+					name: string;
+					order: number;
+					proposal: string;
+				};
+				Insert: {
+					created_at?: string;
+					id?: string;
+					name: string;
+					order?: number;
+					proposal: string;
+				};
+				Update: {
+					created_at?: string;
+					id?: string;
+					name?: string;
+					order?: number;
+					proposal?: string;
+				};
+				Relationships: [
+					{
+						foreignKeyName: 'public_sections_proposal_fkey';
+						columns: ['proposal'];
+						isOneToOne: false;
+						referencedRelation: 'proposals';
 						referencedColumns: ['id'];
 					}
 				];

@@ -1,16 +1,35 @@
 import React from 'react';
-import { ProjectTemplate, ProjectWorkPlan } from '@/types/manage';
-import { getTemplates } from '@/lib/data';
+import { getProposals } from '@/lib/data';
+import { DataTable } from './data-table';
+import { columns } from './columns';
+import { Button } from '@/components/ui/button';
+import { PlusIcon } from '@radix-ui/react-icons';
+import Link from 'next/link';
 
-const ProposalPage = async () => {
-	const templates = await getTemplates();
-	// const templateResult = await fetch(`http://localhost:3000/api/templates/`);
-	// const res = await fetch(`http://localhost:3000/api/templates/93/workplan`);
+const ProposalsPage = async () => {
+	const proposals = await getProposals();
 
-	// const workPlan: ProjectWorkPlan = await res.json();
-	// const templates: Array<ProjectTemplate> = await templateResult.json();
+	if (!proposals) return <div></div>;
 
-	return <div className='grid grid-cols-4 gap-6 items-start'></div>;
+	return (
+		<div className='grid gap-4 container mx-auto'>
+			<div className='flex justify-between w-full items-center'>
+				<div>
+					<h1 className='text-3xl font-bold tracking-tight'>Proposals</h1>
+					<p>The proposals list here shows all proposals.</p>
+				</div>
+				<Button asChild>
+					<Link href='/proposal/new'>
+						<PlusIcon className='w-4 h-4 mr-2' /> Add Proposal
+					</Link>
+				</Button>
+			</div>
+
+			<div className='flex items-center justify-between gap-2'>
+				<DataTable columns={columns} data={proposals} />
+			</div>
+		</div>
+	);
 };
 
-export default ProposalPage;
+export default ProposalsPage;

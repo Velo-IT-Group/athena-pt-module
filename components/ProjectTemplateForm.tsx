@@ -1,10 +1,9 @@
-import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import type { ProjectTemplate } from '@/types/manage';
 import { Checkbox } from '@/components/ui/checkbox';
 
 export async function ProjectTemplateForm() {
-	const res = await fetch(`http://localhost:3000/api/templates`);
+	const res = await fetch(`${process.env.NEXT_PUBLIC_LOCAL_URL}/api/templates`);
 	const templates: Array<ProjectTemplate> = await res.json();
 
 	const items: Array<ProjectTemplate> = [];

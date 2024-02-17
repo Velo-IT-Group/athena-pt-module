@@ -1,4 +1,4 @@
-import type { Database as DB } from '@/types/supabase';
+import type { Database as DB, Tables } from '@/types/supabase';
 import { Tables } from '@/types/supabase';
 
 declare global {
@@ -11,6 +11,8 @@ declare global {
 	type Proposal = DB['public']['Tables']['proposals']['Row'];
 	type ProposalUpdate = DB['public']['Tables']['proposals']['Update'];
 	type ProposalInsert = DB['public']['Tables']['proposals']['Insert'];
+	type Section = Tables<'sections'>;
+	type SectionInsert = DB['public']['Tables']['sections']['Insert'];
 	type Task = DB['public']['Tables']['tasks']['Row'];
 	type TaskInsert = DB['public']['Tables']['tasks']['Insert'];
 	type TaskUpdate = DB['public']['Tables']['tasks']['Update'];

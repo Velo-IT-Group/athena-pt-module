@@ -10,6 +10,7 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { Input } from '@/components/ui/input';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { getProposal } from '@/lib/data';
+import PhasesList from '@/components/PhasesList';
 
 const discussion = [
 	{
@@ -212,7 +213,8 @@ const ProposalReviewPage = async ({ params }: Props) => {
 				<CardContent>
 					<div className='space-y-4'>
 						<Separator />
-						{proposal?.phases?.map((phase) => (
+						{/* <PhasesList phases={proposal?.phases ?? []} /> */}
+						{/* {proposal?.phases?.map((phase) => (
 							<div className='space-y-2' key={phase.id}>
 								<h3 className='text-sm font-medium tracking-tight'>{phase.description}</h3>
 								<ul className='list-disc list-inside px-4'>
@@ -223,7 +225,7 @@ const ProposalReviewPage = async ({ params }: Props) => {
 									))}
 								</ul>
 							</div>
-						))}
+						))} */}
 					</div>
 				</CardContent>
 			</Card>

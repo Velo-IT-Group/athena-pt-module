@@ -1,6 +1,6 @@
 import axios, { AxiosRequestConfig, AxiosResponse } from 'axios';
 import { CatalogItem, ProjectPhase, ProjectTemplate, ProjectTemplateTask, ProjectTemplateTicket, ProjectWorkPlan } from '@/types/manage';
-import { PostgrestError } from '@supabase/supabase-js';
+import { PostgrestError, QueryData } from '@supabase/supabase-js';
 import { createClient } from '@/utils/supabase/client';
 import { unstable_cache } from 'next/cache';
 
@@ -18,27 +18,18 @@ export const baseConfig: AxiosRequestConfig = {
 
 // CREATE FUNCTIONS
 
-export const newTemplate = async (id: number, proposal: string, startingIndex?: number): Promise<Array<Phase> | undefined> => {
-	const result = await fetch(`http://localhost:3000/api/templates/${id}/workplan`);
-	const workplan: ProjectWorkPlan = await result.json();
+export const newTemplate = async (proposal: string, template: ProjectTemplate): Promise<Array<Phase> | undefined> => {
+	const section = await createSection({ name: template.name, proposal });
 
-	if (!workplan) return;
-
-	workplan.phases.forEach((phase, index) =>
-		console.log(index, startingIndex, index + (startingIndex ?? 0), {
-			order: index + (startingIndex ?? 0),
-			proposal,
-			description: phase.description,
-		})
-	);
+	if (!section) return;
 
 	try {
 		const phases = await Promise.all(
-			workplan?.phases.map((phase: ProjectPhase, index: number) =>
+			template.workplan?.phases.map((phase: ProjectPhase, index: number) =>
 				createPhase(
 					{
-						order: index + (startingIndex ?? 0),
-						proposal,
+						order: index,
+						section: section.id,
 						description: phase.description,
 					},
 					phase.tickets
@@ -56,6 +47,18 @@ export const createTask = async (task: TaskInsert): Promise<Array<Task> | Postgr
 	const { data, error } = await supabase.from('tasks').insert(task).select();
 
 	return data ?? error;
+};
+
+export const createSection = async (section: SectionInsert): Promise<Section | undefined> => {
+	const supabase = createClient();
+	const { data, error } = await supabase.from('sections').insert(section).select().single();
+
+	if (!data || error) {
+		console.error(error);
+		return;
+	}
+
+	return data;
 };
 
 export const createTasks = async (tasks: Array<TaskInsert>): Promise<Array<Task> | PostgrestError> => {
@@ -119,7 +122,7 @@ export const createTicket = async (ticket: TicketInset, tasks: Array<ProjectTemp
 // READ FUNCTIONS
 
 export const getPhases = unstable_cache(
-	async (id: string): Promise<Array<Phase & { tickets: Array<Ticket> }> | undefined> => {
+	async (id: string): Promise<Array<Phase & { tickets: Array<Ticket & { tasks: Task[] }> }> | undefined> => {
 		const supabase = createClient();
 		const { data, error } = await supabase.from('phases').select('*, tickets(*, tasks(*))').eq('proposal', id).order('order');
 
@@ -148,33 +151,100 @@ export const getWorkplan = async (id: number): Promise<ProjectWorkPlan | undefin
 	return response.data;
 };
 
+export const getTicket = async (id: number): Promise<ProjectTemplateTicket | undefined> => {
+	var myHeaders = new Headers();
+	myHeaders.append('clientId', '9762e3fa-abbd-4179-895e-ca7b0e015ab2');
+	myHeaders.append('Authorization', 'Basic dmVsbytYMzJMQjRYeDVHVzVNRk56Olhjd3Jmd0dwQ09EaFNwdkQ=');
+
+	var requestOptions: RequestInit = {
+		method: 'GET',
+		headers: myHeaders,
+		next: {
+			tags: ['tickets'],
+		},
+	};
+
+	const response = await fetch(`https://manage.velomethod.com/v4_6_release/apis/3.0/service/tickets/${id}`, requestOptions);
+
+	return await response.json();
+};
+
+export const getTickets = async (): Promise<Array<ProjectTemplateTicket> | undefined> => {
+	var requestOptions: RequestInit = {
+		method: 'GET',
+		next: {
+			tags: ['tickets'],
+		},
+	};
+
+	try {
+		const response = await fetch(`${process.env.NEXT_PUBLIC_LOCAL_URL}/api/ticket`, requestOptions);
+		return await response.json();
+	} catch (error) {
+		console.error(error);
+	}
+};
+
 export const getProducts = async (): Promise<Array<CatalogItem> | undefined> => {
-	const result = await fetch(`http://localhost:3000/api/products`, { next: { tags: ['products'] } });
+	var myHeaders = new Headers();
+	myHeaders.append('clientId', '9762e3fa-abbd-4179-895e-ca7b0e015ab2');
+	myHeaders.append('Authorization', 'Basic dmVsbytYMzJMQjRYeDVHVzVNRk56Olhjd3Jmd0dwQ09EaFNwdkQ=');
 
-	const data = await result.json();
+	var requestOptions = {
+		method: 'GET',
+		headers: myHeaders,
+	};
 
-	return data;
+	const response = await fetch(
+		'https://manage.velomethod.com/v4_6_release/apis/3.0/procurement/catalog?conditions=inactiveFlag = false&fields=id,identifier,description,price,cost',
+		requestOptions
+	);
+
+	return await response.json();
+
+	// let config: AxiosRequestConfig = {
+	// 	...baseConfig,
+	// 	url: '/procurement/catalog',
+	// 	params: {
+	// 		conditions: 'inactiveFlag = false',
+	// 		pageSize: 1000,
+	// 		orderBy: 'description',
+	// 		fields: 'id,identifier,description,price,cost',
+	// 	},
+	// };
+
+	// try {
+	// 	const response: AxiosResponse<Array<CatalogItem>, Error> = await axios.request(config);
+	// 	return response.data;
+	// } catch (error) {
+	// 	console.error(error);
+	// 	return;
+	// }
 };
 
 export const getProposal = unstable_cache(
-	async (id: string): Promise<(Proposal & { phases: Array<Phase & { tickets: Array<Ticket & { tasks: Array<Task> }> }> }) | undefined> => {
+	async (id: string) => {
 		const supabase = createClient();
 
-		const proposalWithPhasesQuery = supabase
+		const proposalWithSectionsQuery = supabase
 			.from('proposals')
-			.select('*, phases(*, tickets(*, tasks(*)))')
+			.select('*, sections(*, phases(*, tickets(*, tasks(*))))')
 			.eq('id', id)
-			.order('order', { referencedTable: 'phases', ascending: true })
+			.order('order', { referencedTable: 'sections', ascending: true })
 			.single();
 
-		const { data: proposal, error } = await proposalWithPhasesQuery;
+		type ProposalWithSections = QueryData<typeof proposalWithSectionsQuery>;
+
+		const { data: proposal, error } = await proposalWithSectionsQuery;
 
 		if (!proposal || error) {
 			console.error(error);
 			return;
 		}
 
-		return proposal;
+		console.log(proposal);
+
+		return proposal as ProposalWithSections;
 	},
 	['proposals'],
 	{
@@ -183,16 +253,20 @@ export const getProposal = unstable_cache(
 );
 
 export const getProposals = unstable_cache(
-	async (): Promise<Array<Proposal>> => {
+	async () => {
 		const supabase = createClient();
 
-		const { data: proposal, error } = await supabase
+		const proposalsWithSectionsQuery = supabase
 			.from('proposals')
 			.select('*, phases(*, tickets(*, tasks(*)))')
-			.order('updated_at')
+			.order('updated_at', { ascending: false })
 			.order('order', { referencedTable: 'phases', ascending: true });
 
-		return proposal ?? [];
+		type ProposalWithSections = QueryData<typeof proposalsWithSectionsQuery>;
+
+		const { data: proposal, error } = await proposalsWithSectionsQuery;
+
+		return proposal as ProposalWithSections;
 	},
 	['proposals'],
 	{
@@ -200,31 +274,21 @@ export const getProposals = unstable_cache(
 	}
 );
 
-export const getTemplates = unstable_cache(
-	async (): Promise<Array<ProjectTemplate> | undefined> => {
-		let config: AxiosRequestConfig = {
-			...baseConfig,
-			url: '/project/projectTemplates',
-			params: {
-				fields: 'id,name,description',
-				pageSize: 1000,
-				orderBy: 'name',
-			},
-		};
+export const getTemplates = async (): Promise<Array<ProjectTemplate> | undefined> => {
+	var requestOptions: RequestInit = {
+		method: 'GET',
+		next: {
+			tags: ['templates'],
+		},
+	};
 
-		try {
-			const response: AxiosResponse<Array<ProjectTemplate>, Error> = await axios.request(config);
-			return response.data;
-		} catch (error) {
-			console.log(error);
-			// return error;
-		}
-	},
-	['templates'],
-	{
-		tags: ['templates'],
+	try {
+		const response = await fetch(`${process.env.NEXT_PUBLIC_LOCAL_URL}/api/templates`, requestOptions);
+		return await response.json();
+	} catch (error) {
+		console.error(error);
 	}
-);
+};
 
 // UPDATE FUNCTIONS
 
@@ -303,6 +367,16 @@ export const deletePhase = async (id: string) => {
 export const deleteTask = async (id: string) => {
 	const supabase = createClient();
 	const { error } = await supabase.from('tasks').delete().eq('id', id);
+
+	if (error) {
+		console.error(error);
+		return;
+	}
+};
+
+export const deleteSection = async (id: string) => {
+	const supabase = createClient();
+	const { error } = await supabase.from('sections').delete().eq('id', id);
 
 	if (error) {
 		console.error(error);

@@ -1,34 +1,33 @@
 'use client';
 import React from 'react';
 import TicketListItem from './TicketListItem';
-import { Input } from './ui/input';
-import { PlusIcon } from '@radix-ui/react-icons';
-import SubmitButton from './SubmitButton';
-import { handleTicketInsert } from '@/app/actions';
+import { Draggable, Droppable } from 'react-beautiful-dnd';
 
 type Props = {
 	phase: string;
-	tickets: Array<Ticket>;
+	tickets: Array<Ticket & { tasks: Task[] }>;
 };
 
 const TicketsList = ({ phase, tickets }: Props) => {
 	return (
-		<div className='space-y-2'>
-			<div className='bg-muted rounded-xl p-4 space-y-2'>
-				{tickets.map((ticket: Ticket) => (
-					<TicketListItem key={ticket.id} ticket={ticket} />
-				))}
-			</div>
-
-			<form action={handleTicketInsert} className='flex items-center gap-2'>
-				<Input name='summary' placeholder='Ticket name...' />
-				<Input name='phase' value={phase} hidden className='hidden' />
-				<Input type='number' name='order' value={tickets.length + 1} hidden className='hidden' />
-				<SubmitButton>
-					<PlusIcon className='w-4 h-4' />
-				</SubmitButton>
-			</form>
-		</div>
+		<Droppable droppableId='tickets' type={`droppableSubItem`}>
+			{(provided) => (
+				<div ref={provided.innerRef} className='overflow-scroll space-y-2'>
+					{tickets.map((ticket, index) => (
+						<Draggable key={ticket.id} draggableId={ticket.id} index={index}>
+							{(provided) => {
+								return (
+									<div ref={provided.innerRef} {...provided.draggableProps} {...provided.dragHandleProps}>
+										<TicketListItem key={ticket.id} ticket={ticket} order={index + 1} />
+									</div>
+								);
+							}}
+						</Draggable>
+					))}
+					{provided.placeholder}
+				</div>
+			)}
+		</Droppable>
 	);
 };
 

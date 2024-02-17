@@ -3,12 +3,16 @@ import { ChevronLeftIcon, DotsHorizontalIcon, GearIcon, TrashIcon } from '@radix
 import Link from 'next/link';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import React from 'react';
-import { Button } from './ui/button';
+import { Button } from '@/components/ui/button';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import ProposalDetailForm from './ProposalDetailForm';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
-import SubmitButton from './SubmitButton';
-import { handleProposalDelete } from '@/app/actions';
+import SubmitButton from '@/components/SubmitButton';
+
+let USDollar = new Intl.NumberFormat('en-US', {
+	style: 'currency',
+	currency: 'USD',
+});
 
 const ProposalHeader = async ({ id }: { id: string }) => {
 	const proposal = await getProposal(id);
@@ -16,7 +20,7 @@ const ProposalHeader = async ({ id }: { id: string }) => {
 	if (!proposal) return <div></div>;
 
 	return (
-		<header className='flex items-center gap-4 w-full px-4 h-14 border-b'>
+		<header className='flex items-center gap-4 w-full px-4 h-14 border-b bg-gray-100/40 dark:bg-gray-800/40'>
 			<Link href='/proposal'>
 				<ChevronLeftIcon strokeWidth='2' className='w-4 h-4' />
 			</Link>
@@ -44,8 +48,13 @@ const ProposalHeader = async ({ id }: { id: string }) => {
 				</Dialog>
 			</h1>
 
+			<p className='ml-auto text-sm capitalize'>
+				<span className='font-semibold'>Total: </span>
+				{USDollar.format(proposal.total_labor_price)}
+			</p>
+
 			<Select>
-				<SelectTrigger className='ml-auto w-[180px]'>
+				<SelectTrigger className='w-[180px]'>
 					<SelectValue placeholder='Select a status' />
 				</SelectTrigger>
 				<SelectContent>
@@ -74,7 +83,7 @@ const ProposalHeader = async ({ id }: { id: string }) => {
 				</DropdownMenuContent>
 			</DropdownMenu>
 
-			<Button>Send</Button>
+			{/* <Button>Send</Button> */}
 		</header>
 	);
 };

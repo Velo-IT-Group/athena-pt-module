@@ -1,43 +1,16 @@
-'use client';
 import React from 'react';
-import { Input } from './ui/input';
-import { Label } from './ui/label';
-import { cn } from '@/lib/utils';
-import { Button } from '@/components/ui/button';
-import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem } from '@/components/ui/command';
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { CaretSortIcon, CheckIcon } from '@radix-ui/react-icons';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 import { handleProposalUpdate } from '@/app/actions';
-
-const frameworks = [
-	{
-		value: 'next.js',
-		label: 'Next.js',
-	},
-	{
-		value: 'sveltekit',
-		label: 'SvelteKit',
-	},
-	{
-		value: 'nuxt.js',
-		label: 'Nuxt.js',
-	},
-	{
-		value: 'remix',
-		label: 'Remix',
-	},
-	{
-		value: 'astro',
-		label: 'Astro',
-	},
-];
+import TicketSelector from './TicketSelector';
 
 const ProposalDetailForm = ({ proposal }: { proposal: Proposal }) => {
-	const [open, setOpen] = React.useState(false);
-	const [value, setValue] = React.useState('');
-
 	return (
 		<form action={handleProposalUpdate} className='grid gap-4 py-4'>
+			<input defaultValue={proposal.id} name='id' hidden className='hidden' />
+			<input defaultValue={proposal.sales_hours} name='sales_hours' hidden className='hidden' />
+			{/* <input defaultValue={proposal.labor_rate} name='labor_rate' hidden className='hidden' /> */}
+			<input defaultValue={proposal.management_hours} name='management_hours' hidden className='hidden' />
 			<div className='grid grid-cols-4 items-center gap-4'>
 				<Label htmlFor='name' className='text-right'>
 					Name
@@ -45,10 +18,17 @@ const ProposalDetailForm = ({ proposal }: { proposal: Proposal }) => {
 				<Input id='name' defaultValue={proposal.name} className='col-span-3' />
 			</div>
 			<div className='grid grid-cols-4 items-center gap-4'>
+				<Label htmlFor='labor_rate' className='text-right'>
+					Labor Rate
+				</Label>
+				<Input name='labor_rate' defaultValue={proposal.labor_rate} type='number' className='col-span-3' />
+			</div>
+			<div className='grid grid-cols-4 items-center gap-4'>
 				<Label htmlFor='username' className='text-right'>
 					Service Ticket
 				</Label>
-				<Popover open={open} onOpenChange={setOpen}>
+				<TicketSelector />
+				{/* <Popover open={open} onOpenChange={setOpen}>
 					<PopoverTrigger asChild>
 						<Button variant='outline' role='combobox' aria-expanded={open} className='w-[200px] justify-between'>
 							{value ? frameworks.find((framework) => framework.value === value)?.label : 'Select framework...'}
@@ -76,8 +56,9 @@ const ProposalDetailForm = ({ proposal }: { proposal: Proposal }) => {
 							</CommandGroup>
 						</Command>
 					</PopoverContent>
-				</Popover>
+				</Popover> */}
 			</div>
+			<input type='submit' hidden className='hidden' />
 		</form>
 	);
 };

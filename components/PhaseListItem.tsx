@@ -1,26 +1,112 @@
+'use client';
 import React from 'react';
-import { Card, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import {
+	DropdownMenu,
+	DropdownMenuContent,
+	DropdownMenuGroup,
+	DropdownMenuItem,
+	DropdownMenuLabel,
+	DropdownMenuPortal,
+	DropdownMenuSeparator,
+	DropdownMenuShortcut,
+	DropdownMenuSub,
+	DropdownMenuSubContent,
+	DropdownMenuSubTrigger,
+	DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
+import { Button } from '@/components/ui/button';
+import { ArrowDownIcon, ArrowUpIcon, DotsHorizontalIcon, DragHandleDots2Icon } from '@radix-ui/react-icons';
+import { handlePhaseDelete } from '@/app/actions';
+import { CaretSortIcon } from '@radix-ui/react-icons';
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
+import TicketsList from './TicketsList';
+import { updatePhase } from '@/lib/data';
 
 type Props = {
 	phase: Phase;
-	tickets: Array<Ticket>;
-	ref: React.Ref<HTMLButtonElement> | undefined;
+	tickets: Array<Ticket & { tasks: Task[] }>;
+	order: number;
 };
 
-const PhaseListItem = ({ phase, tickets, ref }: Props) => {
+const PhaseListItem = ({ phase, tickets, order }: Props) => {
+	const [open, setOpen] = React.useState(false);
+	const [collapsibleOpen, setCollapsibleOpen] = React.useState(false);
+
 	return (
-		<Card className='flex'>
-			<CardHeader className='flex flex-row items-center justify-between w-full'>
-				<div className='flex flex-col items-start'>
-					<CardTitle>Phase {phase.order}</CardTitle>
-					<CardDescription>{phase?.description ?? 'New Phase'}</CardDescription>
+		<div>
+			<Collapsible open={collapsibleOpen} onOpenChange={setCollapsibleOpen} className='space-y-2'>
+				<div className='flex w-full flex-col items-start rounded-md border p-3 sm:flex-row sm:items-center gap-2 bg-muted/50'>
+					<DragHandleDots2Icon className='w-4 h-4' />
+
+					<p className='text-sm font-medium leading-none'>
+						<span className='mr-2 rounded-lg bg-primary px-2 py-1 text-xs text-primary-foreground'>Phase {order}</span>
+						<span
+							className='text-muted-foreground'
+							onBlur={(e) => {
+								if (e.currentTarget.innerText !== phase.description) {
+									console.log('updating phase');
+									updatePhase(phase.id, { description: e.currentTarget.innerText });
+								}
+							}}
+						>
+							{phase.description}
+						</span>
+					</p>
+
+					<p className='ml-auto'>
+						{phase.hours}
+						<DropdownMenu open={open} onOpenChange={setOpen}>
+							<DropdownMenuTrigger asChild>
+								<Button variant='ghost' size='sm'>
+									<DotsHorizontalIcon />
+								</Button>
+							</DropdownMenuTrigger>
+							<DropdownMenuContent align='end' className='w-[200px]'>
+								<DropdownMenuLabel>Actions</DropdownMenuLabel>
+								<DropdownMenuGroup>
+									<DropdownMenuItem>Assign to...</DropdownMenuItem>
+									<DropdownMenuItem>Set due date...</DropdownMenuItem>
+									<DropdownMenuSeparator />
+									<DropdownMenuSub>
+										<DropdownMenuSubTrigger>Move</DropdownMenuSubTrigger>
+										<DropdownMenuPortal>
+											<DropdownMenuSubContent>
+												<DropdownMenuItem>
+													Move Up
+													<DropdownMenuShortcut>
+														<ArrowUpIcon />
+													</DropdownMenuShortcut>
+												</DropdownMenuItem>
+												<DropdownMenuItem>
+													Move Down
+													<DropdownMenuShortcut>
+														<ArrowDownIcon />
+													</DropdownMenuShortcut>
+												</DropdownMenuItem>
+											</DropdownMenuSubContent>
+										</DropdownMenuPortal>
+									</DropdownMenuSub>
+									<DropdownMenuSeparator />
+									<DropdownMenuItem onClick={() => handlePhaseDelete(phase.id)} className='text-red-600'>
+										Delete
+										<DropdownMenuShortcut>⌘⌫</DropdownMenuShortcut>
+									</DropdownMenuItem>
+								</DropdownMenuGroup>
+							</DropdownMenuContent>
+						</DropdownMenu>
+					</p>
+					<CollapsibleTrigger asChild>
+						<Button variant='ghost' size='sm'>
+							<CaretSortIcon className='h-4 w-4' />
+							<span className='sr-only'>Toggle</span>
+						</Button>
+					</CollapsibleTrigger>
 				</div>
-				<div className='flex flex-col items-start'>
-					<CardTitle>Hours:</CardTitle>
-					<CardDescription>{phase.hours ?? 0}</CardDescription>
-				</div>
-			</CardHeader>
-		</Card>
+				<CollapsibleContent className='space-y-2'>
+					<TicketsList phase={phase.id} tickets={tickets} />
+				</CollapsibleContent>
+			</Collapsible>
+		</div>
 	);
 };
 

@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
-import { Label } from './ui/label';
-import { Input } from './ui/input';
-import { ScrollArea } from './ui/scroll-area';
+import { Label } from '@/components/ui/label';
+import { Input } from '@/components/ui/input';
+import { ScrollArea } from '@/components/ui/scroll-area';
 import { CatalogItem } from '@/types/manage';
 import ProductListItem from './ProductListItem';
 

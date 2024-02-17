@@ -1,11 +1,13 @@
+'use client';
 import { CaretSortIcon, CubeIcon } from '@radix-ui/react-icons';
 import React from 'react';
-import { Button } from './ui/button';
-import { Collapsible, CollapsibleContent, CollapsibleTrigger } from './ui/collapsible';
+import { Button } from '@/components/ui/button';
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import ProductsList from './ProductsList';
 import { getProducts } from '@/lib/data';
+import { CatalogItem } from '@/types/manage';
 
-const ProductCatalog = async () => {
+const ProductCatalog = ({ products }: { products: CatalogItem[] }) => {
 	// const products = await getProducts();
 
 	// if (!products) return <div></div>;
@@ -24,7 +26,7 @@ const ProductCatalog = async () => {
 			</div>
 
 			<CollapsibleContent className='h-full'>
-				<ProductsList products={[]} />
+				<ProductsList products={products} />
 			</CollapsibleContent>
 		</Collapsible>
 	);

@@ -1,6 +1,6 @@
 import React from 'react';
-import { Input } from './ui/input';
-import SubmitButton from './SubmitButton';
+import { Input } from '@/components/ui/input';
+import SubmitButton from '@/components/SubmitButton';
 import { PlusIcon } from '@radix-ui/react-icons';
 import { handleTaskInsert } from '@/app/actions';
 

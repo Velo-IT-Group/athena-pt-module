@@ -1,130 +1,216 @@
 'use client';
-import React from 'react';
-import { Draggable, Droppable } from 'react-beautiful-dnd';
-import { Card, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { PlusIcon } from '@radix-ui/react-icons';
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from './ui/tooltip';
-import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from './ui/sheet';
-import { Separator } from './ui/separator';
-import { Input } from './ui/input';
-import { handlePhaseInsert, handleProposalUpdate } from '@/app/actions';
-import { Label } from './ui/label';
-import TicketsList from './TicketsList';
-import { ScrollArea } from './ui/scroll-area';
+import React, { useState } from 'react';
+import { DragDropContext, DropResult } from 'react-beautiful-dnd';
+import SectionsList from './SectionList';
+import TemplateCatalog from '@/components/TemplateCatalog';
+import { getTemplates, updatePhase } from '@/lib/data';
+import { ProjectPhase, ProjectTemplate } from '@/types/manage';
+import { v4 as uuid } from 'uuid';
+import { FileTextIcon, PlusIcon } from '@radix-ui/react-icons';
+import SubmitButton from './SubmitButton';
+import { handleNewTemplateInsert, handleSectionInsert } from '@/app/actions';
 
 type Props = {
 	id: string;
-	phases: Array<Phase & { tickets: Array<Ticket> }>;
+	sections?: Array<Section & { phases: Array<Phase & { tickets: Array<Ticket & { tasks: Array<Task> }> }> }>;
+	templates: ProjectTemplate[];
 };
 
-const ProposalBuilder = ({ id, phases }: Props) => {
+type SectionState = {
+	newSection: Section & { phases: Array<Phase & { tickets: Array<Ticket & { tasks: Array<Task> }> }> };
+	updatedSection?: Section;
+	pending: boolean;
+};
+
+const ProposalBuilder = ({ id, sections, templates }: Props) => {
+	const [items, setItems] = useState<Array<Section & { phases: Array<Phase & { tickets: Array<Ticket & { tasks: Array<Task> }> }> }>>(sections ?? []);
+
+	// a little function to help us with reordering the result
+	const reorder = (
+		list: Array<Section & { phases: Array<Phase & { tickets: Array<Ticket & { tasks: Array<Task> }> }> }>,
+		startIndex: number,
+		endIndex: number
+	) => {
+		const result = Array.from(list);
+		const [removed] = result.splice(startIndex, 1);
+		result.splice(endIndex, 0, removed);
+		result.forEach((item, index) => (item.order = index + 1));
+
+		const changedSections: Section[] = [];
+
+		for (var i = endIndex; i < result.length; i++) {
+			// console.log(result[i], i);
+			result[i].order = i + 1;
+			changedSections.push(result[i]);
+		}
+
+		Promise.all(changedSections.map((section) => updatePhase(section.id, { order: section.order })));
+
+		return result;
+	};
+
+	const handleTemplateDrop = async (index: number) => {
+		console.log(templates, index);
+		const template = templates[index];
+		console.log(template);
+
+		if (!template) return;
+
+		const { workplan } = template;
+
+		console.log(workplan);
+
+		let mappedPhases = workplan.phases.map((phase: ProjectPhase) => {
+			const { description, wbsCode } = phase;
+			const phaseId = uuid();
+			return {
+				id: phaseId,
+				description: description,
+				hours: 0,
+				order: parseInt(wbsCode),
+				proposal: '',
+				section: '',
+				strategy_ticket: '',
+				tickets: phase.tickets.map((ticket) => {
+					const { budgetHours, wbsCode, summary } = ticket;
+					const ticketId = uuid();
+					return {
+						budget_hours: budgetHours,
+						created_at: Date(),
+						id: ticketId,
+						order: parseInt(wbsCode ?? '0'),
+						phase: phaseId,
+						summary,
+						tasks: ticket.tasks?.map((task) => {
+							const { notes, summary, priority } = task;
+							const taskId = uuid();
+							return {
+								created_at: Date(),
+								id: taskId,
+								notes,
+								priority,
+								summary,
+								ticket: ticketId,
+							};
+						}),
+					};
+				}),
+			};
+		});
+
+		console.log(mappedPhases);
+
+		// @ts-ignore
+		setItems([...items, { id: uuid(), name: template.name, created_at: Date(), order: items.length + 1, phases: mappedPhases, proposal: id }]);
+
+		// const something: { template: ProjectTemplate; workplan: ProjectWorkPlan } = { template: { id: 1, name: '' }, workplan };
+
+		// addOptimistic(something);
+
+		// console.log(workplan.phases, workplan.phases.length);
+		// const offset = destination.index === 0 ? 1 : workplan.phases.length + 1;
+		// console.log(offset);
+		// const reorderedItems = presort(optimisticState, destination.index, offset);
+		// addOptimistic(reorderedItems);
+		// opt(reorderedItems);
+
+		const section = await handleNewTemplateInsert(id, template);
+		// let createdPhases = phases as unknown as Array<Phase & { tickets: Array<Ticket> }>;
+		// setItems([...items, createdPhases]);
+
+		// reorder(items, startIndex, endIndex);
+
+		return;
+	};
+
+	async function onDragEnd(result: DropResult) {
+		const { destination, source } = result;
+		console.log(source);
+
+		if (source.droppableId === destination?.droppableId && source.index === destination?.index) return;
+
+		// handle dropping a template onto proposal
+		if (!destination && source.droppableId === 'templates') {
+			console.log('running func');
+			await handleTemplateDrop(source.index);
+			return;
+		}
+
+		// handle dropping a template onto proposal
+		if (destination?.droppableId === 'sections' && source.droppableId === 'templates') {
+			await handleTemplateDrop(source.index);
+			return;
+		}
+
+		// handle reording tickets
+		if (destination?.droppableId === 'tickets' && source.droppableId === 'tickets') {
+			return;
+		}
+
+		if (!destination) return;
+
+		const reorderedItems = reorder(items, source.index, destination.index);
+
+		setItems(reorderedItems);
+	}
+
 	return (
-		<Droppable droppableId='phases' type='group'>
-			{(provided) => (
-				<div {...provided.droppableProps} ref={provided.innerRef} className='bg-muted rounded-xl p-4 overflow-scroll'>
-					{phases && phases.length > 0 ? (
-						<ul className='h-full rounded-xl space-y-4'>
-							{phases?.map((phase, index) => {
-								phase;
-								var tickets = phase.tickets ?? [];
-								return (
-									<Sheet key={phase.id}>
-										<SheetTrigger className='w-full'>
-											<Draggable key={phase.id} draggableId={phase.id} index={index}>
-												{(provided) => {
-													return (
-														<Card className='flex' ref={provided.innerRef} {...provided.draggableProps} {...provided.dragHandleProps}>
-															<CardHeader className='flex flex-row items-center justify-between w-full'>
-																<div className='flex flex-col items-start'>
-																	<CardTitle>Phase {phase.order}</CardTitle>
-																	<CardDescription>{phase?.description ?? 'New Phase'}</CardDescription>
-																</div>
-																<div className='flex flex-col items-start'>
-																	<CardTitle>Hours:</CardTitle>
-																	<CardDescription>{phase.hours ?? 0}</CardDescription>
-																</div>
-															</CardHeader>
-														</Card>
-													);
-												}}
-											</Draggable>
-										</SheetTrigger>
-										<SheetContent className='w-[400px] sm:w-[540px] max-w-none'>
-											<SheetHeader>
-												<SheetTitle>{phase.description}</SheetTitle>
+		<DragDropContext onDragEnd={onDragEnd}>
+			<div className='h-full'>
+				<div className='flex items-start gap-4 h-full'>
+					<div className='border-r h-full'>
+						<TemplateCatalog templates={templates ?? []} />
+					</div>
+					<div className='w-full h-full space-y-4'>
+						<h1 className='text-2xl font-semibold'>Workplan</h1>
+						{items.length ? (
+							<div className='bg-muted rounded-xl p-4 h-full overflow-scroll'>
+								<SectionsList sections={items} />
+							</div>
+						) : (
+							<form
+								action={handleSectionInsert}
+								onSubmit={(event) => {
+									event.preventDefault();
+									let formData = new FormData(event.currentTarget);
+									let newSection: Section = {
+										id: uuid(),
+										name: 'New Section',
+										created_at: Date(),
+										order: 0,
+										proposal: id,
+									};
 
-												<div className='grid grid-cols-2 w-full gap-4'>
-													<Card>
-														<CardHeader>
-															<CardDescription>Total Hours</CardDescription>
-															<CardTitle>{phase.hours ?? 0}</CardTitle>
-														</CardHeader>
-													</Card>
-													<Card>
-														<CardHeader>
-															<CardDescription>Total Tickets</CardDescription>
-															<CardTitle>{tickets.length ?? 0}</CardTitle>
-														</CardHeader>
-													</Card>
-												</div>
+									// @ts-ignore
+									setItems([...items, newSection]);
 
-												<h2 className='font-semibold'>Details</h2>
-												<form action={handleProposalUpdate}>
-													<Input hidden name='id' value={phase.id} readOnly className='hidden' />
-													<div className='grid w-full max-w-sm items-center gap-1.5'>
-														<Label htmlFor='description'>Description</Label>
-														<Input name='description' id='description' defaultValue={phase.description} placeholder='Name goes here...' />
-													</div>
+									// formRef.current?.reset();
+									// startTransition(async () => {
+									// 	mutate({
+									// 		newFeature,
+									// 		pending: true,
+									// 	});
 
-													<Input type='submit' className='hidden' />
-												</form>
+									// 	await saveFeature(newFeature, formData);
+									// });
+								}}
+								className='h-full border border-dotted flex flex-col justify-center items-center gap-4 rounded-xl'
+							>
+								<div className=' p-6 bg-muted rounded-full'>
+									<FileTextIcon className='h-8 w-8' />
+								</div>
 
-												<Separator />
-
-												<div className='space-y-2'>
-													<h3 className='font-medium'>Tickets</h3>
-													<TicketsList tickets={tickets} phase={phase.id} />
-													{/* <div className='bg-muted rounded-xl p-2 space-y-2'>
-															{tickets.map((ticket: Ticket) => (
-																<TicketListItem key={ticket.id} ticket={ticket} />
-															))}
-														</div> */}
-												</div>
-											</SheetHeader>
-											{/* <SheetFooter>
-													<TooltipProvider>
-														<Tooltip>
-															<TooltipTrigger className='w-full' asChild>
-																<form action={handleTicketInsert}>
-																	<input name='phase' value={item.id} className='hidden' />
-																	<input name='summary' value={'New Ticket'} className='hidden' />
-																	<input name='order' value={tickets.length + 1} className='hidden' />
-																	<Button variant='outline' size='icon'>
-																		<PlusIcon className='h-4 w-4' />
-																	</Button>
-																</form>
-															</TooltipTrigger>
-															<TooltipContent>
-																<p>Add new ticket</p>
-															</TooltipContent>
-														</Tooltip>
-													</TooltipProvider>
-												</SheetFooter> */}
-										</SheetContent>
-									</Sheet>
-								);
-							})}
-							{provided.placeholder}
-						</ul>
-					) : (
-						<div className='flex items-center justify-center w-full border border-dashed rounded-xl p-4'>
-							<p className='text-muted-foreground'>Drag a template here or create a new ticket by clicking the plus button below</p>
-						</div>
-					)}
+								<h3 className='text-lg font-medium'>Nothing to show yet</h3>
+								<span className='text-muted-foreground'>Drag a template from the left sidebar to begin.</span>
+								<SubmitButton>
+									<PlusIcon className='w-4 h-4 mr-2' /> Add Section
+								</SubmitButton>
+							</form>
+						)}
+					</div>
 				</div>
-			)}
-		</Droppable>
+			</div>
+		</DragDropContext>
 	);
 };
 

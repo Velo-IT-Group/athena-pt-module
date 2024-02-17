@@ -1,6 +1,4 @@
 'use client';
-
-import { handleProposalDelete, handleSectionDelete } from '@/app/actions';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import {
@@ -11,12 +9,11 @@ import {
 	DropdownMenuSeparator,
 	DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { relativeDate } from '@/utils/date';
+import { CatalogItem } from '@/types/manage';
 import { CaretSortIcon, DotsHorizontalIcon } from '@radix-ui/react-icons';
 import { ColumnDef } from '@tanstack/react-table';
-import Link from 'next/link';
 
-export const columns: ColumnDef<Proposal>[] = [
+export const columns: ColumnDef<CatalogItem>[] = [
 	{
 		id: 'select',
 		header: ({ table }) => (
@@ -31,17 +28,7 @@ export const columns: ColumnDef<Proposal>[] = [
 		enableHiding: false,
 	},
 	{
-		accessorKey: 'id',
-		header: 'Proposal #',
-		cell: ({ row }) => <Link href={`/proposal/${row.getValue('id')}`}>{row.getValue('name')}</Link>,
-	},
-	{
-		accessorKey: 'status',
-		header: 'Status',
-		cell: ({ row }) => <div className='capitalize'>Draft</div>,
-	},
-	{
-		accessorKey: 'name',
+		accessorKey: 'description',
 		header: ({ column }) => {
 			return (
 				<Button variant='ghost' onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}>
@@ -50,13 +37,13 @@ export const columns: ColumnDef<Proposal>[] = [
 				</Button>
 			);
 		},
-		cell: ({ row }) => <Link href={`/proposal/${row.getValue('id')}`}>{row.getValue('name')}</Link>,
+		cell: ({ row }) => <div>{row.getValue('description')}</div>,
 	},
 	{
-		accessorKey: 'total_labor_price',
-		header: () => <div className='text-right'>Amount</div>,
+		accessorKey: 'cost',
+		header: () => <div className='text-right'>Cost</div>,
 		cell: ({ row }) => {
-			const amount = parseFloat(row.getValue('total_labor_price'));
+			const amount = parseFloat(row.getValue('cost'));
 
 			// Format the amount as a dollar amount
 			const formatted = new Intl.NumberFormat('en-US', {
@@ -68,13 +55,18 @@ export const columns: ColumnDef<Proposal>[] = [
 		},
 	},
 	{
-		accessorKey: 'updated_at',
-		header: () => <div className='text-right'>Updated At</div>,
+		accessorKey: 'price',
+		header: () => <div className='text-right'>Price</div>,
 		cell: ({ row }) => {
-			const updated_at = row.getValue('updated_at') as string;
-			const date = new Date(updated_at);
+			const amount = parseFloat(row.getValue('price'));
 
-			return <div className='text-right font-medium'>{relativeDate(date)}</div>;
+			// Format the amount as a dollar amount
+			const formatted = new Intl.NumberFormat('en-US', {
+				style: 'currency',
+				currency: 'USD',
+			}).format(amount);
+
+			return <div className='text-right font-medium'>{formatted}</div>;
 		},
 	},
 	{
@@ -93,11 +85,10 @@ export const columns: ColumnDef<Proposal>[] = [
 					</DropdownMenuTrigger>
 					<DropdownMenuContent align='end'>
 						<DropdownMenuLabel>Actions</DropdownMenuLabel>
-						<DropdownMenuItem onClick={() => navigator.clipboard.writeText(payment.id)}>Copy payment ID</DropdownMenuItem>
+						<DropdownMenuItem onClick={() => navigator.clipboard.writeText(String(payment.id))}>Copy payment ID</DropdownMenuItem>
 						<DropdownMenuSeparator />
 						<DropdownMenuItem>View customer</DropdownMenuItem>
 						<DropdownMenuItem>View payment details</DropdownMenuItem>
-						<DropdownMenuItem onClick={() => handleProposalDelete(payment.id)}>Delete</DropdownMenuItem>
 					</DropdownMenuContent>
 				</DropdownMenu>
 			);

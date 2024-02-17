@@ -1,6 +1,6 @@
-import { ProjectTemplate } from '@/types/manage';
 import axios, { AxiosRequestConfig, AxiosResponse } from 'axios';
 import { baseConfig } from '@/lib/data';
+import { ProjectTemplate, ProjectWorkPlan } from '@/types/manage';
 
 export async function GET(request: Request) {
 	let config: AxiosRequestConfig = {
@@ -14,8 +14,19 @@ export async function GET(request: Request) {
 	};
 
 	try {
-		const response: AxiosResponse<ProjectTemplate, Error> = await axios.request(config);
-		return Response.json(response.data);
+		const response: AxiosResponse<Array<ProjectTemplate>, Error> = await axios.request(config);
+		const workplans = await Promise.all(
+			response.data.map(({ id }) => axios.request<ProjectWorkPlan>({ ...baseConfig, url: `/project/projectTemplates/${id}/workplan` }))
+		);
+
+		const mappedTemplates = response.data.map((template) => {
+			return {
+				...template,
+				workplan: workplans.find((workplan) => workplan.data.templateId === template.id)?.data,
+			};
+		});
+
+		return Response.json(mappedTemplates);
 	} catch (error) {
 		return new Response(`Error: ${error}`, {
 			status: 400,

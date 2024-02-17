@@ -2,15 +2,19 @@ import React from 'react';
 import { ProjectTemplate } from '@/types/manage';
 import { Select, SelectContent, SelectGroup, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Input } from '@/components/ui/input';
-import SubmitButton from './SubmitButton';
-import { Label } from './ui/label';
+import SubmitButton from '@/components/SubmitButton';
+import { Label } from '@/components/ui/label';
 import { handleProposalInsert } from '@/app/actions';
+import { getTickets } from '@/lib/data';
+import TicketSelector from './TicketSelector';
 
 type Props = {
 	templates: Array<ProjectTemplate>;
 };
 
-const NewProposalForm = ({ templates }: Props) => {
+const NewProposalForm = async ({ templates }: Props) => {
+	const tickets = await getTickets();
+
 	return (
 		<form action={handleProposalInsert} className='space-y-8'>
 			<div>
@@ -42,6 +46,11 @@ const NewProposalForm = ({ templates }: Props) => {
 						</SelectGroup>
 					</SelectContent>
 				</Select> */}
+			</div>
+
+			<div className='w-full'>
+				<Label htmlFor='project_templates'>Project Template</Label>
+				<TicketSelector tickets={tickets ?? []} />
 			</div>
 
 			<SubmitButton tabIndex={3}>Submit</SubmitButton>
