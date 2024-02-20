@@ -7,7 +7,7 @@ export async function GET(request: Request) {
 		...baseConfig,
 		url: '/service/tickets',
 		params: {
-			conditions: 'closedFlag = false and board/id = 38 and type/id = 200',
+			conditions: "closedFlag = false and board/id = 38 and type/id = 200 and summary contains 'Proposal'",
 			pageSize: 1000,
 			orderBy: 'id',
 		},

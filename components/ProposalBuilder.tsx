@@ -17,7 +17,7 @@ type Props = {
 };
 
 type SectionState = {
-	newSection: Section & { phases: Array<Phase & { tickets: Array<Ticket & { tasks: Array<Task> }> }> };
+	newSection: Section & { phases: Array<Phase & { tickets: Array<Ticket & { tasks: Task[] }> }> };
 	updatedSection?: Section;
 	pending: boolean;
 };
@@ -123,11 +123,29 @@ const ProposalBuilder = ({ id, sections, templates }: Props) => {
 		return;
 	};
 
+	const phaseReorder = async (parentId: string, sourceIndex: number, destinationIndex: number) => {
+		const itemSubItemMap = items.reduce((acc: any, item) => {
+			acc[item.id] = item.phases;
+			return acc;
+		}, {});
+
+		const subItemsForCorrespondingParent = itemSubItemMap[parentId];
+		const reorderedSubItems: any = reorder(subItemsForCorrespondingParent, sourceIndex, destinationIndex);
+		let newItems = [...items];
+		newItems = newItems.map((item) => {
+			if (item.id === parentId) {
+				item.phases = reorderedSubItems;
+			}
+			return item;
+		});
+		setItems(newItems);
+
+		return;
+	};
+
 	async function onDragEnd(result: DropResult) {
 		const { destination, source } = result;
-		console.log(source);
-
-		if (source.droppableId === destination?.droppableId && source.index === destination?.index) return;
+		console.log(result);
 
 		// handle dropping a template onto proposal
 		if (!destination && source.droppableId === 'templates') {
@@ -135,6 +153,17 @@ const ProposalBuilder = ({ id, sections, templates }: Props) => {
 			await handleTemplateDrop(source.index);
 			return;
 		}
+
+		if (!destination) return;
+
+		if (result.type.includes('droppablePhaseItem')) {
+			const parentId = result.type.split('_')[1];
+			console.log(parentId, source.index, destination?.index);
+
+			phaseReorder(parentId, source.index, destination?.index);
+		}
+
+		if (source.droppableId === destination?.droppableId && source.index === destination?.index) return;
 
 		// handle dropping a template onto proposal
 		if (destination?.droppableId === 'sections' && source.droppableId === 'templates') {
@@ -147,8 +176,6 @@ const ProposalBuilder = ({ id, sections, templates }: Props) => {
 			return;
 		}
 
-		if (!destination) return;
-
 		const reorderedItems = reorder(items, source.index, destination.index);
 
 		setItems(reorderedItems);
@@ -157,56 +184,52 @@ const ProposalBuilder = ({ id, sections, templates }: Props) => {
 	return (
 		<DragDropContext onDragEnd={onDragEnd}>
 			<div className='h-full'>
-				<div className='flex items-start gap-4 h-full'>
+				<div className='flex items-start h-full'>
 					<div className='border-r h-full'>
 						<TemplateCatalog templates={templates ?? []} />
 					</div>
-					<div className='w-full h-full space-y-4'>
-						<h1 className='text-2xl font-semibold'>Workplan</h1>
-						{items.length ? (
-							<div className='bg-muted rounded-xl p-4 h-full overflow-scroll'>
-								<SectionsList sections={items} />
-							</div>
-						) : (
-							<form
-								action={handleSectionInsert}
-								onSubmit={(event) => {
-									event.preventDefault();
-									let formData = new FormData(event.currentTarget);
-									let newSection: Section = {
-										id: uuid(),
-										name: 'New Section',
-										created_at: Date(),
-										order: 0,
-										proposal: id,
-									};
+					<div className='w-full h-full overflow-hidden'>
+						<div className='h-full flex w-full'>
+							<div className='h-full w-full flex'>
+								<div className='flex flex-col flex-grow py-8 px-4 space-y-2'>
+									<h1 className='text-2xl font-semibold'>Workplan</h1>
+									{items.length ? (
+										<div className='bg-muted/50 rounded-xl p-4 h-full overflow-y-scroll scroll-m-4 pr-0'>
+											<SectionsList sections={items} />
+										</div>
+									) : (
+										<form
+											action={handleSectionInsert}
+											onSubmit={(event) => {
+												event.preventDefault();
+												let formData = new FormData(event.currentTarget);
+												let newSection: Section = {
+													id: uuid(),
+													name: 'New Section',
+													created_at: Date(),
+													order: 0,
+													proposal: id,
+												};
 
-									// @ts-ignore
-									setItems([...items, newSection]);
+												// @ts-ignore
+												setItems([...items, newSection]);
+											}}
+											className='h-full border border-dotted flex flex-col justify-center items-center gap-4 rounded-xl'
+										>
+											<div className=' p-6 bg-muted rounded-full'>
+												<FileTextIcon className='h-8 w-8' />
+											</div>
 
-									// formRef.current?.reset();
-									// startTransition(async () => {
-									// 	mutate({
-									// 		newFeature,
-									// 		pending: true,
-									// 	});
-
-									// 	await saveFeature(newFeature, formData);
-									// });
-								}}
-								className='h-full border border-dotted flex flex-col justify-center items-center gap-4 rounded-xl'
-							>
-								<div className=' p-6 bg-muted rounded-full'>
-									<FileTextIcon className='h-8 w-8' />
+											<h3 className='text-lg font-medium'>Nothing to show yet</h3>
+											<span className='text-muted-foreground'>Drag a template from the left sidebar to begin.</span>
+											<SubmitButton>
+												<PlusIcon className='w-4 h-4 mr-2' /> Add Section
+											</SubmitButton>
+										</form>
+									)}
 								</div>
-
-								<h3 className='text-lg font-medium'>Nothing to show yet</h3>
-								<span className='text-muted-foreground'>Drag a template from the left sidebar to begin.</span>
-								<SubmitButton>
-									<PlusIcon className='w-4 h-4 mr-2' /> Add Section
-								</SubmitButton>
-							</form>
-						)}
+							</div>
+						</div>
 					</div>
 				</div>
 			</div>

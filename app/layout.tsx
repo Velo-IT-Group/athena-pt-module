@@ -4,6 +4,7 @@ import './globals.css';
 import { Toaster } from '@/components/ui/toaster';
 import NavHeader from '@/components/NavHeader';
 import { ThemeProvider } from '@/components/ThemeProvider';
+import { SpeedInsights } from '@vercel/speed-insights/next';
 
 const inter = Inter({ subsets: ['latin'] });
 
@@ -15,10 +16,11 @@ export const metadata: Metadata = {
 export default function RootLayout({ children }: { children: React.ReactNode }) {
 	return (
 		<html lang='en' className={inter.className}>
-			<body className='h-screen overflow-hidden'>
+			<body className='min-h-full relative max-w-full overflow-hidden'>
 				<ThemeProvider attribute='class' defaultTheme='system' enableSystem disableTransitionOnChange>
 					{children}
 					<Toaster />
+					<SpeedInsights />
 				</ThemeProvider>
 			</body>
 		</html>

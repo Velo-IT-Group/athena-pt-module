@@ -14,11 +14,7 @@ const ProposalWorkplanPage = async ({ params }: Props) => {
 
 	const { sections } = proposal;
 
-	return (
-		<div className='w-full h-full'>
-			<ProposalBuilder id={params.id} sections={sections} templates={templates ?? []} />
-		</div>
-	);
+	return <ProposalBuilder id={params.id} sections={sections} templates={templates ?? []} />;
 };
 
 export default ProposalWorkplanPage;

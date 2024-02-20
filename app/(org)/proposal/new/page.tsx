@@ -1,12 +1,11 @@
 import React from 'react';
 import { CardTitle, CardDescription, CardHeader, CardContent, Card } from '@/components/ui/card';
 import NewProposalForm from '@/components/NewProposalForm';
-import { getTemplates } from '@/lib/data';
+import { getTemplates, getTickets } from '@/lib/data';
 
 const NewPage = async () => {
 	const templates = await getTemplates();
-
-	if (!templates) return <div></div>;
+	const tickets = await getTickets();
 
 	return (
 		<Card className='mx-auto max-w-3xl'>
@@ -15,7 +14,7 @@ const NewPage = async () => {
 				<CardDescription>Create a new proposal by adding a name, selecting a template, and adding products</CardDescription>
 			</CardHeader>
 			<CardContent className='space-y-4'>
-				<NewProposalForm templates={templates} />
+				<NewProposalForm templates={templates ?? []} tickets={tickets ?? []} />
 			</CardContent>
 		</Card>
 	);

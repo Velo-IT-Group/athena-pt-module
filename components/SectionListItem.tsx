@@ -29,8 +29,8 @@ const SectionListItem = ({ section, phases }: Props) => {
 							<DropdownMenuItem onClick={() => handleSectionDelete(section.id)}>Delete</DropdownMenuItem>
 						</DropdownMenuContent>
 					</DropdownMenu>
-					<CollapsibleTrigger>
-						<Button variant='ghost' size='sm' className='ml-auto'>
+					<CollapsibleTrigger asChild>
+						<Button variant='ghost' size='sm'>
 							<CaretSortIcon className='h-4 w-4' />
 							<span className='sr-only'>Toggle</span>
 						</Button>
@@ -40,7 +40,7 @@ const SectionListItem = ({ section, phases }: Props) => {
 				<CollapsibleContent>
 					<CardContent>
 						<div className='space-y-2'>
-							{phases && phases.length ? <PhasesList phases={phases} /> : <div className='p-8 rounded-xl bg-muted'></div>}
+							{phases && phases.length ? <PhasesList phases={phases} id={section.id} /> : <div className='p-8 rounded-xl bg-muted'></div>}
 						</div>
 					</CardContent>
 				</CollapsibleContent>

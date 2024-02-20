@@ -4,12 +4,13 @@ import { Draggable, Droppable } from 'react-beautiful-dnd';
 import PhaseListItem from './PhaseListItem';
 
 type Props = {
+	id: string;
 	phases: Array<Phase & { tickets: Array<Ticket & { tasks: Array<Task> }> }>;
 };
 
-const PhasesList = ({ phases }: Props) => {
+const PhasesList = ({ id, phases }: Props) => {
 	return (
-		<Droppable droppableId='phases' type='droppablePhaseItem'>
+		<Droppable droppableId='phases' type={`droppablePhaseItem_${id}`}>
 			{(provided) => (
 				<div {...provided.droppableProps} ref={provided.innerRef} className='overflow-scroll space-y-2'>
 					{phases?.map((phase, index) => {

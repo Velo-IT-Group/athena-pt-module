@@ -16,7 +16,7 @@ const ProposalIdLayout = async ({ params, children }: Props) => {
 		<div className='h-screen flex flex-col items-start w-full border-b overflow-hidden'>
 			<ProposalHeader id={id} />
 			<ProposalTabs id={id} />
-			<div className='p-4 w-full h-full'>{children}</div>
+			<div className='w-full h-full overflow-hidden'>{children}</div>
 		</div>
 	);
 };

@@ -14,24 +14,26 @@ import {
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Input } from '@/components/ui/input';
 import { DropdownMenu, DropdownMenuCheckboxItem, DropdownMenuContent, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
-import { ChevronDownIcon, MinusIcon, PlusIcon } from '@radix-ui/react-icons';
+import { ChevronDownIcon } from '@radix-ui/react-icons';
 import { Button } from '@/components/ui/button';
-import React from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import React, { useEffect } from 'react';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import ProductListItem from '@/components/ProductListItem';
+import { getCurrencyString } from '@/utils/money';
 import { CatalogItem } from '@/types/manage';
 
 interface DataTableProps<TData, TValue> {
 	columns: ColumnDef<TData, TValue>[];
 	data: TData[];
+	products?: Product[];
 }
 
-export function DataTable<TData, TValue>({ columns, data }: DataTableProps<TData, TValue>) {
+export function DataTable<TData, TValue>({ columns, data, products }: DataTableProps<TData, TValue>) {
+	const [optimisticProducts, setOptimisticProducts] = React.useState<Product[]>(products ?? []);
 	const [sorting, setSorting] = React.useState<SortingState>([]);
 	const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([]);
 	const [columnVisibility, setColumnVisibility] = React.useState<VisibilityState>({});
 	const [rowSelection, setRowSelection] = React.useState({});
-	const [products, setProducts] = React.useState<Array<CatalogItem>>([]);
 
 	const table = useReactTable({
 		data,
@@ -52,9 +54,16 @@ export function DataTable<TData, TValue>({ columns, data }: DataTableProps<TData
 		},
 	});
 
+	useEffect(() => {
+		const keys = Object.keys(rowSelection);
+		const catalogItem: CatalogItem = data[parseInt(keys.pop())] as CatalogItem;
+		if (!catalogItem) return;
+		setOptimisticProducts([...optimisticProducts, { id: String(catalogItem?.id), extended_price: catalogItem?.price, proposal: '', quantity: 1 }]);
+	}, [rowSelection]);
+
 	return (
-		<div className='w-full grid grid-cols-5 gap-4 items-start'>
-			<div className='w-full col-span-4'>
+		<div className='w-full grid grid-cols-7 gap-4 items-start'>
+			<div className='w-full col-span-5'>
 				<div className='flex items-center py-4'>
 					<Input
 						placeholder='Filter proposals...'
@@ -78,7 +87,7 @@ export function DataTable<TData, TValue>({ columns, data }: DataTableProps<TData
 											key={column.id}
 											className='capitalize'
 											checked={column.getIsVisible()}
-											onCheckedChange={(value) => column.toggleVisibility(!!value)}
+											onCheckedChange={(value: any) => column.toggleVisibility(!!value)}
 										>
 											{column.id}
 										</DropdownMenuCheckboxItem>
@@ -135,27 +144,16 @@ export function DataTable<TData, TValue>({ columns, data }: DataTableProps<TData
 					</div>
 				</div>
 			</div>
-			<Card>
+			<Card className='col-span-2'>
 				<CardHeader>
-					<CardTitle>{products.length} added</CardTitle>
+					<CardTitle>{products?.length ?? 0} added</CardTitle>
+					<CardDescription>
+						{getCurrencyString(products?.reduce((accumulator, currentValue) => accumulator + (currentValue?.price ?? 0), 0) ?? 0)}
+					</CardDescription>
 				</CardHeader>
 				<CardContent>
-					{products.map((product) => {
-						return (
-							<ProductListItem key={product.id} description={product.description} />
-							// <div key={row.getValue('id')}>
-							// 	<div className='text-sm'>{row.getValue('description')}</div>
-							// 	<div className='flex items-center space-x-2'>
-							// 		<Button variant='outline' size='sm' onClick={(e) => console.log(e)} disabled={!table.getCanPreviousPage()}>
-							// 			<MinusIcon className='w-4 h-4' />
-							// 		</Button>
-							// 		<Input defaultValue={1} type='number' />
-							// 		<Button variant='outline' size='sm' onClick={(e) => console.log(e)} disabled={!table.getCanNextPage()}>
-							// 			<PlusIcon className='w-4 h-4' />
-							// 		</Button>
-							// 	</div>
-							// </div>
-						);
+					{optimisticProducts?.map((product) => {
+						return <ProductListItem key={product.id} description={product.id} />;
 					})}
 				</CardContent>
 			</Card>

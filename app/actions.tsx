@@ -9,6 +9,7 @@ import {
 	deleteProposal,
 	deleteSection,
 	deleteTicket,
+	getTemplate,
 	newTemplate,
 	updatePhase,
 	updateProposal,
@@ -46,6 +47,8 @@ export const handleTicketInsert = async (formData: FormData) => {
 	const order = formData.get('order') as unknown as number;
 	const phase = formData.get('phase') as string;
 
+	console.log(summary, budget_hours, order, phase);
+
 	await createTicket({ summary, order: order ?? 0, budget_hours: budget_hours ?? 0, phase }, []);
 
 	revalidateTag('tickets');
@@ -69,8 +72,9 @@ export const handleTaskInsert = async (formData: FormData) => {
 export const handlePhaseInsert = async (formData: FormData) => {
 	const description = formData.get('description') as string;
 	const order = formData.get('order') as unknown as number;
+	const section = formData.get('section') as string;
 
-	await createPhase({ description, order }, []);
+	await createPhase({ description, order, section }, []);
 
 	revalidateTag('proposals');
 	revalidateTag('phases');
@@ -108,12 +112,13 @@ export const handleSectionDelete = async (id: string) => {
 
 export const handleProposalUpdate = async (formData: FormData) => {
 	const id = formData.get('id') as string;
+	const name = formData.get('name') as string;
 	const sales_hours = formData.get('sales_hours') as unknown as number;
 	const management_hours = formData.get('management_hours') as unknown as number;
 	const labor_rate = formData.get('labor_rate') as unknown as number;
 	const service_ticket = formData.get('service_ticket') as unknown as number;
-	console.log(id, sales_hours, management_hours, labor_rate, service_ticket);
-	await updateProposal(id, { sales_hours, management_hours, labor_rate, service_ticket });
+	console.log(id, name, sales_hours, management_hours, labor_rate, service_ticket);
+	await updateProposal(id, { name, sales_hours, management_hours, labor_rate, service_ticket });
 
 	revalidateTag('proposals');
 };
@@ -130,9 +135,15 @@ export const handleProposalInsert = async (formData: FormData) => {
 		return redirect(`/proposal/new?message=Couldnt create proposal`);
 	}
 
-	// if (templates_used) {
-	// 	await Promise.all(templates_used.map((template) => newTemplate(template, proposal.id)));
-	// }
+	console.log(proposal);
+
+	if (templates_used) {
+		const templates = await Promise.all(templates_used.map((template) => getTemplate(template)));
+		console.log('TEMPLATES', templates);
+		if (templates && templates.length) {
+			await Promise.all(templates.map((template) => newTemplate(proposal.id, template!)));
+		}
+	}
 
 	revalidateTag('proposals');
 
@@ -143,9 +154,7 @@ export const handleSectionInsert = async (formData: FormData) => {
 	const name = formData.get('name') as string;
 	const proposal = formData.get('proposal') as string;
 	const order = formData.get('order') as unknown as number;
-
 	await createSection({ name, proposal, order });
-
 	revalidateTag('proposals');
 };
 

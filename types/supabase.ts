@@ -24,27 +24,24 @@ export type Database = {
 			phases: {
 				Row: {
 					description: string;
-					hours: number | null;
+					hours: number;
 					id: string;
 					order: number;
-					section: string | null;
-					strategy_ticket: string | null;
+					section: string;
 				};
 				Insert: {
 					description: string;
-					hours?: number | null;
+					hours?: number;
 					id?: string;
-					order: number;
-					section?: string | null;
-					strategy_ticket?: string | null;
+					order?: number;
+					section: string;
 				};
 				Update: {
 					description?: string;
-					hours?: number | null;
+					hours?: number;
 					id?: string;
 					order?: number;
-					section?: string | null;
-					strategy_ticket?: string | null;
+					section?: string;
 				};
 				Relationships: [
 					{
@@ -138,6 +135,7 @@ export type Database = {
 			};
 			proposals: {
 				Row: {
+					company_name: string | null;
 					created_at: string;
 					hours_required: number | null;
 					id: string;
@@ -153,6 +151,7 @@ export type Database = {
 					updated_at: string;
 				};
 				Insert: {
+					company_name?: string | null;
 					created_at?: string;
 					hours_required?: number | null;
 					id?: string;
@@ -168,6 +167,7 @@ export type Database = {
 					updated_at?: string;
 				};
 				Update: {
+					company_name?: string | null;
 					created_at?: string;
 					hours_required?: number | null;
 					id?: string;
@@ -286,7 +286,7 @@ export type Database = {
 				};
 				Relationships: [
 					{
-						foreignKeyName: 'tickets_phase_fkey';
+						foreignKeyName: 'public_tickets_phase_fkey';
 						columns: ['phase'];
 						isOneToOne: false;
 						referencedRelation: 'phases';
