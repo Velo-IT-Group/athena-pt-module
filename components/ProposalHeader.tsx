@@ -36,7 +36,7 @@ const ProposalHeader = async ({ id }: { id: string }) => {
 					{USDollar.format(proposal.total_labor_price)}
 				</p> */}
 
-				<ProposalPicker proposals={proposals ?? []} />
+				{/* <ProposalPicker proposals={proposals ?? []} /> */}
 
 				<Select>
 					<SelectTrigger className='w-[180px] ml-auto'>
