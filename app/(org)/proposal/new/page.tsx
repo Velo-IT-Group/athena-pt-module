@@ -3,7 +3,7 @@ import { CardTitle, CardDescription, CardHeader, CardContent, Card } from '@/com
 import NewProposalForm from '@/components/NewProposalForm';
 import { getTemplates, getTickets } from '@/lib/data';
 
-const NewPage = async () => {
+const NewProposalPage = async () => {
 	const templates = await getTemplates();
 	const tickets = await getTickets();
 
@@ -20,4 +20,4 @@ const NewPage = async () => {
 	);
 };
 
-export default NewPage;
+export default NewProposalPage;
