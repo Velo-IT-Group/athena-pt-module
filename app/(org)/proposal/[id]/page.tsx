@@ -10,7 +10,6 @@ type Props = {
 
 const ProposalPage = async ({ params }: Props) => {
 	const proposal = await getProposal(params.id);
-	const sections = await getSections(params.id);
 
 	if (!proposal) return <div></div>;
 
@@ -20,7 +19,7 @@ const ProposalPage = async ({ params }: Props) => {
 	return (
 		<div className='bg-muted/50 h-full flex-1'>
 			<div className='container py-10'>
-				<h1 className='text-3xl font-medium tracking-tight'>Proposal Overview Page</h1>
+				<h1 className='text-3xl font-medium tracking-tight'>Overview</h1>
 			</div>
 
 			<div className='border-t container py-10 space-y-2'>
@@ -65,14 +64,42 @@ const ProposalPage = async ({ params }: Props) => {
 						<div className='grid grid-cols-4 gap-4'>
 							<div className='grid w-full max-w-sm items-center gap-1.5'>
 								<Label>Account Name</Label>
+								{/* @ts-ignore */}
 								<p className='text-sm text-muted-foreground'>{ticket?.company?.name}</p>
 							</div>
 							<div className='grid w-full max-w-sm items-center gap-1.5'>
 								<Label>Site Address</Label>
+								{/* @ts-ignore */}
 								<p className='text-sm text-muted-foreground'>{ticket?.company?.identifier}</p>
 							</div>
 							<div className='grid w-full max-w-sm items-center gap-1.5'>
 								<Label>Contact</Label>
+								{/* @ts-ignore */}
+								<p className='text-sm text-muted-foreground'>{ticket?.contact?.name}</p>
+							</div>
+						</div>
+					</CardContent>
+				</Card>
+			</div>
+
+			<div className='border-t container py-10 space-y-2'>
+				<h3 className='text-2xl font-semibold tracking-tight'>Ticket Information</h3>
+				<Card>
+					<CardContent className='p-6'>
+						<div className='grid grid-cols-4 gap-4'>
+							<div className='grid w-full max-w-sm items-center gap-1.5'>
+								<Label>Account Name</Label>
+								{/* @ts-ignore */}
+								<p className='text-sm text-muted-foreground'>{ticket?.company?.name}</p>
+							</div>
+							<div className='grid w-full max-w-sm items-center gap-1.5'>
+								<Label>Site Address</Label>
+								{/* @ts-ignore */}
+								<p className='text-sm text-muted-foreground'>{ticket?.company?.identifier}</p>
+							</div>
+							<div className='grid w-full max-w-sm items-center gap-1.5'>
+								<Label>Contact</Label>
+								{/* @ts-ignore */}
 								<p className='text-sm text-muted-foreground'>{ticket?.contact?.name}</p>
 							</div>
 						</div>
