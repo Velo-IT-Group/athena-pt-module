@@ -21,15 +21,43 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import ProductListItem from '@/components/ProductListItem';
 import { getCurrencyString } from '@/utils/money';
 import { CatalogItem } from '@/types/manage';
+import { handleProductInsert } from '@/app/actions';
 
 interface DataTableProps<TData, TValue> {
 	columns: ColumnDef<TData, TValue>[];
 	data: TData[];
-	products?: Product[];
+	products: Product[];
+	id: string;
 }
 
-export function DataTable<TData, TValue>({ columns, data, products }: DataTableProps<TData, TValue>) {
-	const [optimisticProducts, setOptimisticProducts] = React.useState<Product[]>(products ?? []);
+type ProductState = {
+	newProduct: Product;
+	updatedProduct?: Product;
+	deletedProduct?: string;
+	pending: boolean;
+};
+
+export function DataTable<TData, TValue>({ columns, data, products, id }: DataTableProps<TData, TValue>) {
+	const [isPending, startTransition] = React.useTransition();
+
+	const [state, mutate] = React.useOptimistic({ products, pending: false }, function createReducer(state, newState: ProductState) {
+		if (newState.newProduct) {
+			return {
+				products: [...state.products, newState] as Product[],
+				pending: newState.pending,
+			};
+		} else if (newState.updatedProduct) {
+			return {
+				products: [...state.products.filter((f) => f.id !== newState.updatedProduct!.id), newState.updatedProduct] as Product[],
+				pending: newState.pending,
+			};
+		} else {
+			return {
+				products: [...state.products.filter((f) => f.id !== newState.deletedProduct)] as Product[],
+				pending: newState.pending,
+			};
+		}
+	});
 	const [sorting, setSorting] = React.useState<SortingState>([]);
 	const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([]);
 	const [columnVisibility, setColumnVisibility] = React.useState<VisibilityState>({});
@@ -56,9 +84,28 @@ export function DataTable<TData, TValue>({ columns, data, products }: DataTableP
 
 	useEffect(() => {
 		const keys = Object.keys(rowSelection);
-		const catalogItem: CatalogItem = data[parseInt(keys.pop())] as CatalogItem;
+		const item = keys.pop();
+		if (!item) return;
+		const catalogItem: CatalogItem = data[parseInt(item)] as CatalogItem;
 		if (!catalogItem) return;
-		setOptimisticProducts([...optimisticProducts, { id: String(catalogItem?.id), extended_price: catalogItem?.price, proposal: '', quantity: 1 }]);
+		const newProduct: Product = {
+			id: String(catalogItem?.id) ?? '',
+			extended_price: catalogItem?.price ?? 0,
+			price: catalogItem?.price ?? 0,
+			proposal: id,
+			quantity: 1,
+			catalog_item_id: 0,
+		};
+		startTransition(async () => {
+			mutate({ newProduct, pending: true });
+			await handleProductInsert({
+				extended_price: catalogItem?.price ?? 0,
+				price: catalogItem?.price ?? 0,
+				proposal: id,
+				quantity: 1,
+				catalog_item_id: 0,
+			});
+		});
 	}, [rowSelection]);
 
 	return (
@@ -146,13 +193,13 @@ export function DataTable<TData, TValue>({ columns, data, products }: DataTableP
 			</div>
 			<Card className='col-span-2'>
 				<CardHeader>
-					<CardTitle>{products?.length ?? 0} added</CardTitle>
+					<CardTitle>{state.products?.length ?? 0} added</CardTitle>
 					<CardDescription>
 						{getCurrencyString(products?.reduce((accumulator, currentValue) => accumulator + (currentValue?.price ?? 0), 0) ?? 0)}
 					</CardDescription>
 				</CardHeader>
 				<CardContent>
-					{optimisticProducts?.map((product) => {
+					{state.products?.map((product) => {
 						return <ProductListItem key={product.id} description={product.id} />;
 					})}
 				</CardContent>
