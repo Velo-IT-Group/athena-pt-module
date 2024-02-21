@@ -1,5 +1,5 @@
 'use client';
-import React, { useOptimistic, useState, useTransition } from 'react';
+import React, { FormEvent, useOptimistic, useState, useTransition } from 'react';
 import { DragDropContext, DropResult } from 'react-beautiful-dnd';
 import SectionsList from './SectionsList';
 import TemplateCatalog from '@/components/TemplateCatalog';
@@ -196,6 +196,22 @@ const ProposalBuilder = ({ id, sections, templates }: Props) => {
 		// setItems(reorderedItems);
 	}
 
+	const action = async (data: FormData) => {
+		data.set('proposal', id);
+		let newSection: NestedSection = {
+			...sectionStub,
+			name: 'New Section',
+		};
+
+		startTransition(async () => {
+			mutate({
+				newSection,
+				pending: true,
+			});
+			await handleSectionInsert(data);
+		});
+	};
+
 	let sortedSections = state.sections?.sort((a, b) => {
 		// First, compare by score in descending order
 		if (Number(a.order) > Number(b.order)) return -1;
@@ -218,23 +234,7 @@ const ProposalBuilder = ({ id, sections, templates }: Props) => {
 								<div className='flex flex-col flex-grow py-8 px-4 space-y-2'>
 									<div className='w-full flex justify-between items-center'>
 										<h1 className='text-2xl font-semibold'>Workplan</h1>
-										<form
-											action={handleSectionInsert}
-											onSubmit={(event) => {
-												event.preventDefault();
-												let newSection: NestedSection = {
-													...sectionStub,
-													name: 'New Section',
-												};
-
-												startTransition(() => {
-													mutate({
-														newSection,
-														pending: true,
-													});
-												});
-											}}
-										>
+										<form action={action}>
 											<SubmitButton>
 												<PlusIcon className='w-4 h-4' />
 											</SubmitButton>
@@ -245,24 +245,7 @@ const ProposalBuilder = ({ id, sections, templates }: Props) => {
 											<SectionsList id={id} sections={sortedSections} />
 										</div>
 									) : (
-										<form
-											action={handleSectionInsert}
-											onSubmit={(event) => {
-												event.preventDefault();
-												let newSection: NestedSection = {
-													...sectionStub,
-													name: 'New Section',
-												};
-
-												startTransition(() => {
-													mutate({
-														newSection,
-														pending: true,
-													});
-												});
-											}}
-											className='h-full border border-dotted flex flex-col justify-center items-center gap-4 rounded-xl'
-										>
+										<form action={action} className='h-full border border-dotted flex flex-col justify-center items-center gap-4 rounded-xl'>
 											<div className=' p-6 bg-muted rounded-full'>
 												<FileTextIcon className='h-8 w-8' />
 											</div>
