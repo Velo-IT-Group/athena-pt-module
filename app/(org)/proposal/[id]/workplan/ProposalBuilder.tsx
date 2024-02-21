@@ -45,8 +45,6 @@ const ProposalBuilder = ({ id, sections, templates }: Props) => {
 		}
 	});
 
-	const [items, setItems] = useState<NestedSection[]>(sections ?? []);
-
 	const sectionStub: NestedSection = { created_at: Date(), id: uuid(), name: 'New Section', order: 0, proposal: id, phases: [] };
 
 	// a little function to help us with reordering the result
@@ -137,25 +135,25 @@ const ProposalBuilder = ({ id, sections, templates }: Props) => {
 		});
 	};
 
-	const phaseReorder = async (parentId: string, sourceIndex: number, destinationIndex: number) => {
-		const itemSubItemMap = items.reduce((acc: any, item) => {
-			acc[item.id] = item.phases;
-			return acc;
-		}, {});
+	// const phaseReorder = async (parentId: string, sourceIndex: number, destinationIndex: number) => {
+	// 	const itemSubItemMap = items.reduce((acc: any, item) => {
+	// 		acc[item.id] = item.phases;
+	// 		return acc;
+	// 	}, {});
 
-		const subItemsForCorrespondingParent = itemSubItemMap[parentId];
-		const reorderedSubItems: any = reorder(subItemsForCorrespondingParent, sourceIndex, destinationIndex);
-		let newItems = [...items];
-		newItems = newItems.map((item) => {
-			if (item.id === parentId) {
-				item.phases = reorderedSubItems;
-			}
-			return item;
-		});
-		setItems(newItems);
+	// 	const subItemsForCorrespondingParent = itemSubItemMap[parentId];
+	// 	const reorderedSubItems: any = reorder(subItemsForCorrespondingParent, sourceIndex, destinationIndex);
+	// 	let newItems = [...items];
+	// 	newItems = newItems.map((item) => {
+	// 		if (item.id === parentId) {
+	// 			item.phases = reorderedSubItems;
+	// 		}
+	// 		return item;
+	// 	});
+	// 	setItems(newItems);
 
-		return;
-	};
+	// 	return;
+	// };
 
 	async function onDragEnd(result: DropResult) {
 		const { destination, source } = result;
@@ -175,7 +173,7 @@ const ProposalBuilder = ({ id, sections, templates }: Props) => {
 			const parentId = result.type.split('_')[1];
 			console.log(parentId, source.index, destination?.index);
 
-			phaseReorder(parentId, source.index, destination?.index);
+			// phaseReorder(parentId, source.index, destination?.index);
 		}
 
 		if (source.droppableId === destination?.droppableId && source.index === destination?.index) return;
@@ -218,8 +216,31 @@ const ProposalBuilder = ({ id, sections, templates }: Props) => {
 						<div className='h-full flex w-full'>
 							<div className='h-full w-full flex'>
 								<div className='flex flex-col flex-grow py-8 px-4 space-y-2'>
-									<h1 className='text-2xl font-semibold'>Workplan</h1>
-									{items.length ? (
+									<div className='w-full flex justify-between items-center'>
+										<h1 className='text-2xl font-semibold'>Workplan</h1>
+										<form
+											action={handleSectionInsert}
+											onSubmit={(event) => {
+												event.preventDefault();
+												let newSection: NestedSection = {
+													...sectionStub,
+													name: 'New Section',
+												};
+
+												startTransition(() => {
+													mutate({
+														newSection,
+														pending: true,
+													});
+												});
+											}}
+										>
+											<SubmitButton>
+												<PlusIcon className='w-4 h-4' />
+											</SubmitButton>
+										</form>
+									</div>
+									{sortedSections.length ? (
 										<div className='bg-muted/50 rounded-xl p-4 h-full overflow-y-scroll scroll-m-4'>
 											<SectionsList id={id} sections={sortedSections} />
 										</div>
