@@ -6,6 +6,7 @@ import {
 	createTask,
 	createTicket,
 	deletePhase,
+	deleteProduct,
 	deleteProposal,
 	deleteSection,
 	deleteTicket,
@@ -13,6 +14,7 @@ import {
 	newTemplate,
 	updatePhase,
 	updateProposal,
+	updateSection,
 	updateTicket,
 } from '@/lib/data';
 import { ProjectTemplate } from '@/types/manage';
@@ -27,6 +29,27 @@ export const handlePhaseUpdate = async (formData: FormData) => {
 	await updatePhase(id, { description });
 
 	revalidateTag('phases');
+	revalidateTag('proposals');
+};
+
+export const handleProductUpdate = async (formData: FormData) => {
+	const supabase = createClient();
+
+	const id = formData.get('id') as string;
+	const quantity = formData.get('quantity') as unknown as number;
+	const price = formData.get('price') as unknown as number;
+	const extended_price = formData.get('extended_price') as unknown as number;
+	console.log(id, quantity, price, extended_price);
+
+	const { error } = await supabase.from('products').update({ quantity, price, extended_price }).eq('id', id);
+
+	if (error) {
+		console.error(error);
+		return;
+	}
+	// await updatePr(id, { description });
+
+	revalidateTag('products');
 	revalidateTag('proposals');
 };
 
@@ -50,7 +73,7 @@ export const handleTicketInsert = async (formData: FormData) => {
 
 	console.log(summary, budget_hours, order, phase);
 
-	await createTicket({ summary, order: order ?? 0, budget_hours: budget_hours ?? 0, phase }, []);
+	await createTicket({ summary: summary ?? 'New Ticket', order: order ?? 0, budget_hours: budget_hours ?? 0, phase }, []);
 
 	revalidateTag('tickets');
 	revalidateTag('phases');
@@ -78,7 +101,7 @@ export async function deliverSection(section: Section) {
 }
 
 export const handlePhaseInsert = async (formData: FormData) => {
-	const supabase = createClient();
+	// const supabase = createClient();
 
 	const description = formData.get('description') as string;
 	const order = formData.get('order') as unknown as number;
@@ -86,18 +109,7 @@ export const handlePhaseInsert = async (formData: FormData) => {
 
 	console.log(description, order, section);
 
-	// const phase =createPhase({ description: description ?? '', order: order ?? 0, section }, []);
-
-	const { data: phase, error } = await supabase
-		.from('phases')
-		.insert({ description: description ?? 'New Phase', order: order ?? 0, section })
-		.select()
-		.single();
-
-	if (!phase || error) {
-		console.log(error);
-		return;
-	}
+	await createPhase({ description: description ?? 'New Phase', order: order ?? 0, section }, []);
 
 	revalidateTag('sections');
 	revalidateTag('proposals');
@@ -109,6 +121,20 @@ export const handleProposalDelete = async (id: string) => {
 	'use server';
 	await deleteProposal(id);
 
+	revalidateTag('proposals');
+};
+
+export const handleProductDelete = async (id: string) => {
+	'use server';
+	const supabase = createClient();
+	const { error } = await supabase.from('products').delete().eq('id', id);
+	if (error) {
+		console.error(error);
+		return;
+	}
+	// await deleteProduct(id);
+
+	revalidateTag('products');
 	revalidateTag('proposals');
 };
 
@@ -133,6 +159,7 @@ export const handleSectionDelete = async (id: string) => {
 	await deleteSection(id);
 
 	revalidateTag('proposals');
+	revalidateTag('sections');
 };
 
 export const handleProposalUpdate = async (formData: FormData) => {
@@ -148,14 +175,20 @@ export const handleProposalUpdate = async (formData: FormData) => {
 	revalidateTag('proposals');
 };
 
+export const handleSectionNameUpdate = async (id: string, name: string) => {
+	await updateSection(id, { name });
+
+	revalidateTag('sections');
+	revalidateTag('proposals');
+};
+
 export const handleProposalInsert = async (formData: FormData) => {
 	const supabase = createClient();
 	const name = formData.get('name') as string;
 	const templates_used = formData.getAll('templates_used') as unknown as number[];
+	const service_ticket = formData.get('service_ticket') as unknown as number;
 
-	console.log(templates_used);
-
-	const { data: proposal, error } = await supabase.from('proposals').insert({ name, templates_used: templates_used }).select().single();
+	const { data: proposal, error } = await supabase.from('proposals').insert({ name, templates_used, service_ticket }).select().single();
 
 	if (!proposal || error) {
 		console.error(error);
