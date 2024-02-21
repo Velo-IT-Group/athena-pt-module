@@ -40,7 +40,7 @@ const SectionListItem = ({ section, phases }: Props) => {
 				<CollapsibleContent>
 					<CardContent>
 						<div className='space-y-2'>
-							{phases && phases.length ? <PhasesList phases={phases} id={section.id} /> : <div className='p-8 rounded-xl bg-muted'></div>}
+							<PhasesList phases={phases ?? []} id={section.id} />
 						</div>
 					</CardContent>
 				</CollapsibleContent>
