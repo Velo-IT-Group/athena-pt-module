@@ -40,7 +40,6 @@ const PhasesList = ({ id, phases }: Props) => {
 			};
 		}
 	});
-	// const [optimisticPhases, setOptimisticPhases] = useState<NestedPhase[]>(phases);
 
 	const phaseStub: NestedPhase = {
 		description: '',
@@ -66,7 +65,7 @@ const PhasesList = ({ id, phases }: Props) => {
 			<Droppable droppableId='phases' type={`droppablePhaseItem_${id}`}>
 				{(provided) => (
 					<div {...provided.droppableProps} ref={provided.innerRef} className='overflow-scroll space-y-2'>
-						{state.phases?.map((phase, index) => {
+						{sortedPhases?.map((phase, index) => {
 							return (
 								<Draggable key={phase.id} draggableId={phase.id} index={index}>
 									{(provided) => {
@@ -87,10 +86,11 @@ const PhasesList = ({ id, phases }: Props) => {
 				action={async (data: FormData) => {
 					data.set('section', id);
 					data.set('description', 'New Phase');
-					data.set('order', oPhases.length as unknown as number);
+					// @ts-ignore
+					data.set('order', state.phases.length) as unknown as number;
 					startTransition(async () => {
 						const newPhase = { ...phaseStub, description: 'New Phase' };
-						addOpPhase(newPhase);
+						mutate({ newPhase, pending: true });
 
 						await handlePhaseInsert(data);
 					});
