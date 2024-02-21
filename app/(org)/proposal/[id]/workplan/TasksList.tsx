@@ -8,10 +8,7 @@ const TasksList = ({ tasks, ticketId }: { tasks: Task[]; ticketId: string }) => 
 	return (
 		<>
 			{tasks?.map((task) => (
-				<div
-					key={task.id}
-					className='rounded-md border px-4 py-2 font-mono text-sm shadow-sm flex w-full flex-col items-start p-3 sm:flex-row sm:items-center gap-2'
-				>
+				<div key={task.id} className='rounded-md border px-4 py-2 font-mono text-sm shadow-sm p-3'>
 					{task.summary}
 				</div>
 			))}

@@ -22,6 +22,7 @@ import ProductListItem from '@/components/ProductListItem';
 import { getCurrencyString } from '@/utils/money';
 import { CatalogItem } from '@/types/manage';
 import { handleProductInsert } from '@/app/actions';
+import { ProductState } from '@/types/optimisticTypes';
 
 interface DataTableProps<TData, TValue> {
 	columns: ColumnDef<TData, TValue>[];
@@ -30,20 +31,13 @@ interface DataTableProps<TData, TValue> {
 	id: string;
 }
 
-type ProductState = {
-	newProduct: Product;
-	updatedProduct?: Product;
-	deletedProduct?: string;
-	pending: boolean;
-};
-
 export function DataTable<TData, TValue>({ columns, data, products, id }: DataTableProps<TData, TValue>) {
 	const [isPending, startTransition] = React.useTransition();
 
 	const [state, mutate] = React.useOptimistic({ products, pending: false }, function createReducer(state, newState: ProductState) {
 		if (newState.newProduct) {
 			return {
-				products: [...state.products, newState] as Product[],
+				products: [...state.products, newState.newProduct] as Product[],
 				pending: newState.pending,
 			};
 		} else if (newState.updatedProduct) {
@@ -87,7 +81,8 @@ export function DataTable<TData, TValue>({ columns, data, products, id }: DataTa
 		const item = keys.pop();
 		if (!item) return;
 		const catalogItem: CatalogItem = data[parseInt(item)] as CatalogItem;
-		if (!catalogItem) return;
+		if (!catalogItem || products.some((product) => product.catalog_item_id === catalogItem.id)) return;
+
 		const newProduct: Product = {
 			id: String(catalogItem?.id) ?? '',
 			extended_price: catalogItem?.price ?? 0,
@@ -103,10 +98,10 @@ export function DataTable<TData, TValue>({ columns, data, products, id }: DataTa
 				price: catalogItem?.price ?? 0,
 				proposal: id,
 				quantity: 1,
-				catalog_item_id: 0,
+				catalog_item_id: catalogItem.id,
 			});
 		});
-	}, [rowSelection]);
+	}, [table.getState().rowSelection]);
 
 	return (
 		<div className='w-full grid grid-cols-7 gap-4 items-start'>
@@ -195,12 +190,14 @@ export function DataTable<TData, TValue>({ columns, data, products, id }: DataTa
 				<CardHeader>
 					<CardTitle>{state.products?.length ?? 0} added</CardTitle>
 					<CardDescription>
-						{getCurrencyString(products?.reduce((accumulator, currentValue) => accumulator + (currentValue?.price ?? 0), 0) ?? 0)}
+						{getCurrencyString(state.products?.reduce((accumulator, currentValue) => accumulator + (currentValue?.extended_price ?? 0), 0) ?? 0)}
 					</CardDescription>
 				</CardHeader>
 				<CardContent>
 					{state.products?.map((product) => {
-						return <ProductListItem key={product.id} description={product.id} />;
+						// @ts-ignore
+						const item = data.find((item: CatalogItem) => item.id === product.catalog_item_id) as CatalogItem;
+						return <ProductListItem key={product.id} product={product} description={item?.description} mutate={mutate} />;
 					})}
 				</CardContent>
 			</Card>

@@ -4,15 +4,11 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Separator } from '@/components/ui/separator';
+import { getCurrencyString } from '@/utils/money';
 
 type Props = {
 	proposal: Proposal;
 };
-
-let USDollar = new Intl.NumberFormat('en-US', {
-	style: 'currency',
-	currency: 'USD',
-});
 
 const LaborTotalCard = ({ proposal }: Props) => {
 	return (
@@ -43,11 +39,11 @@ const LaborTotalCard = ({ proposal }: Props) => {
 						</div>
 						<div className='flex flex-col space-y-1.5'>
 							<Label htmlFor='labor_rate'>Labor Rate</Label>
-							<p className='text-sm font-medium text-muted-foreground'>{USDollar.format(Number(proposal.labor_rate))}</p>
+							<p className='text-sm font-medium text-muted-foreground'>{getCurrencyString(proposal.labor_rate)}</p>
 						</div>
 						<div className='flex flex-col space-y-1.5'>
 							<Label htmlFor='total_labor_pricee'>Total Labor Price</Label>
-							<p className='text-sm font-medium text-muted-foreground'>{USDollar.format(Number(proposal.total_labor_price))}</p>
+							<p className='text-sm font-medium text-muted-foreground'>{getCurrencyString(proposal.total_labor_price)}</p>
 						</div>
 					</div>
 					<input type='submit' className='hidden' />

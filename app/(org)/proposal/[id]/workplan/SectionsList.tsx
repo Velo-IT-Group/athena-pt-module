@@ -4,7 +4,7 @@ import SectionListItem from './SectionListItem';
 import { Draggable, Droppable, DroppableStateSnapshot } from 'react-beautiful-dnd';
 import { cn } from '@/lib/utils';
 
-const SectionsList = ({ id, sections }: { id: string; sections: NestedSection[] }) => {
+const SectionsList = ({ id, sections, pending }: { id: string; sections: NestedSection[]; pending: boolean }) => {
 	const getBackgroundColor = (snapshot: DroppableStateSnapshot): string => {
 		// Giving isDraggingOver preference
 		if (snapshot.isDraggingOver) {
@@ -29,7 +29,7 @@ const SectionsList = ({ id, sections }: { id: string; sections: NestedSection[] 
 							{(provided) => {
 								return (
 									<div ref={provided.innerRef} {...provided.draggableProps} {...provided.dragHandleProps}>
-										<SectionListItem key={section.id} section={section} phases={section.phases ?? []} />
+										<SectionListItem key={section.id} section={section} phases={section.phases ?? []} pending={pending} />
 									</div>
 								);
 							}}

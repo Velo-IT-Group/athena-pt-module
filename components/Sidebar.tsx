@@ -14,11 +14,6 @@ type Status = {
 	color: string;
 };
 
-let USDollar = new Intl.NumberFormat('en-US', {
-	style: 'currency',
-	currency: 'USD',
-});
-
 const statuses: Array<Status> = [
 	{
 		name: 'All Proposals',

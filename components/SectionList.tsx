@@ -8,7 +8,7 @@ import { Button } from './ui/button';
 import { PlusIcon } from '@radix-ui/react-icons';
 
 const SectionsList = ({ id, sections }: { id: string; sections: NestedSection[] }) => {
-	const sectionStub: NestedSection = { created_at: Date(), id: '123459', name: 'New Section', order: 1, proposal: '', phases: [] };
+	const sectionStub: NestedSection = { created_at: Date(), id: '123459', name: 'New Section', order: 1, proposal: '', phases: [], hours: 0 };
 
 	const [isPending, startTransition] = useTransition();
 	const [optimisticSections, addOptimisticSection] = useOptimistic<NestedSection[], NestedSection>(
@@ -40,7 +40,7 @@ const SectionsList = ({ id, sections }: { id: string; sections: NestedSection[] 
 								{(provided) => {
 									return (
 										<div ref={provided.innerRef} {...provided.draggableProps} {...provided.dragHandleProps}>
-											<SectionListItem key={section.id} section={section} phases={section?.phases ?? []} />
+											<SectionListItem key={section.id} section={section} phases={section?.phases ?? []} pending />
 										</div>
 									);
 								}}

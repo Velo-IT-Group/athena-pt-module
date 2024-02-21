@@ -16,15 +16,11 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { ContextMenu, ContextMenuContent, ContextMenuItem, ContextMenuShortcut, ContextMenuTrigger } from '@/components/ui/context-menu';
 import { handleProposalDelete } from '@/app/actions';
+import { getCurrencyString } from '@/utils/money';
 
 type Props = {
 	proposal: Proposal;
 };
-
-let USDollar = new Intl.NumberFormat('en-US', {
-	style: 'currency',
-	currency: 'USD',
-});
 
 const ProposalMenuItem = ({ proposal }: Props) => {
 	return (
@@ -73,7 +69,7 @@ const ProposalMenuItem = ({ proposal }: Props) => {
 
 					<div className='flex gap-4 justify-between w-full'>
 						<p className='font-medium'>{proposal.name}</p>
-						<p className='font-medium'>{USDollar.format(Number(proposal.total_labor_price))}</p>
+						<p className='font-medium'>{getCurrencyString(proposal.total_labor_price)}</p>
 					</div>
 					<div className='flex items-center gap-4 w-full'>
 						<p className='text-muted-foreground'>{proposal.id}</p>

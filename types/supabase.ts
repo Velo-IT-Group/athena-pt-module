@@ -148,6 +148,8 @@ export type Database = {
 					service_ticket: number | null;
 					templates_used: number[] | null;
 					total_labor_price: number;
+					total_price: number | null;
+					total_product_price: number;
 					updated_at: string;
 				};
 				Insert: {
@@ -164,6 +166,8 @@ export type Database = {
 					service_ticket?: number | null;
 					templates_used?: number[] | null;
 					total_labor_price?: number;
+					total_price?: number | null;
+					total_product_price?: number;
 					updated_at?: string;
 				};
 				Update: {
@@ -180,6 +184,8 @@ export type Database = {
 					service_ticket?: number | null;
 					templates_used?: number[] | null;
 					total_labor_price?: number;
+					total_price?: number | null;
+					total_product_price?: number;
 					updated_at?: string;
 				};
 				Relationships: [
@@ -195,6 +201,7 @@ export type Database = {
 			sections: {
 				Row: {
 					created_at: string;
+					hours: number;
 					id: string;
 					name: string;
 					order: number;
@@ -202,6 +209,7 @@ export type Database = {
 				};
 				Insert: {
 					created_at?: string;
+					hours?: number;
 					id?: string;
 					name: string;
 					order?: number;
@@ -209,6 +217,7 @@ export type Database = {
 				};
 				Update: {
 					created_at?: string;
+					hours?: number;
 					id?: string;
 					name?: string;
 					order?: number;

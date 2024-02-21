@@ -392,11 +392,31 @@ export const updateTask = async (id: string, task: TaskUpdate) => {
 	}
 };
 
+export const updateSection = async (id: string, section: SectionUpdate) => {
+	const supabase = createClient();
+	const { error } = await supabase.from('sections').update(section).eq('id', id);
+
+	if (error) {
+		console.error(error);
+		return;
+	}
+};
+
 // DELETE FUNCTIONS
 
 export const deleteProposal = async (id: string) => {
 	const supabase = createClient();
 	const { error } = await supabase.from('proposals').delete().eq('id', id);
+
+	if (error) {
+		console.error(error);
+		return;
+	}
+};
+
+export const deleteProduct = async (id: string) => {
+	const supabase = createClient();
+	const { error } = await supabase.from('products').delete().eq('id', id);
 
 	if (error) {
 		console.error(error);

@@ -19,10 +19,10 @@ import React from 'react';
 import { Button } from '@/components/ui/button';
 import { handleTicketDelete } from '@/app/actions';
 import { Badge } from '@/components/ui/badge';
-import { Input } from '@/components/ui/input';
 import TasksList from './TasksList';
 import CornerDownRightIcon from '../../../../../components/CornerDownRightIcon';
 import TicketForm from '../../../../../components/TicketForm';
+import { ScrollArea } from '@/components/ui/scroll-area';
 
 type Props = {
 	ticket: Ticket & { tasks: Task[] };
@@ -36,18 +36,19 @@ const TicketListItem = ({ ticket, order }: Props) => {
 		<div className='flex items-center space-x-2 pl-2 w-full'>
 			<CornerDownRightIcon />
 
-			<div className='rounded-md border px-4 py-2 font-mono text-sm shadow-sm flex w-full flex-col items-start p-3 sm:flex-row sm:items-center gap-2'>
-				<DragHandleDots2Icon className='w-4 h-4' />
+			<div className='rounded-md border px-4 py-2 font-mono text-sm shadow-sm flex flex-1 flex-col items-start justify-between p-3 sm:flex-row sm:items-center gap-2'>
+				<div className='flex items-center flex-1 gap-2'>
+					<DragHandleDots2Icon className='w-4 h-4' />
 
-				<p className='text-sm font-medium leading-none'>
-					<Badge variant='secondary' className='mr-2'>
+					<Badge variant='secondary' className='text-nowrap'>
 						Ticket {order}
 					</Badge>
-					<span className='text-muted-foreground'>{ticket.summary}</span>
-				</p>
+					{/* <p className='text-sm font-medium leading-none flex items-center'></p> */}
+					<span className='text-muted-foreground line-clamp-1 flex-1 flex-'>{ticket.summary}</span>
+				</div>
 
-				<p className='ml-auto space-x-2'>
-					<span>{ticket.budget_hours}</span>
+				<p className='space-x-2'>
+					<span>{ticket.budget_hours}hrs</span>
 					<Dialog>
 						<DropdownMenu open={open} onOpenChange={setOpen}>
 							<DropdownMenuTrigger asChild>
@@ -91,19 +92,14 @@ const TicketListItem = ({ ticket, order }: Props) => {
 								</DropdownMenuGroup>
 							</DropdownMenuContent>
 						</DropdownMenu>
-						<DialogContent>
-							<DialogHeader>
-								<DialogTitle>{ticket.summary}</DialogTitle>
-							</DialogHeader>
+						<DialogContent className='max-w-lg overflow-hidden max-h-[75vh] flex flex-col'>
 							<TicketForm ticket={ticket} />
-							{/* <div className='space-y-4'>
-								<Input defaultValue={ticket.summary} />
-								<h2 className='text-lg font-medium'>Tasks</h2>
-								<TasksList tasks={ticket.tasks} ticketId={ticket.id} />
-							</div> */}
-							<DialogFooter>
-								<Button type='submit'>Confirm</Button>
-							</DialogFooter>
+							<div>
+								<h3>Tasks</h3>
+								<ScrollArea>
+									<TasksList tasks={ticket.tasks ?? []} ticketId={ticket.id} />
+								</ScrollArea>
+							</div>
 						</DialogContent>
 					</Dialog>
 				</p>

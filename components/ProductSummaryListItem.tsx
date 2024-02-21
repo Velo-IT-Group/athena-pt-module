@@ -1,10 +1,6 @@
 import React from 'react';
 import { Input } from '@/components/ui/input';
-
-let USDollar = new Intl.NumberFormat('en-US', {
-	style: 'currency',
-	currency: 'USD',
-});
+import { getCurrencyString } from '@/utils/money';
 
 const ProductSummaryListItem = () => {
 	return (
@@ -12,7 +8,7 @@ const ProductSummaryListItem = () => {
 			<Input placeholder='Enter quantity...' className='max-w-12 text-center' defaultValue={1} />
 			<p className='line-clamp-1'>Product Name</p>
 
-			<p className='ml-auto text-right'>{USDollar.format(234)}</p>
+			<p className='ml-auto text-right'>{getCurrencyString(234)}</p>
 		</div>
 	);
 };

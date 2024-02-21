@@ -1,11 +1,9 @@
 'use client';
-import React, { useEffect, useState } from 'react';
+import React from 'react';
 import { ProjectTemplate, ProjectTemplateTicket } from '@/types/manage';
 import { Select, SelectContent, SelectGroup, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Input } from '@/components/ui/input';
-import SubmitButton from '@/components/SubmitButton';
 import { Label } from '@/components/ui/label';
-import { handleProposalInsert } from '@/app/actions';
 import TicketSelector from './TicketSelector';
 
 type Props = {

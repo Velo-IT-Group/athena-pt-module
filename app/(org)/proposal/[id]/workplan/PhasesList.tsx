@@ -6,17 +6,11 @@ import { PlusIcon } from '@radix-ui/react-icons';
 import { handlePhaseInsert } from '@/app/actions';
 import { v4 as uuid } from 'uuid';
 import { Button } from '@/components/ui/button';
+import { PhaseState } from '@/types/optimisticTypes';
 
 type Props = {
 	id: string;
 	phases: NestedPhase[];
-};
-
-type PhaseState = {
-	newPhase: NestedPhase;
-	updatedPhase?: NestedPhase;
-	deletedPhase?: string;
-	pending: boolean;
 };
 
 const PhasesList = ({ id, phases }: Props) => {
@@ -25,7 +19,7 @@ const PhasesList = ({ id, phases }: Props) => {
 	const [state, mutate] = useOptimistic({ phases, pending: false }, function createReducer(state, newState: PhaseState) {
 		if (newState.newPhase) {
 			return {
-				phases: [...state.phases, newState] as NestedPhase[],
+				phases: [...state.phases, newState.newPhase] as NestedPhase[],
 				pending: newState.pending,
 			};
 		} else if (newState.updatedPhase) {
@@ -41,8 +35,21 @@ const PhasesList = ({ id, phases }: Props) => {
 		}
 	});
 
+	const action = async (data: FormData) => {
+		data.set('section', id);
+		data.set('description', 'New Phase');
+		// @ts-ignore
+		data.set('order', state.phases.length) as unknown as number;
+		startTransition(async () => {
+			const newPhase = { ...phaseStub, description: 'New Phase', order: state.phases.length };
+			mutate({ newPhase, pending: true });
+
+			await handlePhaseInsert(data);
+		});
+	};
+
 	const phaseStub: NestedPhase = {
-		description: '',
+		description: 'New Phase',
 		hours: 0,
 		order: state.phases.length,
 		id: uuid(),
@@ -52,8 +59,8 @@ const PhasesList = ({ id, phases }: Props) => {
 
 	let sortedPhases = state.phases?.sort((a, b) => {
 		// First, compare by score in descending order
-		if (Number(a.order) > Number(b.order)) return -1;
-		if (Number(a.order) < Number(b.order)) return 1;
+		if (Number(a.order) > Number(b.order)) return 1;
+		if (Number(a.order) < Number(b.order)) return -1;
 
 		// If scores are equal, then sort by created_at in ascending order
 		return Number(a.id) - Number(b.id);
@@ -71,7 +78,7 @@ const PhasesList = ({ id, phases }: Props) => {
 									{(provided) => {
 										return (
 											<div ref={provided.innerRef} {...provided.draggableProps} {...provided.dragHandleProps}>
-												<PhaseListItem key={phase.id} phase={phase} tickets={phase?.tickets ?? []} order={index + 1} />
+												<PhaseListItem key={phase.id} phase={phase} tickets={phase?.tickets ?? []} order={index + 1} pending={state.pending} />
 											</div>
 										);
 									}}
@@ -82,20 +89,7 @@ const PhasesList = ({ id, phases }: Props) => {
 					</div>
 				)}
 			</Droppable>
-			<form
-				action={async (data: FormData) => {
-					data.set('section', id);
-					data.set('description', 'New Phase');
-					// @ts-ignore
-					data.set('order', state.phases.length) as unknown as number;
-					startTransition(async () => {
-						const newPhase = { ...phaseStub, description: 'New Phase' };
-						mutate({ newPhase, pending: true });
-
-						await handlePhaseInsert(data);
-					});
-				}}
-			>
+			<form action={action}>
 				<Button variant='outline' className='w-full'>
 					<PlusIcon className='w-4 h-4 mr-2' /> Add Phase
 				</Button>

@@ -9,18 +9,12 @@ import { v4 as uuid } from 'uuid';
 import { FileTextIcon, PlusIcon } from '@radix-ui/react-icons';
 import SubmitButton from '@/components/SubmitButton';
 import { handleNewTemplateInsert, handleSectionInsert } from '@/app/actions';
+import { SectionState } from '@/types/optimisticTypes';
 
 type Props = {
 	id: string;
 	sections: NestedSection[];
 	templates: ProjectTemplate[];
-};
-
-type SectionState = {
-	newSection: NestedSection;
-	updatedSection?: Section;
-	deletedSection?: string;
-	pending: boolean;
 };
 
 const ProposalBuilder = ({ id, sections, templates }: Props) => {
@@ -45,7 +39,7 @@ const ProposalBuilder = ({ id, sections, templates }: Props) => {
 		}
 	});
 
-	const sectionStub: NestedSection = { created_at: Date(), id: uuid(), name: 'New Section', order: 0, proposal: id, phases: [] };
+	const sectionStub: NestedSection = { created_at: Date(), id: uuid(), name: 'New Section', order: 0, proposal: id, hours: 0, phases: [] };
 
 	// a little function to help us with reordering the result
 	const reorder = (
@@ -72,8 +66,8 @@ const ProposalBuilder = ({ id, sections, templates }: Props) => {
 		return result;
 	};
 
-	const handleTemplateDrop = async (index: number) => {
-		const template = templates[index];
+	const handleTemplateDrop = async (templateIndex: number, destinationIndex?: number) => {
+		const template = templates[templateIndex];
 
 		if (!template) return;
 
@@ -119,11 +113,11 @@ const ProposalBuilder = ({ id, sections, templates }: Props) => {
 		const newSection = {
 			...sectionStub,
 			name: template.name,
-			order: index,
+			order: destinationIndex ?? 0,
 			phases: mappedPhases,
 		};
 
-		console.log(index);
+		console.log(destinationIndex);
 
 		startTransition(async () => {
 			mutate({
@@ -131,7 +125,7 @@ const ProposalBuilder = ({ id, sections, templates }: Props) => {
 				pending: true,
 			});
 
-			await handleNewTemplateInsert(id, template, index);
+			await handleNewTemplateInsert(id, template, destinationIndex ?? 0);
 		});
 	};
 
@@ -180,7 +174,7 @@ const ProposalBuilder = ({ id, sections, templates }: Props) => {
 
 		// handle dropping a template onto proposal
 		if (destination?.droppableId === 'sections' && source.droppableId === 'templates') {
-			await handleTemplateDrop(destination.index);
+			await handleTemplateDrop(source.index, destination.index);
 			// reorder(state.sections, source.index, destination?.index);
 
 			return;
@@ -242,7 +236,7 @@ const ProposalBuilder = ({ id, sections, templates }: Props) => {
 									</div>
 									{sortedSections.length ? (
 										<div className='bg-muted/50 rounded-xl p-4 h-full overflow-y-scroll scroll-m-4'>
-											<SectionsList id={id} sections={sortedSections} />
+											<SectionsList id={id} sections={sortedSections} pending={state.pending} />
 										</div>
 									) : (
 										<form action={action} className='h-full border border-dotted flex flex-col justify-center items-center gap-4 rounded-xl'>

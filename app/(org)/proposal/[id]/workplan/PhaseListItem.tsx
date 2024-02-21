@@ -26,23 +26,26 @@ type Props = {
 	phase: Phase;
 	tickets: Array<Ticket & { tasks: Task[] }>;
 	order: number;
+	pending: boolean;
 };
 
-const PhaseListItem = ({ phase, tickets, order }: Props) => {
+const PhaseListItem = ({ phase, tickets, order, pending }: Props) => {
 	const [open, setOpen] = React.useState(false);
 	const [collapsibleOpen, setCollapsibleOpen] = React.useState(false);
 
 	return (
 		<div>
-			<Collapsible open={collapsibleOpen} onOpenChange={setCollapsibleOpen} className='space-y-2'>
-				<div className='flex w-full flex-col items-start rounded-md border p-3 sm:flex-row sm:items-center gap-2 bg-muted/50'>
+			<Collapsible open={collapsibleOpen} onOpenChange={setCollapsibleOpen} className='space-y-2 bg-background'>
+				<div className='flex w-full flex-col items-start rounded-md border p-3 sm:flex-row sm:items-center gap-2'>
 					<DragHandleDots2Icon className='w-4 h-4' />
 
 					<p className='text-sm font-medium leading-none'>
-						<span className='mr-2 rounded-lg bg-primary px-2 py-1 text-xs text-primary-foreground'>Phase {order}</span>
+						<span className='mr-3 rounded-lg bg-primary px-2 py-1 text-xs text-primary-foreground'>Phase {order}</span>
 						<span
-							className='text-muted-foreground'
-							onBlur={(e) => {
+							className='text-muted-foreground border border-transparent hover:border-border hover:cursor-default rounded-xl px-2 -mx-2 py-2 -my-2'
+							contentEditable
+							aria-disabled={pending}
+							onBlur={async (e) => {
 								if (e.currentTarget.innerText !== phase.description) {
 									console.log('updating phase');
 									updatePhase(phase.id, { description: e.currentTarget.innerText });
@@ -54,9 +57,9 @@ const PhaseListItem = ({ phase, tickets, order }: Props) => {
 					</p>
 
 					<p className='ml-auto'>
-						{phase.hours}
+						{phase.hours}hrs
 						<DropdownMenu open={open} onOpenChange={setOpen}>
-							<DropdownMenuTrigger asChild>
+							<DropdownMenuTrigger asChild disabled={pending}>
 								<Button variant='ghost' size='sm'>
 									<DotsHorizontalIcon />
 								</Button>
