@@ -1,29 +1,53 @@
 'use client';
-import React, { useState } from 'react';
+import React, { useOptimistic, useState, useTransition } from 'react';
 import { DragDropContext, DropResult } from 'react-beautiful-dnd';
-import SectionsList from './SectionList';
+import SectionsList from './SectionsList';
 import TemplateCatalog from '@/components/TemplateCatalog';
-import { getTemplates, updatePhase } from '@/lib/data';
+import { updatePhase } from '@/lib/data';
 import { ProjectPhase, ProjectTemplate } from '@/types/manage';
 import { v4 as uuid } from 'uuid';
 import { FileTextIcon, PlusIcon } from '@radix-ui/react-icons';
-import SubmitButton from './SubmitButton';
+import SubmitButton from '@/components/SubmitButton';
 import { handleNewTemplateInsert, handleSectionInsert } from '@/app/actions';
 
 type Props = {
 	id: string;
-	sections?: Array<Section & { phases: Array<Phase & { tickets: Array<Ticket & { tasks: Array<Task> }> }> }>;
+	sections: NestedSection[];
 	templates: ProjectTemplate[];
 };
 
 type SectionState = {
-	newSection: Section & { phases: Array<Phase & { tickets: Array<Ticket & { tasks: Task[] }> }> };
+	newSection: NestedSection;
 	updatedSection?: Section;
+	deletedSection?: string;
 	pending: boolean;
 };
 
 const ProposalBuilder = ({ id, sections, templates }: Props) => {
-	const [items, setItems] = useState<Array<Section & { phases: Array<Phase & { tickets: Array<Ticket & { tasks: Array<Task> }> }> }>>(sections ?? []);
+	const [isPending, startTransition] = useTransition();
+
+	const [state, mutate] = useOptimistic({ sections, pending: false }, function createReducer(state, newState: SectionState) {
+		if (newState.newSection) {
+			return {
+				sections: [...state.sections, newState.newSection] as NestedSection[],
+				pending: newState.pending,
+			};
+		} else if (newState.updatedSection) {
+			return {
+				sections: [...state.sections.filter((f) => f.id !== newState.updatedSection!.id), newState.updatedSection] as NestedSection[],
+				pending: newState.pending,
+			};
+		} else {
+			return {
+				sections: [...state.sections.filter((f) => f.id !== newState.deletedSection)] as NestedSection[],
+				pending: newState.pending,
+			};
+		}
+	});
+
+	const [items, setItems] = useState<NestedSection[]>(sections ?? []);
+
+	const sectionStub: NestedSection = { created_at: Date(), id: uuid(), name: 'New Section', order: 0, proposal: id, phases: [] };
 
 	// a little function to help us with reordering the result
 	const reorder = (
@@ -43,6 +67,7 @@ const ProposalBuilder = ({ id, sections, templates }: Props) => {
 			result[i].order = i + 1;
 			changedSections.push(result[i]);
 		}
+		console.log(changedSections);
 
 		Promise.all(changedSections.map((section) => updatePhase(section.id, { order: section.order })));
 
@@ -50,17 +75,13 @@ const ProposalBuilder = ({ id, sections, templates }: Props) => {
 	};
 
 	const handleTemplateDrop = async (index: number) => {
-		console.log(templates, index);
 		const template = templates[index];
-		console.log(template);
 
 		if (!template) return;
 
 		const { workplan } = template;
 
-		console.log(workplan);
-
-		let mappedPhases = workplan.phases.map((phase: ProjectPhase) => {
+		let mappedPhases: NestedPhase[] = workplan.phases.map((phase: ProjectPhase) => {
 			const { description, wbsCode } = phase;
 			const phaseId = uuid();
 			return {
@@ -70,7 +91,6 @@ const ProposalBuilder = ({ id, sections, templates }: Props) => {
 				order: parseInt(wbsCode),
 				proposal: '',
 				section: '',
-				strategy_ticket: '',
 				tickets: phase.tickets.map((ticket) => {
 					const { budgetHours, wbsCode, summary } = ticket;
 					const ticketId = uuid();
@@ -98,29 +118,23 @@ const ProposalBuilder = ({ id, sections, templates }: Props) => {
 			};
 		});
 
-		console.log(mappedPhases);
+		const newSection = {
+			...sectionStub,
+			name: template.name,
+			order: index,
+			phases: mappedPhases,
+		};
 
-		// @ts-ignore
-		setItems([...items, { id: uuid(), name: template.name, created_at: Date(), order: items.length + 1, phases: mappedPhases, proposal: id }]);
+		console.log(index);
 
-		// const something: { template: ProjectTemplate; workplan: ProjectWorkPlan } = { template: { id: 1, name: '' }, workplan };
+		startTransition(async () => {
+			mutate({
+				newSection,
+				pending: true,
+			});
 
-		// addOptimistic(something);
-
-		// console.log(workplan.phases, workplan.phases.length);
-		// const offset = destination.index === 0 ? 1 : workplan.phases.length + 1;
-		// console.log(offset);
-		// const reorderedItems = presort(optimisticState, destination.index, offset);
-		// addOptimistic(reorderedItems);
-		// opt(reorderedItems);
-
-		const section = await handleNewTemplateInsert(id, template);
-		// let createdPhases = phases as unknown as Array<Phase & { tickets: Array<Ticket> }>;
-		// setItems([...items, createdPhases]);
-
-		// reorder(items, startIndex, endIndex);
-
-		return;
+			await handleNewTemplateInsert(id, template, index);
+		});
 	};
 
 	const phaseReorder = async (parentId: string, sourceIndex: number, destinationIndex: number) => {
@@ -150,7 +164,8 @@ const ProposalBuilder = ({ id, sections, templates }: Props) => {
 		// handle dropping a template onto proposal
 		if (!destination && source.droppableId === 'templates') {
 			console.log('running func');
-			await handleTemplateDrop(source.index);
+			await handleTemplateDrop(0);
+			// reorder(state.sections, source.index, destination?.index);
 			return;
 		}
 
@@ -167,7 +182,9 @@ const ProposalBuilder = ({ id, sections, templates }: Props) => {
 
 		// handle dropping a template onto proposal
 		if (destination?.droppableId === 'sections' && source.droppableId === 'templates') {
-			await handleTemplateDrop(source.index);
+			await handleTemplateDrop(destination.index);
+			// reorder(state.sections, source.index, destination?.index);
+
 			return;
 		}
 
@@ -176,10 +193,19 @@ const ProposalBuilder = ({ id, sections, templates }: Props) => {
 			return;
 		}
 
-		const reorderedItems = reorder(items, source.index, destination.index);
+		// const reorderedItems = reorder(items, source.index, destination.index);
 
-		setItems(reorderedItems);
+		// setItems(reorderedItems);
 	}
+
+	let sortedSections = state.sections?.sort((a, b) => {
+		// First, compare by score in descending order
+		if (Number(a.order) > Number(b.order)) return -1;
+		if (Number(a.order) < Number(b.order)) return 1;
+
+		// If scores are equal, then sort by created_at in ascending order
+		return new Date(a.created_at).getTime() - new Date(b.created_at).getTime();
+	});
 
 	return (
 		<DragDropContext onDragEnd={onDragEnd}>
@@ -194,25 +220,25 @@ const ProposalBuilder = ({ id, sections, templates }: Props) => {
 								<div className='flex flex-col flex-grow py-8 px-4 space-y-2'>
 									<h1 className='text-2xl font-semibold'>Workplan</h1>
 									{items.length ? (
-										<div className='bg-muted/50 rounded-xl p-4 h-full overflow-y-scroll scroll-m-4 pr-0'>
-											<SectionsList sections={items} />
+										<div className='bg-muted/50 rounded-xl p-4 h-full overflow-y-scroll scroll-m-4'>
+											<SectionsList id={id} sections={sortedSections} />
 										</div>
 									) : (
 										<form
 											action={handleSectionInsert}
 											onSubmit={(event) => {
 												event.preventDefault();
-												let formData = new FormData(event.currentTarget);
-												let newSection: Section = {
-													id: uuid(),
+												let newSection: NestedSection = {
+													...sectionStub,
 													name: 'New Section',
-													created_at: Date(),
-													order: 0,
-													proposal: id,
 												};
 
-												// @ts-ignore
-												setItems([...items, newSection]);
+												startTransition(() => {
+													mutate({
+														newSection,
+														pending: true,
+													});
+												});
 											}}
 											className='h-full border border-dotted flex flex-col justify-center items-center gap-4 rounded-xl'
 										>

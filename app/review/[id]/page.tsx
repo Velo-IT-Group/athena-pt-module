@@ -10,7 +10,7 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { Input } from '@/components/ui/input';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { getProposal } from '@/lib/data';
-import PhasesList from '@/components/PhasesList';
+import PhasesList from '@/app/(org)/proposal/[id]/workplan/PhasesList';
 
 const discussion = [
 	{

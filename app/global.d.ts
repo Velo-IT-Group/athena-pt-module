@@ -21,6 +21,7 @@ declare global {
 	type TicketInset = DB['public']['Tables']['tickets']['Insert'];
 	type TicketUpdate = DB['public']['Tables']['tickets']['Insert'];
 	type DoublyNestedProposal = Proposal & { phases: Array<NestedProposal> };
-	type NestedProposal = Proposal & { phases: Array<Phase> };
-	type NestedPhase = Phase & { tickets: Array<Ticket> };
+	type NestedProposal = Proposal & { phases?: Array<Phase> };
+	type NestedPhase = Phase & { tickets?: Array<Ticket> };
+	type NestedSection = Section & { phases?: NestedPhase[] };
 }

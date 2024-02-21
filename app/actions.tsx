@@ -16,6 +16,7 @@ import {
 	updateTicket,
 } from '@/lib/data';
 import { ProjectTemplate } from '@/types/manage';
+import { createClient } from '@/utils/supabase/server';
 import { revalidateTag } from 'next/cache';
 import { redirect } from 'next/navigation';
 
@@ -69,15 +70,39 @@ export const handleTaskInsert = async (formData: FormData) => {
 	revalidateTag('proposals');
 };
 
+export async function deliverSection(section: Section) {
+	'use server';
+	await new Promise((res) => setTimeout(res, 1000));
+
+	return section;
+}
+
 export const handlePhaseInsert = async (formData: FormData) => {
+	const supabase = createClient();
+
 	const description = formData.get('description') as string;
 	const order = formData.get('order') as unknown as number;
 	const section = formData.get('section') as string;
 
-	await createPhase({ description, order, section }, []);
+	console.log(description, order, section);
 
+	// const phase =createPhase({ description: description ?? '', order: order ?? 0, section }, []);
+
+	const { data: phase, error } = await supabase
+		.from('phases')
+		.insert({ description: description ?? 'New Phase', order: order ?? 0, section })
+		.select()
+		.single();
+
+	if (!phase || error) {
+		console.log(error);
+		return;
+	}
+
+	revalidateTag('sections');
 	revalidateTag('proposals');
 	revalidateTag('phases');
+	// return phase;
 };
 
 export const handleProposalDelete = async (id: string) => {
@@ -124,12 +149,20 @@ export const handleProposalUpdate = async (formData: FormData) => {
 };
 
 export const handleProposalInsert = async (formData: FormData) => {
+	const supabase = createClient();
 	const name = formData.get('name') as string;
 	const templates_used = formData.getAll('templates_used') as unknown as number[];
 
 	console.log(templates_used);
 
-	const proposal = await createProposal({ name, templates_used: templates_used });
+	const { data: proposal, error } = await supabase.from('proposals').insert({ name, templates_used: templates_used }).select().single();
+
+	if (!proposal || error) {
+		console.error(error);
+		return;
+	}
+
+	// const proposal = await createProposal({ name, templates_used: templates_used });
 
 	if (!!!proposal) {
 		return redirect(`/proposal/new?message=Couldnt create proposal`);
@@ -154,12 +187,17 @@ export const handleSectionInsert = async (formData: FormData) => {
 	const name = formData.get('name') as string;
 	const proposal = formData.get('proposal') as string;
 	const order = formData.get('order') as unknown as number;
-	await createSection({ name, proposal, order });
+
+	console.log(name, proposal, order);
+
+	await createSection({ name: name ?? 'New Section', proposal, order: order ?? 0 });
+
+	revalidateTag('sections');
 	revalidateTag('proposals');
 };
 
-export const handleNewTemplateInsert = async (proposalId: string, template: ProjectTemplate) => {
-	const section = await newTemplate(proposalId, template);
+export const handleNewTemplateInsert = async (proposalId: string, template: ProjectTemplate, order: number) => {
+	const section = await newTemplate(proposalId, template, order);
 
 	if (!!!section) {
 		return;

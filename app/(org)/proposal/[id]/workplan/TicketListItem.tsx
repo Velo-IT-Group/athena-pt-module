@@ -21,8 +21,8 @@ import { handleTicketDelete } from '@/app/actions';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import TasksList from './TasksList';
-import CornerDownRightIcon from './CornerDownRightIcon';
-import TicketForm from './TicketForm';
+import CornerDownRightIcon from '../../../../../components/CornerDownRightIcon';
+import TicketForm from '../../../../../components/TicketForm';
 
 type Props = {
 	ticket: Ticket & { tasks: Task[] };

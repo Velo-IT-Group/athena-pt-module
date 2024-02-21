@@ -1,12 +1,12 @@
 'use client';
-import React, { useOptimistic, useRef, useState, useTransition } from 'react';
+import React, { useRef, useState, useTransition } from 'react';
 import TicketListItem from './TicketListItem';
 import { Draggable, Droppable } from 'react-beautiful-dnd';
 import { v4 as uuid } from 'uuid';
 import { PlusIcon } from '@radix-ui/react-icons';
 import { handleTicketInsert } from '@/app/actions';
-import SubmitButton from './SubmitButton';
-import { Input } from './ui/input';
+import SubmitButton from '../../../../../components/SubmitButton';
+import { Input } from '../../../../../components/ui/input';
 
 type Props = {
 	phase: string;

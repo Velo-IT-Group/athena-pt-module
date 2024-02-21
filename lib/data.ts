@@ -18,7 +18,7 @@ export const baseConfig: AxiosRequestConfig = {
 
 // CREATE FUNCTIONS
 
-export const newTemplate = async (proposal: string, template: ProjectTemplate, templateID?: string): Promise<Array<Phase> | undefined> => {
+export const newTemplate = async (proposal: string, template: ProjectTemplate, order?: number): Promise<Array<Phase> | undefined> => {
 	const section = await createSection({ name: template.name, proposal });
 
 	if (!section) return;
@@ -70,9 +70,13 @@ export const createTasks = async (tasks: Array<TaskInsert>): Promise<Array<Task>
 
 export const createProposal = async (proposal: ProposalInsert): Promise<Proposal | undefined> => {
 	const supabase = createClient();
+	console.log(await supabase.auth.getUser());
 	const { data, error } = await supabase.from('proposals').insert(proposal).select('*').single();
 
-	if (!data || error) return;
+	if (!data || error) {
+		console.error(error);
+		return;
+	}
 
 	return data;
 };
@@ -129,6 +133,7 @@ export const createTicket = async (ticket: TicketInset, tasks: Array<ProjectTemp
 export const getPhases = unstable_cache(
 	async (id: string): Promise<Array<Phase & { tickets: Array<Ticket & { tasks: Task[] }> }> | undefined> => {
 		const supabase = createClient();
+
 		const { data, error } = await supabase.from('phases').select('*, tickets(*, tasks(*))').eq('section', id).order('order');
 
 		if (!data || error) {
@@ -140,6 +145,31 @@ export const getPhases = unstable_cache(
 	},
 	['phases'],
 	{ tags: ['phases'] }
+);
+
+export const getSections = unstable_cache(
+	async (id: string) => {
+		const supabase = createClient();
+
+		const sectionsWithPhases = supabase.from('sections').select('*, phases(*, tickets(*, tasks(*)))').eq('proposal', id);
+		// .order('order', { referencedTable: 'phases', ascending: true })
+		// .single();
+
+		type SectionsWithPhases = QueryData<typeof sectionsWithPhases>;
+
+		const { data, error } = await sectionsWithPhases;
+
+		// console.log(data, id);
+
+		if (!data || error) {
+			console.error(error);
+			return;
+		}
+
+		return data as SectionsWithPhases;
+	},
+	['sections', 'phases', 'tickets', 'tasks'],
+	{ tags: ['sections', 'phases', 'tickets', 'tasks'] }
 );
 
 export const getWorkplan = async (id: number): Promise<ProjectWorkPlan | undefined> => {
@@ -256,9 +286,9 @@ export const getProposal = unstable_cache(
 
 		return proposal as ProposalWithSections;
 	},
-	['proposals'],
+	['proposals', 'sections', 'phases', 'tickets', 'tasks'],
 	{
-		tags: ['proposals'],
+		tags: ['proposals', 'sections', 'phases', 'tickets', 'tasks'],
 	}
 );
 
@@ -280,7 +310,7 @@ export const getProposals = unstable_cache(
 			return;
 		}
 
-		console.log(proposals);
+		// console.log(proposals);
 
 		return proposals as Proposals;
 	},

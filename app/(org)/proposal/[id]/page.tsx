@@ -1,6 +1,6 @@
 import { Card, CardContent } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
-import { getProposal, getTicket } from '@/lib/data';
+import { getProposal, getSections, getTicket } from '@/lib/data';
 import { getCurrencyString } from '@/utils/money';
 import React from 'react';
 
@@ -10,11 +10,12 @@ type Props = {
 
 const ProposalPage = async ({ params }: Props) => {
 	const proposal = await getProposal(params.id);
+	const sections = await getSections(params.id);
 
 	if (!proposal) return <div></div>;
 
 	const ticket = await getTicket(proposal?.service_ticket ?? 0);
-	console.log(ticket);
+	// console.log(ticket);
 
 	return (
 		<div className='bg-muted/50 h-full flex-1'>

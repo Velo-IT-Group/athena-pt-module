@@ -1,16 +1,16 @@
 'use client';
 import React from 'react';
 import PhasesList from './PhasesList';
-import { Collapsible, CollapsibleContent, CollapsibleTrigger } from './ui/collapsible';
-import { Button } from './ui/button';
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
+import { Button } from '@/components/ui/button';
 import { CaretSortIcon, DotsHorizontalIcon } from '@radix-ui/react-icons';
-import { Card, CardContent, CardHeader, CardTitle } from './ui/card';
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from './ui/dropdown-menu';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { handleSectionDelete } from '@/app/actions';
 
 type Props = {
 	section: Section;
-	phases: Array<Phase & { tickets: Array<Ticket & { tasks: Array<Task> }> }>;
+	phases: NestedPhase[];
 };
 
 const SectionListItem = ({ section, phases }: Props) => {

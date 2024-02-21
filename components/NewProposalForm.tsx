@@ -15,7 +15,7 @@ type Props = {
 
 const NewProposalForm = ({ templates, tickets }: Props) => {
 	return (
-		<form action={handleProposalInsert} className='space-y-8'>
+		<div className='space-y-8'>
 			<div>
 				<Label htmlFor='name'>Name</Label>
 				<Input id='name' name='name' placeholder='Name' tabIndex={1} />
@@ -51,9 +51,7 @@ const NewProposalForm = ({ templates, tickets }: Props) => {
 					</SelectContent>
 				</Select>
 			</div>
-
-			<SubmitButton tabIndex={4}>Submit</SubmitButton>
-		</form>
+		</div>
 	);
 };
 
