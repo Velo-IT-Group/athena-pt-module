@@ -112,7 +112,7 @@ const ProposalBuilder = ({ id, sections, templates }: Props) => {
 							};
 						}),
 					};
-				}),
+				}) as Array<Ticket & { tasks: Task[] }>,
 			};
 		});
 
