@@ -225,7 +225,7 @@ export const getTickets = async (): Promise<ProjectTemplateTicket[] | undefined>
 	}
 };
 
-export const getProducts = async (): Promise<Array<CatalogItem> | undefined> => {
+export const getCatalogItems = async () => {
 	var myHeaders = new Headers();
 	myHeaders.append('clientId', '9762e3fa-abbd-4179-895e-ca7b0e015ab2');
 	myHeaders.append('Authorization', 'Basic dmVsbytYMzJMQjRYeDVHVzVNRk56Olhjd3Jmd0dwQ09EaFNwdkQ=');
@@ -241,26 +241,24 @@ export const getProducts = async (): Promise<Array<CatalogItem> | undefined> => 
 	);
 
 	return await response.json();
-
-	// let config: AxiosRequestConfig = {
-	// 	...baseConfig,
-	// 	url: '/procurement/catalog',
-	// 	params: {
-	// 		conditions: 'inactiveFlag = false',
-	// 		pageSize: 1000,
-	// 		orderBy: 'description',
-	// 		fields: 'id,identifier,description,price,cost',
-	// 	},
-	// };
-
-	// try {
-	// 	const response: AxiosResponse<Array<CatalogItem>, Error> = await axios.request(config);
-	// 	return response.data;
-	// } catch (error) {
-	// 	console.error(error);
-	// 	return;
-	// }
 };
+
+export const getProducts = unstable_cache(
+	async (id: string) => {
+		const supabase = createClient();
+
+		const { data: products, error } = await supabase.from('products').select('*').eq('proposal', id);
+
+		if (!products || error) {
+			console.error('ERROR IN GET PRODUCTS QUERY', error);
+			return;
+		}
+
+		return products;
+	},
+	['products'],
+	{ tags: ['products'] }
+);
 
 export const getProposal = unstable_cache(
 	async (id: string) => {
