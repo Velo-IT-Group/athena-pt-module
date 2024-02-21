@@ -8,6 +8,7 @@ declare global {
 	type PhaseInsert = DB['public']['Tables']['phases']['Insert'];
 	type PhaseUpdate = DB['public']['Tables']['phases']['Update'];
 	type Product = DB['public']['Tables']['products']['Row'];
+	type ProductInsert = DB['public']['Tables']['products']['Insert'];
 	type Profile = DB['public']['Tables']['profiles']['Row'];
 	type Proposal = DB['public']['Tables']['proposals']['Row'];
 	type ProposalUpdate = DB['public']['Tables']['proposals']['Update'];
