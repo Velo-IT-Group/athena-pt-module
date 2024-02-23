@@ -2,10 +2,10 @@
 
 import * as React from 'react';
 
-import { ProjectTemplateTicket } from '@/types/manage';
+import { type ServiceTicket } from '@/types/manage';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './ui/select';
 
-const TicketSelector = ({ tickets }: { tickets?: ProjectTemplateTicket[] }) => {
+const TicketSelector = ({ tickets }: { tickets?: ServiceTicket[] }) => {
 	return (
 		<Select name='service_ticket'>
 			<SelectTrigger className='col-span-3' tabIndex={2}>

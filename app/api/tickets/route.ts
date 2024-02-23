@@ -1,4 +1,4 @@
-import { ProjectTemplateTicket } from '@/types/manage';
+import { type ServiceTicket } from '@/types/manage';
 import axios, { AxiosRequestConfig, AxiosResponse } from 'axios';
 import { baseConfig } from '@/lib/utils';
 
@@ -14,7 +14,7 @@ export async function GET(request: Request) {
 	};
 
 	try {
-		const response: AxiosResponse<ProjectTemplateTicket, Error> = await axios.request(config);
+		const response: AxiosResponse<ServiceTicket, Error> = await axios.request(config);
 		return Response.json(response.data);
 	} catch (error) {
 		return new Response(`${error}`, {

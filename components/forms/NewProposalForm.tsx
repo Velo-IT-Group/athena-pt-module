@@ -1,6 +1,6 @@
 'use client';
 import React from 'react';
-import { ProjectTemplate, ProjectTemplateTicket } from '@/types/manage';
+import type { ProjectTemplate, ServiceTicket } from '@/types/manage';
 import { Select, SelectContent, SelectGroup, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -8,7 +8,7 @@ import TicketSelector from '../TicketSelector';
 
 type Props = {
 	templates: ProjectTemplate[];
-	tickets: ProjectTemplateTicket[];
+	tickets: ServiceTicket[];
 };
 
 const NewProposalForm = ({ templates, tickets }: Props) => {
