@@ -73,8 +73,13 @@ export const updateSession = async (request: NextRequest) => {
 			return NextResponse.redirect(new URL(`/${'velo-it-group'}/`, request.url));
 		}
 
-		// if user is not signed in and the current path is not / redirect the user to /
+		//
+		if (!user && request.nextUrl.pathname === '/login') {
+			return response;
+		}
+
 		if (!user && !request.nextUrl.pathname.includes('review')) {
+			// if user is not signed in and the current path is not / redirect the user to /
 			return NextResponse.redirect(new URL('/login', request.url));
 		}
 
