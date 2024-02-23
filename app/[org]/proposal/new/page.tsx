@@ -1,13 +1,15 @@
 import React from 'react';
 import { CardTitle, CardHeader, CardContent, Card, CardFooter } from '@/components/ui/card';
 import NewProposalForm from '@/components/forms/NewProposalForm';
-import { getTemplates, getTickets } from '@/lib/data';
+import { getTemplates, getTickets } from '@/lib/functions/read';
 import SubmitButton from '@/components/SubmitButton';
 import { handleProposalInsert } from '@/app/actions';
 
 const NewProposalPage = async () => {
 	const templates = await getTemplates();
+	// console.log(templates);
 	const tickets = await getTickets();
+	// console.log('TICKETS RESPONSE', tickets);
 
 	return (
 		<Card>

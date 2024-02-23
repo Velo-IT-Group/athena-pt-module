@@ -2,8 +2,9 @@ import Link from 'next/link';
 import React from 'react';
 import VeloLogo from './icons/VeloLogo';
 import { SlashIcon } from '@radix-ui/react-icons';
-import { getOrganization } from '@/lib/data';
+import { getOrganization, getUser } from '@/lib/functions/read';
 import NavigationTabs from './NavigationTabs';
+import UserNav from './UserNav';
 
 export type Tab = {
 	name: string;
@@ -18,7 +19,8 @@ type Props = {
 };
 
 const Navbar = async ({ title, children, org, tabs }: Props) => {
-	const organization = await getOrganization(org);
+	const organization = await getOrganization();
+	const user = await getUser();
 
 	return (
 		<>
@@ -34,7 +36,10 @@ const Navbar = async ({ title, children, org, tabs }: Props) => {
 					<VeloLogo classname='w-6 h-6' />
 				)}
 
-				<span className='font-semibold'>{organization?.name ?? ''}</span>
+				<Link href={`/${org}`} className='font-semibold hover:underline'>
+					{organization?.name ?? ''}
+				</Link>
+
 				{title && (
 					<>
 						<SlashIcon className='h-4 opacity-15' />
@@ -42,6 +47,7 @@ const Navbar = async ({ title, children, org, tabs }: Props) => {
 					</>
 				)}
 				{children}
+				{user && <UserNav className='ml-auto' user={user} />}
 			</nav>
 			{tabs && <NavigationTabs tabs={tabs} />}
 		</>

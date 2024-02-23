@@ -1,6 +1,6 @@
 import { Card, CardContent } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
-import { getProposal, getTicket } from '@/lib/data';
+import { getProposal, getTicket } from '@/lib/functions/read';
 import { getCurrencyString } from '@/utils/money';
 import React from 'react';
 

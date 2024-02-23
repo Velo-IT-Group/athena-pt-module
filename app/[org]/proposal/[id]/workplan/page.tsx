@@ -1,5 +1,6 @@
+import { getProposal, getSections, getTemplates } from '@/lib/functions/read';
 import ProposalBuilder from './ProposalBuilder';
-import { getProposal, getSections, getTemplates } from '@/lib/data';
+
 import React from 'react';
 
 type Props = {
@@ -14,7 +15,7 @@ const ProposalWorkplanPage = async ({ params }: Props) => {
 	if (!proposal) return <div></div>;
 
 	return (
-		<main className='min-h-header'>
+		<main className='min-h-header bg-background'>
 			<ProposalBuilder sections={sections ?? []} templates={templates ?? []} id={params.id} />
 		</main>
 	);

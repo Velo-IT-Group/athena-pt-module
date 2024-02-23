@@ -6,8 +6,9 @@ import { MinusIcon, PlusIcon, TrashIcon } from '@radix-ui/react-icons';
 import { Input } from './ui/input';
 import { Label } from './ui/label';
 import { getCurrencyString } from '@/utils/money';
-import { handleProductDelete, handleProductUpdate } from '@/app/actions';
 import { ProductState } from '@/types/optimisticTypes';
+import { updateProduct } from '@/lib/functions/update';
+import { deleteProduct } from '@/lib/functions/delete';
 
 type Props = {
 	product: Product;
@@ -31,16 +32,17 @@ const ProductListItem = ({ product, description, mutate }: Props) => {
 		console.log(quantity, price, extended_price);
 
 		startTransition(async () => {
+			const updatedProduct = { quantity, price, extended_price };
+
 			mutate({
 				updatedProduct: {
 					...product,
-					quantity,
-					price,
-					extended_price,
+					...updatedProduct,
 				},
 				pending: true,
 			});
-			await handleProductUpdate(data);
+
+			await updateProduct(product.id, updatedProduct);
 		});
 	};
 
@@ -63,7 +65,7 @@ const ProductListItem = ({ product, description, mutate }: Props) => {
 										deletedProduct: product.id,
 										pending: true,
 									});
-									await handleProductDelete(product.id);
+									await deleteProduct(product.id);
 								});
 							}}
 						>

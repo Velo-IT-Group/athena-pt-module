@@ -1,9 +1,9 @@
 import Navbar from '@/components/Navbar';
-import { getOrganization } from '@/lib/data';
+import { getOrganization } from '@/lib/functions/read';
 import React from 'react';
 
 const IntegrationsPage = async ({ params }: { params: { org: string } }) => {
-	const organization = await getOrganization(params.org);
+	const organization = await getOrganization();
 	const tabs = [];
 
 	return (

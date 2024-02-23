@@ -5,19 +5,15 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm } from 'react-hook-form';
 import React from 'react';
 import { Input } from '@/components/ui/input';
-import { Button } from '@/components/ui/button';
 import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
-import { updateTicket } from '@/lib/data';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import Link from 'next/link';
-import { handleTicketUpdate } from '@/app/actions';
+import { updateTicket } from '@/lib/functions/update';
 import SubmitButton from '@/components/SubmitButton';
 import { Textarea } from '../ui/textarea';
 import { DialogFooter, DialogHeader, DialogTitle } from '../ui/dialog';
 
 const formSchema = z.object({
 	summary: z.string(),
-	// phase: z.string(),
+	notes: z.string().optional(),
 	budget_hours: z.number().min(0),
 });
 
@@ -33,9 +29,9 @@ const TicketForm = ({ ticket }: { ticket: Ticket }) => {
 	});
 
 	// 2. Define a submit handler.
-	function onSubmit(values: z.infer<typeof formSchema>) {
+	async function onSubmit(values: z.infer<typeof formSchema>) {
 		// formData.set
-		updateTicket(ticket.id, { summary: values.summary ?? '', phase: ticket.phase, budget_hours: values.budget_hours ?? 0 });
+		await updateTicket(ticket.id, { summary: values.summary ?? '', phase: ticket.phase, budget_hours: values.budget_hours ?? 0 });
 		// Do something with the form values.
 		// ✅ This will be type-safe and validated.
 		console.log(values);
@@ -47,7 +43,7 @@ const TicketForm = ({ ticket }: { ticket: Ticket }) => {
 				<DialogTitle>{ticket.summary}</DialogTitle>
 			</DialogHeader>
 			<Form {...form}>
-				<form action={handleTicketUpdate} className='space-y-8'>
+				<form onSubmit={form.handleSubmit(onSubmit)} className='space-y-8'>
 					<Input name='id' defaultValue={ticket.id} hidden className='hidden' />
 					<FormField
 						control={form.control}
@@ -96,9 +92,8 @@ const TicketForm = ({ ticket }: { ticket: Ticket }) => {
 							<FormItem>
 								<FormLabel>Budget Hours</FormLabel>
 								<FormControl>
-									<Input min={0} type='number' placeholder='shadcn' {...field} />
+									<Input min={0} type='number' placeholder='0hrs' {...field} />
 								</FormControl>
-								<FormDescription>This is your public display name.</FormDescription>
 								<FormMessage />
 							</FormItem>
 						)}

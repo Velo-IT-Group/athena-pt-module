@@ -3,7 +3,7 @@ import React, { FormEvent, useOptimistic, useState, useTransition } from 'react'
 import { DragDropContext, DropResult } from 'react-beautiful-dnd';
 import SectionsList from './SectionsList';
 import TemplateCatalog from '@/components/TemplateCatalog';
-import { updatePhase } from '@/lib/data';
+import { updatePhase } from '@/lib/functions/update';
 import { ProjectPhase, ProjectTemplate } from '@/types/manage';
 import { v4 as uuid } from 'uuid';
 import { FileTextIcon, PlusIcon } from '@radix-ui/react-icons';
@@ -11,6 +11,7 @@ import SubmitButton from '@/components/SubmitButton';
 import { handleNewTemplateInsert, handleSectionInsert } from '@/app/actions';
 import { SectionState } from '@/types/optimisticTypes';
 import { ScrollArea } from '@/components/ui/scroll-area';
+import { createSection } from '@/lib/functions/create';
 
 type Props = {
 	id: string;
@@ -40,7 +41,15 @@ const ProposalBuilder = ({ id, sections, templates }: Props) => {
 		}
 	});
 
-	const sectionStub: NestedSection = { created_at: Date(), id: uuid(), name: 'New Section', order: 0, proposal: id, hours: 0, phases: [] };
+	const sectionStub: NestedSection = {
+		created_at: new Date().toISOString(),
+		id: uuid(),
+		name: 'New Section',
+		order: 0,
+		proposal: id,
+		hours: 0,
+		phases: [],
+	};
 
 	// a little function to help us with reordering the result
 	const reorder = (
@@ -74,42 +83,43 @@ const ProposalBuilder = ({ id, sections, templates }: Props) => {
 
 		const { workplan } = template;
 
-		let mappedPhases: NestedPhase[] = workplan.phases.map((phase: ProjectPhase) => {
-			const { description, wbsCode } = phase;
-			const phaseId = uuid();
-			return {
-				id: phaseId,
-				description: description,
-				hours: 0,
-				order: parseInt(wbsCode),
-				proposal: '',
-				section: '',
-				tickets: phase.tickets.map((ticket) => {
-					const { budgetHours, wbsCode, summary } = ticket;
-					const ticketId = uuid();
-					return {
-						budget_hours: budgetHours,
-						created_at: Date(),
-						id: ticketId,
-						order: parseInt(wbsCode ?? '0'),
-						phase: phaseId,
-						summary,
-						tasks: ticket.tasks?.map((task) => {
-							const { notes, summary, priority } = task;
-							const taskId = uuid();
-							return {
-								created_at: Date(),
-								id: taskId,
-								notes,
-								priority,
-								summary,
-								ticket: ticketId,
-							};
-						}),
-					};
-				}) as Array<Ticket & { tasks: Task[] }>,
-			};
-		});
+		let mappedPhases: NestedPhase[] =
+			workplan?.phases.map((phase: ProjectPhase) => {
+				const { description, wbsCode } = phase;
+				const phaseId = uuid();
+				return {
+					id: phaseId,
+					description: description,
+					hours: 0,
+					order: parseInt(wbsCode),
+					proposal: '',
+					section: '',
+					tickets: phase.tickets.map((ticket) => {
+						const { budgetHours, wbsCode, summary } = ticket;
+						const ticketId = uuid();
+						return {
+							budget_hours: budgetHours,
+							created_at: Date(),
+							id: ticketId,
+							order: parseInt(wbsCode ?? '0'),
+							phase: phaseId,
+							summary,
+							tasks: ticket.tasks?.map((task) => {
+								const { notes, summary, priority } = task;
+								const taskId = uuid();
+								return {
+									created_at: Date(),
+									id: taskId,
+									notes,
+									priority,
+									summary,
+									ticket: ticketId,
+								};
+							}),
+						};
+					}) as Array<Ticket & { tasks: Task[] }>,
+				};
+			}) ?? [];
 
 		const newSection = {
 			...sectionStub,
@@ -203,7 +213,12 @@ const ProposalBuilder = ({ id, sections, templates }: Props) => {
 				newSection,
 				pending: true,
 			});
-			await handleSectionInsert(data);
+
+			// @ts-ignore
+			delete newSection['id'];
+			delete newSection['phases'];
+
+			await createSection(newSection);
 		});
 	};
 

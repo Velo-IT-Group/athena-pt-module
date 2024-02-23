@@ -1,6 +1,6 @@
 import React from 'react';
 import Navbar, { Tab } from '@/components/Navbar';
-import { getProposal } from '@/lib/data';
+import { getProposal } from '@/lib/functions/read';
 
 type Props = {
 	params: { org: string; id: string };
