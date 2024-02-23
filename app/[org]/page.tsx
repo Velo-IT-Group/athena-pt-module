@@ -12,7 +12,6 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Label } from '@/components/ui/label';
 import { getCurrencyString } from '@/utils/money';
 import Navbar, { Tab } from '@/components/Navbar';
-import { cn } from '@/lib/utils';
 
 type Props = {
 	params: { org: string };
