@@ -53,10 +53,10 @@ export default function AuthForm({ searchParams }: { searchParams?: { message: s
 	return (
 		<form className='animate-in flex-1 flex flex-col w-full justify-center gap-2 text-foreground' action={signIn}>
 			<Label htmlFor='email'>Email</Label>
-			<Input name='email' placeholder='you@example.com' required />
+			<Input name='email' placeholder='you@example.com' autoComplete='email' required />
 
 			<Label htmlFor='password'>Password</Label>
-			<Input type='password' name='password' placeholder='••••••••' required />
+			<Input type='password' name='password' placeholder='••••••••' autoComplete='current-password' required />
 
 			<SubmitButton>Sign in</SubmitButton>
 			<Button formAction={signUp} variant='outline'>
