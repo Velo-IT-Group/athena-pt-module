@@ -1,0 +1,254 @@
+'use server';
+import axios, { AxiosRequestConfig, AxiosResponse } from 'axios';
+import { ProjectTemplate, ProjectTemplateTicket, ProjectWorkPlan } from '@/types/manage';
+import { QueryData } from '@supabase/supabase-js';
+import { createClient } from '@/utils/supabase/server';
+import { baseConfig } from '@/lib/utils';
+import { unstable_cache } from 'next/cache';
+
+export const getPhases = unstable_cache(
+	async (id: string): Promise<Array<Phase & { tickets: Array<Ticket & { tasks: Task[] }> }> | undefined> => {
+		const supabase = createClient();
+
+		const { data, error } = await supabase.from('phases').select('*, tickets(*, tasks(*))').eq('section', id).order('order');
+
+		if (!data || error) {
+			console.error(error);
+			return;
+		}
+
+		return data;
+	},
+	['phases'],
+	{ tags: ['phases'] }
+);
+
+export const getSections = unstable_cache(
+	async (id: string) => {
+		const supabase = createClient();
+
+		const sectionsWithPhases = supabase.from('sections').select('*, phases(*, tickets(*, tasks(*)))').eq('proposal', id);
+		// .order('order', { referencedTable: 'phases', ascending: true })
+		// .single();
+
+		type SectionsWithPhases = QueryData<typeof sectionsWithPhases>;
+
+		const { data, error } = await sectionsWithPhases;
+
+		// console.log(data, id);
+
+		if (!data || error) {
+			console.error(error);
+			return;
+		}
+
+		return data as SectionsWithPhases;
+	},
+	['sections'],
+	{ tags: ['sections'] }
+);
+
+export const getUser = async () => {
+	const supabase = createClient();
+
+	try {
+		const {
+			data: { user },
+		} = await supabase.auth.getUser();
+		return user;
+	} catch (error) {
+		console.error(error);
+	}
+};
+
+export const getWorkplan = async (id: number): Promise<ProjectWorkPlan | undefined> => {
+	const url = `/project/projectTemplates/${id}/workplan`;
+	let config: AxiosRequestConfig = {
+		...baseConfig,
+		url,
+		params: {
+			fields: 'phases/tickets/id,phases/tickets/summary',
+		},
+	};
+
+	const response: AxiosResponse<ProjectWorkPlan, Error> = await axios.request(config);
+	return response.data;
+};
+
+export const getTicket = async (id: number): Promise<ProjectTemplateTicket | undefined> => {
+	var myHeaders = new Headers();
+	myHeaders.append('clientId', '9762e3fa-abbd-4179-895e-ca7b0e015ab2');
+	myHeaders.append('Authorization', 'Basic dmVsbytYMzJMQjRYeDVHVzVNRk56Olhjd3Jmd0dwQ09EaFNwdkQ=');
+
+	var requestOptions: RequestInit = {
+		method: 'GET',
+		headers: myHeaders,
+		next: {
+			tags: ['tickets'],
+		},
+	};
+
+	const response = await fetch(`https://manage.velomethod.com/v4_6_release/apis/3.0/service/tickets/${id}`, requestOptions);
+
+	return await response.json();
+};
+
+export const getTickets = async (): Promise<ProjectTemplateTicket[] | undefined> => {
+	var myHeaders = new Headers();
+	myHeaders.append('clientId', '9762e3fa-abbd-4179-895e-ca7b0e015ab2');
+	myHeaders.append('Authorization', 'Basic dmVsbytYMzJMQjRYeDVHVzVNRk56Olhjd3Jmd0dwQ09EaFNwdkQ=');
+	var requestOptions: RequestInit = {
+		method: 'GET',
+		headers: myHeaders,
+		next: {
+			tags: ['tickets'],
+			revalidate: 60,
+		},
+	};
+
+	try {
+		const response = await fetch(`${process.env.NEXT_PUBLIC_LOCAL_URL}/api/tickets`, requestOptions);
+		return await response.json();
+	} catch (error) {
+		console.error(error);
+	}
+};
+
+export const getCatalogItems = async () => {
+	var myHeaders = new Headers();
+	myHeaders.append('clientId', '9762e3fa-abbd-4179-895e-ca7b0e015ab2');
+	myHeaders.append('Authorization', 'Basic dmVsbytYMzJMQjRYeDVHVzVNRk56Olhjd3Jmd0dwQ09EaFNwdkQ=');
+
+	var requestOptions = {
+		method: 'GET',
+		headers: myHeaders,
+	};
+
+	const response = await fetch(
+		'https://manage.velomethod.com/v4_6_release/apis/3.0/procurement/catalog?conditions=inactiveFlag = false&fields=id,identifier,description,price,cost',
+		requestOptions
+	);
+
+	return await response.json();
+};
+
+export const getProducts = unstable_cache(
+	async (id: string) => {
+		const supabase = createClient();
+
+		const { data: products, error } = await supabase.from('products').select('*').eq('proposal', id);
+
+		if (!products || error) {
+			console.error('ERROR IN GET PRODUCTS QUERY', error);
+			return;
+		}
+
+		return products;
+	},
+	['products'],
+	{ tags: ['products'] }
+);
+
+export const getProposal = unstable_cache(
+	async (id: string) => {
+		const supabase = createClient();
+
+		const proposalWithSectionsQuery = supabase
+			.from('proposals')
+			.select('*, sections(*, phases(*, tickets(*, tasks(*))))')
+			.eq('id', id)
+			.order('order', { referencedTable: 'sections', ascending: true })
+			.single();
+
+		type ProposalWithSections = QueryData<typeof proposalWithSectionsQuery>;
+
+		const { data: proposal, error } = await proposalWithSectionsQuery;
+
+		if (!proposal || error) {
+			console.error('ERROR IN GET PROPOSAL QUERY', error);
+			return;
+		}
+
+		// console.log(proposal);
+
+		return proposal as ProposalWithSections;
+	},
+	['proposals'],
+	{ tags: ['proposals'] }
+);
+
+export const getOrganization = unstable_cache(
+	async (id: string) => {
+		const supabase = createClient();
+		const { data, error } = await supabase.from('organizations').select().single();
+
+		if (!data || error) {
+			console.error('ERROR IN GETTING ORGANIZATION QUERY', error);
+			return;
+		}
+
+		return data;
+	},
+	['organizations'],
+	{ tags: ['organizations'] }
+);
+
+export const getProposals = unstable_cache(
+	async () => {
+		const supabase = createClient();
+
+		const proposalsQuery = supabase
+			.from('proposals')
+			.select('*, sections(*, phases(*, tickets(*, tasks(*))))')
+			.order('updated_at', { ascending: false });
+
+		type Proposals = QueryData<typeof proposalsQuery>;
+
+		const { data: proposals, error } = await proposalsQuery;
+
+		if (!proposals || error) {
+			console.error(error);
+			return;
+		}
+
+		// console.log(proposals);
+
+		return proposals as Proposals;
+	},
+	['proposals'],
+	{ tags: ['proposals'] }
+);
+
+export const getTemplates = async (): Promise<Array<ProjectTemplate> | undefined> => {
+	var requestOptions: RequestInit = {
+		method: 'GET',
+		next: {
+			tags: ['templates'],
+			revalidate: 43200,
+		},
+	};
+
+	try {
+		const response = await fetch(`${process.env.NEXT_PUBLIC_LOCAL_URL}/api/templates`, requestOptions);
+		return await response.json();
+	} catch (error) {
+		console.error(error);
+	}
+};
+
+export const getTemplate = async (id: number): Promise<ProjectTemplate | undefined> => {
+	var requestOptions: RequestInit = {
+		method: 'GET',
+		next: {
+			tags: ['templates'],
+			revalidate: 43200,
+		},
+	};
+
+	try {
+		const response = await fetch(`${process.env.NEXT_PUBLIC_LOCAL_URL}/api/templates/${id}`, requestOptions);
+		return await response.json();
+	} catch (error) {
+		console.error(error);
+	}
+};
