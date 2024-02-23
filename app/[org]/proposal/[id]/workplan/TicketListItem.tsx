@@ -20,8 +20,8 @@ import { Button } from '@/components/ui/button';
 import { handleTicketDelete } from '@/app/actions';
 import { Badge } from '@/components/ui/badge';
 import TasksList from './TasksList';
-import CornerDownRightIcon from '../../../../../components/CornerDownRightIcon';
-import TicketForm from '../../../../../components/TicketForm';
+import CornerDownRightIcon from '@/components/icons/CornerDownRightIcon';
+import TicketForm from '@/components/forms/TicketForm';
 import { ScrollArea } from '@/components/ui/scroll-area';
 
 type Props = {
@@ -92,14 +92,16 @@ const TicketListItem = ({ ticket, order }: Props) => {
 								</DropdownMenuGroup>
 							</DropdownMenuContent>
 						</DropdownMenu>
-						<DialogContent className='max-w-lg overflow-hidden max-h-[75vh] flex flex-col'>
-							<TicketForm ticket={ticket} />
-							<div>
-								<h3>Tasks</h3>
-								<ScrollArea>
-									<TasksList tasks={ticket.tasks ?? []} ticketId={ticket.id} />
-								</ScrollArea>
-							</div>
+						<DialogContent className='max-w-lg flex flex-col'>
+							<ScrollArea className='max-h-[75vh]'>
+								<TicketForm ticket={ticket} />
+								<div>
+									<h3>Tasks</h3>
+									<ScrollArea>
+										<TasksList tasks={ticket.tasks ?? []} ticketId={ticket.id} />
+									</ScrollArea>
+								</div>
+							</ScrollArea>
 						</DialogContent>
 					</Dialog>
 				</p>

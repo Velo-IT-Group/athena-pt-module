@@ -1,6 +1,6 @@
 import React from 'react';
 import { CardTitle, CardHeader, CardContent, Card, CardFooter } from '@/components/ui/card';
-import NewProposalForm from '@/components/NewProposalForm';
+import NewProposalForm from '@/components/forms/NewProposalForm';
 import { getTemplates, getTickets } from '@/lib/data';
 import SubmitButton from '@/components/SubmitButton';
 import { handleProposalInsert } from '@/app/actions';
