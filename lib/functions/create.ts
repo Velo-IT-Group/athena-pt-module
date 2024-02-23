@@ -10,7 +10,7 @@ export const newTemplate = async (proposal: string, template: ProjectTemplate, o
 	if (!section) return;
 
 	const phases = await Promise.all(
-		template.workplan?.phases.map((phase: ProjectPhase, index: number) =>
+		template?.workplan?.phases.map((phase: ProjectPhase, index: number) =>
 			createPhase(
 				{
 					order: index,
@@ -19,7 +19,7 @@ export const newTemplate = async (proposal: string, template: ProjectTemplate, o
 				},
 				phase.tickets
 			)
-		)
+		) ?? []
 	);
 
 	revalidateTag('proposals');
@@ -115,6 +115,7 @@ export const createTicket = async (ticket: TicketInset, tasks: Array<ProjectTemp
 		await createTasks(mappedTasks);
 	}
 
+	revalidateTag('sections');
 	revalidateTag('proposals');
 
 	return data;

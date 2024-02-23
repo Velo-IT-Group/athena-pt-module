@@ -72,5 +72,6 @@ export const updateSection = async (id: string, section: SectionUpdate) => {
 		return;
 	}
 
+	revalidateTag('proposals');
 	revalidateTag('sections');
 };

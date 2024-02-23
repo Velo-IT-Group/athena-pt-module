@@ -1,6 +1,6 @@
 'use server';
 import axios, { AxiosRequestConfig, AxiosResponse } from 'axios';
-import { ProjectTemplate, ProjectTemplateTicket, ProjectWorkPlan } from '@/types/manage';
+import type { CatalogItem, ProjectTemplate, ProjectWorkPlan, ServiceTicket } from '@/types/manage';
 import { QueryData } from '@supabase/supabase-js';
 import { createClient } from '@/utils/supabase/server';
 import { baseConfig } from '@/lib/utils';
@@ -75,7 +75,7 @@ export const getWorkplan = async (id: number): Promise<ProjectWorkPlan | undefin
 	return response.data;
 };
 
-export const getTicket = async (id: number): Promise<ProjectTemplateTicket | undefined> => {
+export const getTicket = async (id: number): Promise<ServiceTicket | undefined> => {
 	var myHeaders = new Headers();
 	myHeaders.append('clientId', '9762e3fa-abbd-4179-895e-ca7b0e015ab2');
 	myHeaders.append('Authorization', 'Basic dmVsbytYMzJMQjRYeDVHVzVNRk56Olhjd3Jmd0dwQ09EaFNwdkQ=');
@@ -93,44 +93,70 @@ export const getTicket = async (id: number): Promise<ProjectTemplateTicket | und
 	return await response.json();
 };
 
-export const getTickets = async (): Promise<ProjectTemplateTicket[] | undefined> => {
-	var myHeaders = new Headers();
-	myHeaders.append('clientId', '9762e3fa-abbd-4179-895e-ca7b0e015ab2');
-	myHeaders.append('Authorization', 'Basic dmVsbytYMzJMQjRYeDVHVzVNRk56Olhjd3Jmd0dwQ09EaFNwdkQ=');
-	var requestOptions: RequestInit = {
-		method: 'GET',
-		headers: myHeaders,
-		next: {
-			tags: ['tickets'],
-			revalidate: 60,
-		},
-	};
+export const getTickets = unstable_cache(
+	async (): Promise<ServiceTicket[] | undefined> => {
+		let config: AxiosRequestConfig = {
+			...baseConfig,
+			url: '/service/tickets',
+			params: {
+				conditions: "closedFlag = false and board/id = 38 and type/id = 200 and summary contains 'Proposal'",
+				pageSize: 1000,
+				orderBy: 'id',
+			},
+		};
 
-	try {
-		const response = await fetch(`${process.env.NEXT_PUBLIC_LOCAL_URL}/api/tickets`, requestOptions);
+		try {
+			const response: AxiosResponse<ServiceTicket[], Error> = await axios.request(config);
+			console.log(response);
+			return response.data;
+		} catch (error) {
+			console.error(error);
+			return;
+		}
+	},
+	['serviceTickets'],
+	{ tags: ['serviceTickets'] }
+);
+
+export const getCatalogItems = unstable_cache(
+	async () => {
+		let config: AxiosRequestConfig = {
+			...baseConfig,
+			url: '/procurement/catalog',
+			params: {
+				conditions: 'inactiveFlag = false',
+				pageSize: 1000,
+				orderBy: 'description',
+				fields: 'id,identifier,description,price,cost',
+			},
+		};
+
+		try {
+			const response: AxiosResponse<CatalogItem[], Error> = await axios.request(config);
+			return response.data;
+		} catch (error) {
+			console.error(error);
+			return;
+		}
+		var myHeaders = new Headers();
+		myHeaders.append('clientId', '9762e3fa-abbd-4179-895e-ca7b0e015ab2');
+		myHeaders.append('Authorization', 'Basic dmVsbytYMzJMQjRYeDVHVzVNRk56Olhjd3Jmd0dwQ09EaFNwdkQ=');
+
+		var requestOptions = {
+			method: 'GET',
+			headers: myHeaders,
+		};
+
+		const response = await fetch(
+			'https://manage.velomethod.com/v4_6_release/apis/3.0/procurement/catalog?conditions=inactiveFlag = false&fields=id,identifier,description,price,cost',
+			requestOptions
+		);
+
 		return await response.json();
-	} catch (error) {
-		console.error(error);
-	}
-};
-
-export const getCatalogItems = async () => {
-	var myHeaders = new Headers();
-	myHeaders.append('clientId', '9762e3fa-abbd-4179-895e-ca7b0e015ab2');
-	myHeaders.append('Authorization', 'Basic dmVsbytYMzJMQjRYeDVHVzVNRk56Olhjd3Jmd0dwQ09EaFNwdkQ=');
-
-	var requestOptions = {
-		method: 'GET',
-		headers: myHeaders,
-	};
-
-	const response = await fetch(
-		'https://manage.velomethod.com/v4_6_release/apis/3.0/procurement/catalog?conditions=inactiveFlag = false&fields=id,identifier,description,price,cost',
-		requestOptions
-	);
-
-	return await response.json();
-};
+	},
+	['catalog'],
+	{ tags: ['catalog'] }
+);
 
 export const getProducts = unstable_cache(
 	async (id: string) => {
@@ -219,36 +245,58 @@ export const getProposals = unstable_cache(
 	{ tags: ['proposals'] }
 );
 
-export const getTemplates = async (): Promise<Array<ProjectTemplate> | undefined> => {
-	var requestOptions: RequestInit = {
-		method: 'GET',
-		next: {
-			tags: ['templates'],
-			revalidate: 43200,
-		},
-	};
+export const getTemplates = unstable_cache(
+	async (): Promise<Array<ProjectTemplate> | undefined> => {
+		let config: AxiosRequestConfig = {
+			...baseConfig,
+			url: '/project/projectTemplates',
+			params: {
+				fields: 'id,name,description',
+				pageSize: 1000,
+				orderBy: 'name',
+			},
+		};
 
-	try {
-		const response = await fetch(`${process.env.NEXT_PUBLIC_LOCAL_URL}/api/templates`, requestOptions);
-		return await response.json();
-	} catch (error) {
-		console.error(error);
-	}
-};
+		try {
+			const response: AxiosResponse<Array<ProjectTemplate>, Error> = await axios.request(config);
+			const workplans = await Promise.all(
+				response.data.map(({ id }) => axios.request<ProjectWorkPlan>({ ...baseConfig, url: `/project/projectTemplates/${id}/workplan` }))
+			);
 
-export const getTemplate = async (id: number): Promise<ProjectTemplate | undefined> => {
-	var requestOptions: RequestInit = {
-		method: 'GET',
-		next: {
-			tags: ['templates'],
-			revalidate: 43200,
-		},
-	};
+			const mappedTemplates = response.data.map((template) => {
+				return {
+					...template,
+					workplan: workplans.find((workplan) => workplan.data.templateId === template.id)?.data,
+				};
+			});
 
-	try {
-		const response = await fetch(`${process.env.NEXT_PUBLIC_LOCAL_URL}/api/templates/${id}`, requestOptions);
-		return await response.json();
-	} catch (error) {
-		console.error(error);
-	}
-};
+			return mappedTemplates;
+		} catch (error) {
+			console.error(error);
+			return;
+		}
+	},
+	['templates'],
+	{ tags: ['templates'] }
+);
+
+export const getTemplate = unstable_cache(
+	async (id: number): Promise<ProjectTemplate | undefined> => {
+		var requestOptions: RequestInit = {
+			method: 'GET',
+			next: {
+				tags: ['templates'],
+				revalidate: 43200,
+			},
+		};
+
+		try {
+			const response = await fetch(`${process.env.NEXT_PUBLIC_LOCAL_URL}/api/templates/${id}`, requestOptions);
+			return await response.json();
+		} catch (error) {
+			console.error(error);
+		}
+	},
+	['templates'],
+	{ tags: ['templates'] }
+);

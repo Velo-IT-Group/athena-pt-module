@@ -72,4 +72,5 @@ export const deleteSection = async (id: string) => {
 	}
 
 	revalidateTag('proposals');
+	revalidateTag('sections');
 };
