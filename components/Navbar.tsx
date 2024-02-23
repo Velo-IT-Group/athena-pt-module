@@ -1,27 +1,50 @@
 import Link from 'next/link';
 import React from 'react';
-import VeloLogo from './VeloLogo';
+import VeloLogo from './icons/VeloLogo';
 import { SlashIcon } from '@radix-ui/react-icons';
+import { getOrganization } from '@/lib/data';
+import NavigationTabs from './NavigationTabs';
 
-type Props = {
-	title: string;
-	children?: React.ReactNode;
+export type Tab = {
+	name: string;
+	href: string;
 };
 
-const Navbar = ({ title, children }: Props) => {
+type Props = {
+	title?: string;
+	children?: React.ReactNode;
+	org: string;
+	tabs?: Tab[];
+};
+
+const Navbar = async ({ title, children, org, tabs }: Props) => {
+	const organization = await getOrganization(org);
+
 	return (
-		<header className='flex items-center gap-4 w-full px-4 h-14'>
-			<Link href='/proposal'>
-				<VeloLogo classname='w-6 h-6' />
-			</Link>
+		<>
+			<nav className='flex items-center gap-4 w-full px-8 h-16 relative'>
+				{org ? (
+					<>
+						<Link href={`/${org}`}>
+							<VeloLogo classname='w-6 h-6' />
+						</Link>
+						<SlashIcon className='h-4 opacity-15' />
+					</>
+				) : (
+					<VeloLogo classname='w-6 h-6' />
+				)}
 
-			<SlashIcon className='h-4 opacity-15' />
-
-			<nav className='flex items-center gap-4 w-full h-14'>
-				<span className='font-semibold text-lg'>{title}</span>
+				<span className='font-semibold'>{organization?.name ?? ''}</span>
+				{title && (
+					<>
+						<SlashIcon className='h-4 opacity-15' />
+						<span className='font-semibold'>{title}</span>
+					</>
+				)}
 				{children}
 			</nav>
-		</header>
+			{tabs && <NavigationTabs tabs={tabs} />}
+		</>
 	);
 };
 
