@@ -1,6 +1,6 @@
 import { ProjectTemplateTicket } from '@/types/manage';
 import axios, { AxiosRequestConfig, AxiosResponse } from 'axios';
-import { baseConfig } from '@/lib/data';
+import { baseConfig } from '@/lib/utils';
 
 export async function GET(request: Request) {
 	let config: AxiosRequestConfig = {

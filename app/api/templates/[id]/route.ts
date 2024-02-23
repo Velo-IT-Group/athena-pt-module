@@ -1,5 +1,5 @@
 import axios, { AxiosRequestConfig, AxiosResponse } from 'axios';
-import { baseConfig } from '@/lib/data';
+import { baseConfig } from '@/lib/utils';
 import { ProjectTemplate, ProjectWorkPlan } from '@/types/manage';
 
 export async function GET(request: Request, { params }: { params: { id: number } }) {
