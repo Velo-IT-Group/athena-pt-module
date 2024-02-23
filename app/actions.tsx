@@ -209,4 +209,5 @@ export const handleSignOut = async () => {
 	const supabase = createClient();
 	console.log('handling signout');
 	await supabase.auth.signOut();
+	redirect('/login');
 };
