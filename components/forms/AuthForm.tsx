@@ -62,7 +62,7 @@ export default function AuthForm({ searchParams }: { searchParams?: { message: s
 				Sign Up
 			</Button>
 
-			{searchParams?.message && <p className='mt-4 p-4 bg-foreground/10 text-foreground text-center'>{searchParams.message}</p>}
+			{searchParams?.message && <p className='mt-4 p-4 text-red-500 text-center'>{searchParams.message}</p>}
 		</form>
 	);
 }
