@@ -9,6 +9,7 @@ declare global {
 	type PhaseUpdate = DB['public']['Tables']['phases']['Update'];
 	type Product = DB['public']['Tables']['products']['Row'];
 	type ProductInsert = DB['public']['Tables']['products']['Insert'];
+	type ProductUpdate = DB['public']['Tables']['products']['Update'];
 	type Profile = DB['public']['Tables']['profiles']['Row'];
 	type Proposal = DB['public']['Tables']['proposals']['Row'];
 	type ProposalUpdate = DB['public']['Tables']['proposals']['Update'];
@@ -22,9 +23,9 @@ declare global {
 	type Ticket = DB['public']['Tables']['tickets']['Row'];
 	type TicketInset = DB['public']['Tables']['tickets']['Insert'];
 	type TicketUpdate = DB['public']['Tables']['tickets']['Insert'];
-	type DoublyNestedProposal = Proposal & { phases: Array<NestedProposal> };
+	type DoublyNestedProposal = Proposal & { phases?: Array<NestedProposal> };
 	type NestedProposal = Proposal & { phases?: Array<Phase> };
-	type NestedPhase = Phase & { tickets?: Array<Ticket & { tasks: Task[] }> };
+	type NestedPhase = Phase & { tickets?: Array<Ticket & { tasks?: Task[] }> };
 	type NestedSection = Section & { phases?: NestedPhase[] };
-	type NestedTicket = Ticket & { tasks: Task[] };
+	type NestedTicket = Ticket & { tasks?: Task[] };
 }
