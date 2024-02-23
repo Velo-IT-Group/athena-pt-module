@@ -48,7 +48,7 @@ const ProposalReviewPage = async ({ params }: Props) => {
 
 	return (
 		<div className='bg-neutral-50 flex-1 h-screen'>
-			<Navbar title={proposal.name}>
+			<Navbar title={proposal.name} org=''>
 				<Button className='ml-auto' variant='outline'>
 					Revise
 				</Button>
