@@ -1,8 +1,8 @@
 import React from 'react';
 import type { Metadata, ResolvingMetadata } from 'next';
-import { getOrganization, getProposals } from '@/lib/data';
+import { getOrganization, getProposals, getUser } from '@/lib/functions/read';
 import { Button } from '@/components/ui/button';
-import { CalendarIcon, DotsHorizontalIcon, DropdownMenuIcon, MagnifyingGlassIcon, PlusIcon } from '@radix-ui/react-icons';
+import { CalendarIcon, DotsHorizontalIcon, MagnifyingGlassIcon, PlusIcon } from '@radix-ui/react-icons';
 import Link from 'next/link';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { relativeDate } from '@/utils/date';
@@ -12,6 +12,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Label } from '@/components/ui/label';
 import { getCurrencyString } from '@/utils/money';
 import Navbar, { Tab } from '@/components/Navbar';
+import { notFound } from 'next/navigation';
+import UserNav from '@/components/UserNav';
 
 type Props = {
 	params: { org: string };
@@ -20,7 +22,7 @@ type Props = {
 
 export async function generateMetadata({ params, searchParams }: Props, parent: ResolvingMetadata): Promise<Metadata> {
 	// fetch data
-	const organization = await getOrganization(params.org);
+	const organization = await getOrganization();
 
 	// optionally access and extend (rather than replace) parent metadata
 	const previousImages = (await parent).openGraph?.images || [];
@@ -31,7 +33,11 @@ export async function generateMetadata({ params, searchParams }: Props, parent: 
 }
 
 const OverviewPage = async ({ params }: Props) => {
+	const user = await getUser();
 	const proposals = await getProposals();
+	if (!proposals || !user) {
+		notFound();
+	}
 
 	const orgDashboardTabs: Tab[] = [
 		{
@@ -78,7 +84,7 @@ const OverviewPage = async ({ params }: Props) => {
 							</SelectContent>
 						</Select>
 						<Button asChild>
-							<Link href='/proposal/new'>
+							<Link href={`/${params.org}/proposal/new`}>
 								<PlusIcon className='w-4 h-4 mr-2' /> Add New
 							</Link>
 						</Button>
