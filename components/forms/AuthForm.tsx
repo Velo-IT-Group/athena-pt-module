@@ -3,19 +3,16 @@ import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
 import { headers } from 'next/headers';
 import { createClient } from '@/utils/supabase/server';
-import { cookies } from 'next/headers';
 import { redirect } from 'next/navigation';
 import SubmitButton from '@/components/SubmitButton';
 
 export default function AuthForm({ searchParams }: { searchParams?: { message: string } }) {
-	const cookieStore = cookies();
-
 	const signIn = async (formData: FormData) => {
 		'use server';
 
 		const email = formData.get('email') as string;
 		const password = formData.get('password') as string;
-		const supabase = createClient(cookieStore);
+		const supabase = createClient();
 
 		const { error } = await supabase.auth.signInWithPassword({
 			email,
@@ -23,10 +20,11 @@ export default function AuthForm({ searchParams }: { searchParams?: { message: s
 		});
 
 		if (error) {
+			console.error(error);
 			return redirect('/login?message=Could not authenticate user');
 		}
 
-		return redirect('/proposal');
+		return redirect('/velo-it-group');
 	};
 
 	const signUp = async (formData: FormData) => {
@@ -35,7 +33,7 @@ export default function AuthForm({ searchParams }: { searchParams?: { message: s
 		const origin = headers().get('origin');
 		const email = formData.get('email') as string;
 		const password = formData.get('password') as string;
-		const supabase = createClient(cookieStore);
+		const supabase = createClient();
 
 		const { error } = await supabase.auth.signUp({
 			email,

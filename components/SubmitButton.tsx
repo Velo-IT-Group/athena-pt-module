@@ -14,7 +14,7 @@ const SubmitButton = React.forwardRef<HTMLButtonElement, Props>(({ children, var
 	const { pending } = useFormStatus();
 
 	return (
-		<Button className={cn(buttonVariants({ variant, size, className }))} type='submit' ref={ref} {...props} disabled={pending}>
+		<Button className={cn(buttonVariants({ variant, size, className }))} type='submit' ref={ref} {...props} disabled={pending || props.disabled}>
 			{pending && <ReloadIcon className='mr-2 h-4 w-4 animate-spin' />}
 			{children}
 		</Button>

@@ -25,3 +25,10 @@ export type TicketState = {
 	deletedTicket?: string;
 	pending: boolean;
 };
+
+export type TaskState = {
+	newTask?: Task;
+	updatedTask?: Task;
+	deletedTask?: string;
+	pending: boolean;
+};

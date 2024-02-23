@@ -18,7 +18,7 @@ const OverridableInput = ({ title, defaultValue, type, overriden = false, name }
 	return (
 		<div className='flex items-center gap-4'>
 			<h5 className='min-w-44 max-w-44 text-xs font-medium'>{title}</h5>
-			<Input type={type} defaultValue={defaultValue} name={name} disabled={!isChecked} />
+			<Input type={type} defaultValue={defaultValue} name={name} disabled={!isChecked && !overriden} readOnly={!isChecked && !overriden} />
 			<div className='flex items-center space-x-2'>
 				<Label htmlFor='airplane-mode' className='font-medium text-xs'>
 					Override

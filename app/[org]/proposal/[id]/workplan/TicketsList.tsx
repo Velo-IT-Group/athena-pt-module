@@ -1,12 +1,12 @@
 'use client';
-import React, { useOptimistic, useRef, useState, useTransition } from 'react';
+import React, { useOptimistic, useTransition } from 'react';
 import TicketListItem from './TicketListItem';
 import { Draggable, Droppable } from 'react-beautiful-dnd';
 import { v4 as uuid } from 'uuid';
 import { PlusIcon } from '@radix-ui/react-icons';
-import { handleTicketInsert } from '@/app/actions';
 import SubmitButton from '../../../../../components/SubmitButton';
 import { TicketState } from '@/types/optimisticTypes';
+import { createTicket } from '@/lib/functions/create';
 
 type Props = {
 	phase: string;
@@ -34,16 +34,14 @@ const TicketsList = ({ phase, tickets }: Props) => {
 			};
 		}
 	});
-	const [optimisticTickets, addOptimisticTicket] = useState<NestedTicket[]>(tickets);
 
 	const ticketStub: NestedTicket = {
 		id: uuid(),
-		summary: '',
+		summary: 'New Ticket',
 		phase,
 		order: 0,
 		budget_hours: 0,
-		created_at: Date(),
-		tasks: [],
+		created_at: new Date().toISOString(),
 	};
 
 	const action = async (data: FormData) => {
@@ -54,7 +52,10 @@ const TicketsList = ({ phase, tickets }: Props) => {
 			mutate({ newTicket, pending: true });
 			console.log(state.tickets);
 
-			await handleTicketInsert(data);
+			// @ts-ignore
+			delete newTicket['id'];
+
+			await createTicket(newTicket, []);
 		});
 	};
 
@@ -77,7 +78,7 @@ const TicketsList = ({ phase, tickets }: Props) => {
 								{(provided) => {
 									return (
 										<div ref={provided.innerRef} {...provided.draggableProps} {...provided.dragHandleProps}>
-											<TicketListItem key={ticket.id} ticket={ticket} order={index + 1} />
+											<TicketListItem key={ticket.id} ticket={ticket} order={index + 1} pending={state.pending} mutate={mutate} />
 										</div>
 									);
 								}}

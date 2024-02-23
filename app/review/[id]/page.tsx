@@ -1,4 +1,3 @@
-'use server';
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
 import { Button } from '@/components/ui/button';
@@ -10,13 +9,11 @@ import { CalendarIcon, PaperPlaneIcon, Pencil1Icon } from '@radix-ui/react-icons
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Input } from '@/components/ui/input';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
-import { getProposal } from '@/lib/data';
+import { getProducts, getProposal } from '@/lib/functions/read';
 import { getCurrencyString } from '@/utils/money';
-import { createClient } from '@/utils/supabase/server';
 import Navbar from '@/components/Navbar';
 import { Textarea } from '@/components/ui/textarea';
 import SubmitButton from '@/components/SubmitButton';
-import { cookies } from 'next/headers';
 
 const discussion = [
 	{
@@ -41,12 +38,10 @@ type Props = {
 };
 
 const ProposalReviewPage = async ({ params }: Props) => {
-	const cookieStore = cookies();
 	const proposal = await getProposal(params.id);
-	const supabase = createClient(cookieStore);
-	const { data: products, error } = await supabase.from('products').select().eq('proposal', params.id);
+	const products = await getProducts(params.id);
 
-	if (!proposal || error) return <div>{JSON.stringify(error, null, 2)}</div>;
+	if (!proposal || !products) return <div></div>;
 
 	return (
 		<div className='bg-neutral-50 flex-1 h-screen'>
