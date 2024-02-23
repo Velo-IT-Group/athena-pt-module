@@ -6,7 +6,7 @@ import { handleTaskInsert } from '@/app/actions';
 
 const TasksList = ({ tasks, ticketId }: { tasks: Task[]; ticketId: string }) => {
 	return (
-		<>
+		<div className='space-y-2'>
 			{tasks?.map((task) => (
 				<div key={task.id} className='rounded-md border px-4 py-2 font-mono text-sm shadow-sm p-3'>
 					{task.summary}
@@ -21,7 +21,7 @@ const TasksList = ({ tasks, ticketId }: { tasks: Task[]; ticketId: string }) => 
 					<PlusIcon className='w-4 h-4' />
 				</SubmitButton>
 			</form>
-		</>
+		</div>
 	);
 };
 

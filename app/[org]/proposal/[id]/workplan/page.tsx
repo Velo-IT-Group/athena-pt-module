@@ -13,7 +13,11 @@ const ProposalWorkplanPage = async ({ params }: Props) => {
 
 	if (!proposal) return <div></div>;
 
-	return <ProposalBuilder sections={sections ?? []} templates={templates ?? []} id={params.id} />;
+	return (
+		<main className='min-h-header'>
+			<ProposalBuilder sections={sections ?? []} templates={templates ?? []} id={params.id} />
+		</main>
+	);
 };
 
 export default ProposalWorkplanPage;

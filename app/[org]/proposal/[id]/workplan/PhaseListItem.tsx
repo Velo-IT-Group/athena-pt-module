@@ -56,48 +56,46 @@ const PhaseListItem = ({ phase, tickets, order, pending }: Props) => {
 						</span>
 					</p>
 
-					<p className='ml-auto'>
-						{phase.hours}hrs
-						<DropdownMenu open={open} onOpenChange={setOpen}>
-							<DropdownMenuTrigger asChild disabled={pending}>
-								<Button variant='ghost' size='sm'>
-									<DotsHorizontalIcon />
-								</Button>
-							</DropdownMenuTrigger>
-							<DropdownMenuContent align='end' className='w-[200px]'>
-								<DropdownMenuLabel>Actions</DropdownMenuLabel>
-								<DropdownMenuGroup>
-									<DropdownMenuItem>Assign to...</DropdownMenuItem>
-									<DropdownMenuItem>Set due date...</DropdownMenuItem>
-									<DropdownMenuSeparator />
-									<DropdownMenuSub>
-										<DropdownMenuSubTrigger>Move</DropdownMenuSubTrigger>
-										<DropdownMenuPortal>
-											<DropdownMenuSubContent>
-												<DropdownMenuItem>
-													Move Up
-													<DropdownMenuShortcut>
-														<ArrowUpIcon />
-													</DropdownMenuShortcut>
-												</DropdownMenuItem>
-												<DropdownMenuItem>
-													Move Down
-													<DropdownMenuShortcut>
-														<ArrowDownIcon />
-													</DropdownMenuShortcut>
-												</DropdownMenuItem>
-											</DropdownMenuSubContent>
-										</DropdownMenuPortal>
-									</DropdownMenuSub>
-									<DropdownMenuSeparator />
-									<DropdownMenuItem onClick={() => handlePhaseDelete(phase.id)} className='text-red-600'>
-										Delete
-										<DropdownMenuShortcut>⌘⌫</DropdownMenuShortcut>
-									</DropdownMenuItem>
-								</DropdownMenuGroup>
-							</DropdownMenuContent>
-						</DropdownMenu>
-					</p>
+					<p className='ml-auto text-sm text-muted-foreground'>{phase.hours}hrs</p>
+					<DropdownMenu open={open} onOpenChange={setOpen}>
+						<DropdownMenuTrigger asChild disabled={pending}>
+							<Button variant='ghost' size='sm'>
+								<DotsHorizontalIcon />
+							</Button>
+						</DropdownMenuTrigger>
+						<DropdownMenuContent align='end' className='w-[200px]'>
+							<DropdownMenuLabel>Actions</DropdownMenuLabel>
+							<DropdownMenuGroup>
+								<DropdownMenuItem>Assign to...</DropdownMenuItem>
+								<DropdownMenuItem>Set due date...</DropdownMenuItem>
+								<DropdownMenuSeparator />
+								<DropdownMenuSub>
+									<DropdownMenuSubTrigger>Move</DropdownMenuSubTrigger>
+									<DropdownMenuPortal>
+										<DropdownMenuSubContent>
+											<DropdownMenuItem>
+												Move Up
+												<DropdownMenuShortcut>
+													<ArrowUpIcon />
+												</DropdownMenuShortcut>
+											</DropdownMenuItem>
+											<DropdownMenuItem>
+												Move Down
+												<DropdownMenuShortcut>
+													<ArrowDownIcon />
+												</DropdownMenuShortcut>
+											</DropdownMenuItem>
+										</DropdownMenuSubContent>
+									</DropdownMenuPortal>
+								</DropdownMenuSub>
+								<DropdownMenuSeparator />
+								<DropdownMenuItem onClick={() => handlePhaseDelete(phase.id)} className='text-red-600'>
+									Delete
+									<DropdownMenuShortcut>⌘⌫</DropdownMenuShortcut>
+								</DropdownMenuItem>
+							</DropdownMenuGroup>
+						</DropdownMenuContent>
+					</DropdownMenu>
 					<CollapsibleTrigger asChild>
 						<Button variant='ghost' size='sm'>
 							<CaretSortIcon className='h-4 w-4' />

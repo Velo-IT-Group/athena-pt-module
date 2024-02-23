@@ -23,12 +23,16 @@ const SectionsList = ({ id, sections, pending }: { id: string; sections: NestedS
 	return (
 		<Droppable droppableId='sections'>
 			{(provided, snapshot) => (
-				<div {...provided.droppableProps} ref={provided.innerRef} className={cn('space-y-4 rounded-xl h-full', getBackgroundColor(snapshot))}>
+				<div
+					{...provided.droppableProps}
+					ref={provided.innerRef}
+					className={cn('space-y-4 rounded-xl h-full min-h-halfScreen', getBackgroundColor(snapshot))}
+				>
 					{sections.map((section, index) => (
 						<Draggable key={section.id} draggableId={section.id} index={index}>
 							{(provided) => {
 								return (
-									<div ref={provided.innerRef} {...provided.draggableProps} {...provided.dragHandleProps}>
+									<div ref={provided.innerRef} {...provided.draggableProps} {...provided.dragHandleProps} className='overflow-hidden'>
 										<SectionListItem key={section.id} section={section} phases={section.phases ?? []} pending={pending} />
 									</div>
 								);

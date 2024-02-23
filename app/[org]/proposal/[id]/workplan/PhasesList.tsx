@@ -71,7 +71,7 @@ const PhasesList = ({ id, phases }: Props) => {
 		<div className='w-full space-y-2'>
 			<Droppable droppableId='phases' type={`droppablePhaseItem_${id}`}>
 				{(provided) => (
-					<div {...provided.droppableProps} ref={provided.innerRef} className='overflow-scroll space-y-2'>
+					<div {...provided.droppableProps} ref={provided.innerRef} className='space-y-2'>
 						{sortedPhases?.map((phase, index) => {
 							return (
 								<Draggable key={phase.id} draggableId={phase.id} index={index}>

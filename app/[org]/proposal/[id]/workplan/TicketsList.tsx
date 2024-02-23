@@ -68,10 +68,10 @@ const TicketsList = ({ phase, tickets }: Props) => {
 	});
 
 	return (
-		<div className='w-full'>
+		<div className='w-full flex flex-col space-y-2'>
 			<Droppable droppableId='tickets' type={`droppableSubItem`}>
 				{(provided) => (
-					<div ref={provided.innerRef} className='overflow-scroll space-y-2 w-full'>
+					<div ref={provided.innerRef} className='space-y-2 w-full'>
 						{sortedTickets.map((ticket, index) => (
 							<Draggable key={ticket.id} draggableId={ticket.id} index={index}>
 								{(provided) => {
@@ -87,8 +87,8 @@ const TicketsList = ({ phase, tickets }: Props) => {
 					</div>
 				)}
 			</Droppable>
-			<form action={action}>
-				<SubmitButton>
+			<form action={action} className='mx-auto'>
+				<SubmitButton size='sm'>
 					<PlusIcon className='w-4 h-4 mr-2' />
 					Add Ticket
 				</SubmitButton>

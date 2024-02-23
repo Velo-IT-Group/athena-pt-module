@@ -10,6 +10,7 @@ import { FileTextIcon, PlusIcon } from '@radix-ui/react-icons';
 import SubmitButton from '@/components/SubmitButton';
 import { handleNewTemplateInsert, handleSectionInsert } from '@/app/actions';
 import { SectionState } from '@/types/optimisticTypes';
+import { ScrollArea } from '@/components/ui/scroll-area';
 
 type Props = {
 	id: string;
@@ -217,45 +218,37 @@ const ProposalBuilder = ({ id, sections, templates }: Props) => {
 
 	return (
 		<DragDropContext onDragEnd={onDragEnd}>
-			<div className='h-full'>
-				<div className='flex items-start h-full'>
-					<div className='border-r h-full'>
-						<TemplateCatalog templates={templates ?? []} />
-					</div>
-					<div className='w-full h-full overflow-hidden'>
-						<div className='h-full flex w-full'>
-							<div className='h-full w-full flex'>
-								<div className='flex flex-col flex-grow py-8 px-4 space-y-2'>
-									<div className='w-full flex justify-between items-center'>
-										<h1 className='text-2xl font-semibold'>Workplan</h1>
-										<form action={action}>
-											<SubmitButton>
-												<PlusIcon className='w-4 h-4' />
-											</SubmitButton>
-										</form>
-									</div>
-									{sortedSections.length ? (
-										<div className='bg-muted/50 rounded-xl p-4 h-full overflow-y-scroll scroll-m-4'>
-											<SectionsList id={id} sections={sortedSections} pending={state.pending} />
-										</div>
-									) : (
-										<form action={action} className='h-full border border-dotted flex flex-col justify-center items-center gap-4 rounded-xl'>
-											<div className=' p-6 bg-muted rounded-full'>
-												<FileTextIcon className='h-8 w-8' />
-											</div>
-
-											<h3 className='text-lg font-medium'>Nothing to show yet</h3>
-											<span className='text-muted-foreground'>Drag a template from the left sidebar to begin.</span>
-											<SubmitButton>
-												<PlusIcon className='w-4 h-4 mr-2' /> Add Section
-											</SubmitButton>
-										</form>
-									)}
-								</div>
-							</div>
-						</div>
-					</div>
+			<div className='grid grid-cols-[288px_1fr]'>
+				<div className='border-r relative'>
+					<TemplateCatalog templates={templates ?? []} />
 				</div>
+				<ScrollArea className='h-header'>
+					<div className='flex flex-col flex-grow py-8 px-4 space-y-2'>
+						<div className='w-full flex justify-between items-center'>
+							<h1 className='text-2xl font-semibold'>Workplan</h1>
+							<form action={action}>
+								<SubmitButton>
+									<PlusIcon className='w-4 h-4' />
+								</SubmitButton>
+							</form>
+						</div>
+						{sortedSections.length ? (
+							<SectionsList id={id} sections={sortedSections} pending={state.pending} />
+						) : (
+							<form action={action} className='h-full border border-dotted flex flex-col justify-center items-center gap-4 rounded-xl'>
+								<div className=' p-6 bg-muted rounded-full'>
+									<FileTextIcon className='h-8 w-8' />
+								</div>
+
+								<h3 className='text-lg font-medium'>Nothing to show yet</h3>
+								<span className='text-muted-foreground'>Drag a template from the left sidebar to begin.</span>
+								<SubmitButton>
+									<PlusIcon className='w-4 h-4 mr-2' /> Add Section
+								</SubmitButton>
+							</form>
+						)}
+					</div>
+				</ScrollArea>
 			</div>
 		</DragDropContext>
 	);

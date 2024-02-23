@@ -16,8 +16,8 @@ type Props = {
 
 const SectionListItem = ({ section, phases, pending }: Props) => {
 	return (
-		<Collapsible className='w-full border rounded-xl p-4 space-y-4'>
-			<div className='flex flex-row items-center gap-4 w-full'>
+		<Collapsible className='border rounded-xl overflow-hidden'>
+			<div className='flex flex-row items-center gap-4 p-4 w-full bg-muted/50'>
 				<h3
 					contentEditable
 					onBlur={async (e) => {
@@ -49,7 +49,7 @@ const SectionListItem = ({ section, phases, pending }: Props) => {
 			</div>
 
 			<CollapsibleContent>
-				<div className='space-y-2'>
+				<div className='p-4 space-y-2 border-t'>
 					<PhasesList phases={phases ?? []} id={section.id} />
 				</div>
 			</CollapsibleContent>
