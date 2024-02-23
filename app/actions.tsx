@@ -1,73 +1,16 @@
 'use server';
-import {
-	createPhase,
-	createProposal,
-	createSection,
-	createTask,
-	createTicket,
-	deletePhase,
-	deleteProduct,
-	deleteProposal,
-	deleteSection,
-	deleteTicket,
-	getTemplate,
-	newTemplate,
-	updatePhase,
-	updateProposal,
-	updateSection,
-	updateTicket,
-} from '@/lib/data';
+import { deletePhase, deleteProposal, deleteSection, deleteTicket } from '@/lib/functions/delete';
+import { updateProposal, updateSection } from '@/lib/functions/update';
+import { getTemplate } from '@/lib/functions/read';
+import { newTemplate } from '@/lib/functions/create';
+import { createPhase, createSection, createTask, createTicket } from '@/lib/functions/create';
 import { ProjectTemplate } from '@/types/manage';
 import { createClient } from '@/utils/supabase/server';
-import { cookies } from 'next/headers';
 import { revalidateTag } from 'next/cache';
 import { redirect } from 'next/navigation';
 
-export const handlePhaseUpdate = async (formData: FormData) => {
-	const id = formData.get('id') as string;
-	const description = formData.get('description') as string;
-
-	await updatePhase(id, { description });
-
-	revalidateTag('phases');
-	revalidateTag('proposals');
-};
-
-export const handleProductUpdate = async (formData: FormData) => {
-	const cookieStore = cookies();
-	const supabase = createClient(cookieStore);
-
-	const id = formData.get('id') as string;
-	const quantity = formData.get('quantity') as unknown as number;
-	const price = formData.get('price') as unknown as number;
-	const extended_price = formData.get('extended_price') as unknown as number;
-	console.log(id, quantity, price, extended_price);
-
-	const { error } = await supabase.from('products').update({ quantity, price, extended_price }).eq('id', id);
-
-	if (error) {
-		console.error(error);
-		return;
-	}
-	// await updatePr(id, { description });
-
-	revalidateTag('products');
-	revalidateTag('proposals');
-};
-
-export const handleTicketUpdate = async (formData: FormData) => {
-	const id = formData.get('id') as string;
-	const summary = formData.get('summary') as string;
-	const budget_hours = formData.get('budget_hours') as unknown as number;
-
-	// @ts-ignore
-	await updateTicket(id, { summary, budget_hours });
-
-	revalidateTag('phases');
-	revalidateTag('proposals');
-};
-
 export const handleTicketInsert = async (formData: FormData) => {
+	'use server';
 	const summary = formData.get('summary') as string;
 	const budget_hours = formData.get('budget_hours') as unknown as number;
 	const order = formData.get('order') as unknown as number;
@@ -83,6 +26,7 @@ export const handleTicketInsert = async (formData: FormData) => {
 };
 
 export const handleTaskInsert = async (formData: FormData) => {
+	'use server';
 	const summary = formData.get('summary') as string;
 	const notes = formData.get('notes') as string;
 	const priority = formData.get('priority') as unknown as number;
@@ -103,6 +47,7 @@ export async function deliverSection(section: Section) {
 }
 
 export const handlePhaseInsert = async (formData: FormData) => {
+	'use server';
 	// const supabase = createClient();
 
 	const description = formData.get('description') as string;
@@ -127,8 +72,8 @@ export const handleProposalDelete = async (id: string) => {
 };
 
 export const handleProductDelete = async (id: string) => {
-	const cookieStore = cookies();
-	const supabase = createClient(cookieStore);
+	'use server';
+	const supabase = createClient();
 	const { error } = await supabase.from('products').delete().eq('id', id);
 	if (error) {
 		console.error(error);
@@ -185,8 +130,8 @@ export const handleSectionNameUpdate = async (id: string, name: string) => {
 };
 
 export const handleProposalInsert = async (formData: FormData) => {
-	const cookieStore = cookies();
-	const supabase = createClient(cookieStore);
+	'use server';
+	const supabase = createClient();
 	const name = formData.get('name') as string;
 	const templates_used = formData.getAll('templates_used') as unknown as number[];
 	const service_ticket = formData.get('service_ticket') as unknown as number;
@@ -233,8 +178,8 @@ export const handleSectionInsert = async (formData: FormData) => {
 };
 
 export const handleProductInsert = async (data: ProductInsert) => {
-	const cookieStore = cookies();
-	const supabase = createClient(cookieStore);
+	'use server';
+	const supabase = createClient();
 
 	console.log(data);
 
@@ -257,4 +202,11 @@ export const handleNewTemplateInsert = async (proposalId: string, template: Proj
 
 	revalidateTag('proposals');
 	revalidateTag('phases');
+};
+
+export const handleSignOut = async () => {
+	'use server';
+	const supabase = createClient();
+	console.log('handling signout');
+	await supabase.auth.signOut();
 };
