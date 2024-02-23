@@ -19,6 +19,7 @@ import {
 } from '@/lib/data';
 import { ProjectTemplate } from '@/types/manage';
 import { createClient } from '@/utils/supabase/server';
+import { cookies } from 'next/headers';
 import { revalidateTag } from 'next/cache';
 import { redirect } from 'next/navigation';
 
@@ -33,7 +34,8 @@ export const handlePhaseUpdate = async (formData: FormData) => {
 };
 
 export const handleProductUpdate = async (formData: FormData) => {
-	const supabase = createClient();
+	const cookieStore = cookies();
+	const supabase = createClient(cookieStore);
 
 	const id = formData.get('id') as string;
 	const quantity = formData.get('quantity') as unknown as number;
@@ -125,8 +127,8 @@ export const handleProposalDelete = async (id: string) => {
 };
 
 export const handleProductDelete = async (id: string) => {
-	'use server';
-	const supabase = createClient();
+	const cookieStore = cookies();
+	const supabase = createClient(cookieStore);
 	const { error } = await supabase.from('products').delete().eq('id', id);
 	if (error) {
 		console.error(error);
@@ -183,7 +185,8 @@ export const handleSectionNameUpdate = async (id: string, name: string) => {
 };
 
 export const handleProposalInsert = async (formData: FormData) => {
-	const supabase = createClient();
+	const cookieStore = cookies();
+	const supabase = createClient(cookieStore);
 	const name = formData.get('name') as string;
 	const templates_used = formData.getAll('templates_used') as unknown as number[];
 	const service_ticket = formData.get('service_ticket') as unknown as number;
@@ -230,7 +233,8 @@ export const handleSectionInsert = async (formData: FormData) => {
 };
 
 export const handleProductInsert = async (data: ProductInsert) => {
-	const supabase = createClient();
+	const cookieStore = cookies();
+	const supabase = createClient(cookieStore);
 
 	console.log(data);
 

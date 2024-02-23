@@ -16,6 +16,7 @@ import { createClient } from '@/utils/supabase/server';
 import Navbar from '@/components/Navbar';
 import { Textarea } from '@/components/ui/textarea';
 import SubmitButton from '@/components/SubmitButton';
+import { cookies } from 'next/headers';
 
 const discussion = [
 	{
@@ -40,8 +41,9 @@ type Props = {
 };
 
 const ProposalReviewPage = async ({ params }: Props) => {
+	const cookieStore = cookies();
 	const proposal = await getProposal(params.id);
-	const supabase = createClient();
+	const supabase = createClient(cookieStore);
 	const { data: products, error } = await supabase.from('products').select().eq('proposal', params.id);
 
 	if (!proposal || error) return <div>{JSON.stringify(error, null, 2)}</div>;
