@@ -3,6 +3,7 @@ import { createClient } from '@/utils/supabase/server';
 import { revalidateTag } from 'next/cache';
 
 export const deleteProposal = async (id: string) => {
+	'use server';
 	const supabase = createClient();
 	const { error } = await supabase.from('proposals').delete().eq('id', id);
 
@@ -15,6 +16,7 @@ export const deleteProposal = async (id: string) => {
 };
 
 export const deleteProduct = async (id: string) => {
+	'use server';
 	const supabase = createClient();
 	const { error } = await supabase.from('products').delete().eq('id', id);
 
@@ -27,6 +29,7 @@ export const deleteProduct = async (id: string) => {
 };
 
 export const deleteTicket = async (id: string) => {
+	'use server';
 	const supabase = createClient();
 	const { error } = await supabase.from('tickets').delete().eq('id', id);
 
@@ -39,6 +42,7 @@ export const deleteTicket = async (id: string) => {
 };
 
 export const deletePhase = async (id: string) => {
+	'use server';
 	const supabase = createClient();
 	const { error } = await supabase.from('phases').delete().eq('id', id);
 
@@ -51,6 +55,7 @@ export const deletePhase = async (id: string) => {
 };
 
 export const deleteTask = async (id: string) => {
+	'use server';
 	const supabase = createClient();
 	const { error } = await supabase.from('tasks').delete().eq('id', id);
 
@@ -63,6 +68,7 @@ export const deleteTask = async (id: string) => {
 };
 
 export const deleteSection = async (id: string) => {
+	'use server';
 	const supabase = createClient();
 	const { error } = await supabase.from('sections').delete().eq('id', id);
 

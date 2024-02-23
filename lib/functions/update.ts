@@ -3,6 +3,7 @@ import { createClient } from '@/utils/supabase/server';
 import { revalidateTag } from 'next/cache';
 
 export const updateProduct = async (id: string, product: ProductUpdate) => {
+	'use server';
 	const supabase = createClient();
 	const { error } = await supabase.from('products').update(product).eq('id', id);
 
@@ -16,6 +17,7 @@ export const updateProduct = async (id: string, product: ProductUpdate) => {
 };
 
 export const updateProposal = async (id: string, proposal: ProposalUpdate) => {
+	'use server';
 	const supabase = createClient();
 	const { error } = await supabase.from('proposals').update(proposal).eq('id', id);
 
@@ -28,6 +30,7 @@ export const updateProposal = async (id: string, proposal: ProposalUpdate) => {
 };
 
 export const updateTicket = async (id: string, ticket: TicketUpdate) => {
+	'use server';
 	const supabase = createClient();
 	const { error } = await supabase.from('tickets').update(ticket).eq('id', id);
 
@@ -36,10 +39,12 @@ export const updateTicket = async (id: string, ticket: TicketUpdate) => {
 		return;
 	}
 
+	revalidateTag('sections');
 	revalidateTag('tickets');
 };
 
 export const updatePhase = async (id: string, phase: PhaseUpdate) => {
+	'use server';
 	const supabase = createClient();
 	const { error } = await supabase.from('phases').update(phase).eq('id', id);
 
@@ -52,6 +57,7 @@ export const updatePhase = async (id: string, phase: PhaseUpdate) => {
 };
 
 export const updateTask = async (id: string, task: TaskUpdate) => {
+	'use server';
 	const supabase = createClient();
 	const { error } = await supabase.from('tasks').update(task).eq('id', id);
 
@@ -64,6 +70,7 @@ export const updateTask = async (id: string, task: TaskUpdate) => {
 };
 
 export const updateSection = async (id: string, section: SectionUpdate) => {
+	'use server';
 	const supabase = createClient();
 	const { error } = await supabase.from('sections').update(section).eq('id', id);
 

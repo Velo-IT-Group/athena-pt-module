@@ -8,6 +8,7 @@ import { unstable_cache } from 'next/cache';
 
 export const getPhases = unstable_cache(
 	async (id: string): Promise<Array<Phase & { tickets: Array<Ticket & { tasks: Task[] }> }> | undefined> => {
+		'use server';
 		const supabase = createClient();
 
 		const { data, error } = await supabase.from('phases').select('*, tickets(*, tasks(*))').eq('section', id).order('order');
@@ -25,6 +26,7 @@ export const getPhases = unstable_cache(
 
 export const getSections = unstable_cache(
 	async (id: string) => {
+		'use server';
 		const supabase = createClient();
 
 		const sectionsWithPhases = supabase.from('sections').select('*, phases(*, tickets(*, tasks(*)))').eq('proposal', id);
@@ -49,6 +51,7 @@ export const getSections = unstable_cache(
 );
 
 export const getUser = async () => {
+	'use server';
 	const supabase = createClient();
 
 	try {
@@ -62,6 +65,7 @@ export const getUser = async () => {
 };
 
 export const getWorkplan = async (id: number): Promise<ProjectWorkPlan | undefined> => {
+	'use server';
 	const url = `/project/projectTemplates/${id}/workplan`;
 	let config: AxiosRequestConfig = {
 		...baseConfig,
@@ -76,6 +80,7 @@ export const getWorkplan = async (id: number): Promise<ProjectWorkPlan | undefin
 };
 
 export const getTicket = async (id: number): Promise<ServiceTicket | undefined> => {
+	'use server';
 	var myHeaders = new Headers();
 	myHeaders.append('clientId', '9762e3fa-abbd-4179-895e-ca7b0e015ab2');
 	myHeaders.append('Authorization', 'Basic dmVsbytYMzJMQjRYeDVHVzVNRk56Olhjd3Jmd0dwQ09EaFNwdkQ=');
@@ -95,6 +100,7 @@ export const getTicket = async (id: number): Promise<ServiceTicket | undefined> 
 
 export const getTickets = unstable_cache(
 	async (): Promise<ServiceTicket[] | undefined> => {
+		'use server';
 		let config: AxiosRequestConfig = {
 			...baseConfig,
 			url: '/service/tickets',
@@ -120,6 +126,7 @@ export const getTickets = unstable_cache(
 
 export const getCatalogItems = unstable_cache(
 	async () => {
+		'use server';
 		let config: AxiosRequestConfig = {
 			...baseConfig,
 			url: '/procurement/catalog',
@@ -160,6 +167,7 @@ export const getCatalogItems = unstable_cache(
 
 export const getProducts = unstable_cache(
 	async (id: string) => {
+		'use server';
 		const supabase = createClient();
 
 		const { data: products, error } = await supabase.from('products').select('*').eq('proposal', id);
@@ -177,6 +185,7 @@ export const getProducts = unstable_cache(
 
 export const getProposal = unstable_cache(
 	async (id: string) => {
+		'use server';
 		const supabase = createClient();
 
 		const proposalWithSectionsQuery = supabase
@@ -204,7 +213,8 @@ export const getProposal = unstable_cache(
 );
 
 export const getOrganization = unstable_cache(
-	async (id: string) => {
+	async () => {
+		'use server';
 		const supabase = createClient();
 		const { data, error } = await supabase.from('organizations').select().single();
 
@@ -221,6 +231,7 @@ export const getOrganization = unstable_cache(
 
 export const getProposals = unstable_cache(
 	async () => {
+		'use server';
 		const supabase = createClient();
 
 		const proposalsQuery = supabase
