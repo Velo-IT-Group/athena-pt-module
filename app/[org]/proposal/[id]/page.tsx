@@ -1,6 +1,6 @@
 import { Card, CardContent } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
-import { getProposal, getSections, getTicket } from '@/lib/data';
+import { getProposal, getTicket } from '@/lib/data';
 import { getCurrencyString } from '@/utils/money';
 import React from 'react';
 
@@ -17,7 +17,7 @@ const ProposalPage = async ({ params }: Props) => {
 	// console.log(ticket);
 
 	return (
-		<div className='bg-muted/50 h-full flex-1'>
+		<div className='h-full flex-1'>
 			<div className='container py-10'>
 				<h1 className='text-3xl font-medium tracking-tight'>Overview</h1>
 			</div>
