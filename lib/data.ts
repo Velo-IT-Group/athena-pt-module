@@ -290,6 +290,21 @@ export const getProposal = unstable_cache(
 	}
 );
 
+export const getOrganization = async (id: string) => {
+	const supabase = createClient();
+	console.log(id);
+	const { data, error } = await supabase.from('organizations').select().eq('slug', id).single();
+
+	if (!data || error) {
+		console.error('ERROR IN GETTING ORGANIZATION QUERY', error);
+		return;
+	}
+
+	// console.log(proposal);
+
+	return data;
+};
+
 export const getProposals = unstable_cache(
 	async () => {
 		const supabase = createClient();

@@ -8,16 +8,19 @@ export type Database = {
 					id: string;
 					labor_rate: number;
 					name: string;
+					slug: string | null;
 				};
 				Insert: {
 					id?: string;
 					labor_rate: number;
 					name: string;
+					slug?: string | null;
 				};
 				Update: {
 					id?: string;
 					labor_rate?: number;
 					name?: string;
+					slug?: string | null;
 				};
 				Relationships: [];
 			};
@@ -308,7 +311,24 @@ export type Database = {
 			[_ in never]: never;
 		};
 		Functions: {
-			[_ in never]: never;
+			slugify: {
+				Args: {
+					value: string;
+				};
+				Returns: string;
+			};
+			unaccent: {
+				Args: {
+					'': string;
+				};
+				Returns: string;
+			};
+			unaccent_init: {
+				Args: {
+					'': unknown;
+				};
+				Returns: unknown;
+			};
 		};
 		Enums: {
 			[_ in never]: never;

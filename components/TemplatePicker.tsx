@@ -27,31 +27,29 @@ const TemplatePicker = ({ templates }: Props) => {
 	};
 
 	return (
-		<div className='flex flex-col flex-shrink flex-grow overflow-y-auto overflow-x-hidden'>
-			<Droppable droppableId='templates'>
-				{(provided, snapshot) => (
-					<div {...provided.droppableProps} ref={provided.innerRef} className={cn('space-y-2 rounded-xl', getBackgroundColor(snapshot))}>
-						{templates.map((template, index) => (
-							<Draggable key={template.id} draggableId={String(template.id)} index={index}>
-								{(provided) => {
-									return (
-										<div key={template.id} ref={provided.innerRef} {...provided.draggableProps} {...provided.dragHandleProps} className=''>
-											<Card>
-												<CardHeader className='flex flex-row items-center gap-2 p-2 space-y-0'>
-													<DragHandleDots2Icon className='w-4 h-4' />
-													<p className='text-sm tracking-tight line-clamp-1'>{template.name}</p>
-												</CardHeader>
-											</Card>
-										</div>
-									);
-								}}
-							</Draggable>
-						))}
-						{provided.placeholder}
-					</div>
-				)}
-			</Droppable>
-		</div>
+		<Droppable droppableId='templates'>
+			{(provided, snapshot) => (
+				<div {...provided.droppableProps} ref={provided.innerRef} className={cn('space-y-2 rounded-xl', getBackgroundColor(snapshot))}>
+					{templates.map((template, index) => (
+						<Draggable key={template.id} draggableId={String(template.id)} index={index}>
+							{(provided) => {
+								return (
+									<div key={template.id} ref={provided.innerRef} {...provided.draggableProps} {...provided.dragHandleProps} className=''>
+										<Card>
+											<CardHeader className='flex flex-row items-center gap-2 p-2 space-y-0'>
+												<DragHandleDots2Icon className='w-4 h-4' />
+												<p className='text-sm tracking-tight line-clamp-1'>{template.name}</p>
+											</CardHeader>
+										</Card>
+									</div>
+								);
+							}}
+						</Draggable>
+					))}
+					{provided.placeholder}
+				</div>
+			)}
+		</Droppable>
 	);
 };
 
