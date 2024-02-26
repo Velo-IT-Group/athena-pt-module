@@ -1,11 +1,11 @@
 'use client';
-import React, { useState, useTransition } from 'react';
+import React, { useEffect, useState, useTransition } from 'react';
 import { HoverCard, HoverCardContent, HoverCardTrigger } from '@/components/ui/hover-card';
 import { Button } from './ui/button';
 import { MinusIcon, PlusIcon, TrashIcon } from '@radix-ui/react-icons';
 import { Input } from './ui/input';
 import { Label } from './ui/label';
-import { getCurrencyString } from '@/utils/money';
+import { getCurrencyString, parseAmount } from '@/utils/money';
 import { ProductState } from '@/types/optimisticTypes';
 import { updateProduct } from '@/lib/functions/update';
 import { deleteProduct } from '@/lib/functions/delete';
@@ -14,11 +14,30 @@ type Props = {
 	product: Product;
 	description?: string;
 	mutate: (action: ProductState) => void;
+	pending: boolean;
 };
 
-const ProductListItem = ({ product, description, mutate }: Props) => {
+const ProductListItem = ({ product, description, mutate, pending }: Props) => {
 	let [isPending, startTransition] = useTransition();
-	const [quantity, setQuantity] = useState(product.quantity ?? 0);
+	const [quantity, setQuantity] = useState(product.quantity);
+	const [price, setPrice] = useState(getCurrencyString(product.price ?? 0));
+
+	useEffect(() => {
+		const parsedPrice = parseAmount(price) ?? 0;
+		const updatedProduct = { quantity, price: parseAmount(price) ?? 0, extended_price: parsedPrice * quantity };
+		console.log(updatedProduct, product);
+		startTransition(async () => {
+			mutate({
+				updatedProduct: {
+					...product,
+					...updatedProduct,
+				},
+				pending: true,
+			});
+
+			await updateProduct(product.id, updatedProduct);
+		});
+	}, [quantity, price]);
 
 	const action = async (data: FormData) => {
 		const quantity = data.get('quantity') as unknown as number;
@@ -51,7 +70,7 @@ const ProductListItem = ({ product, description, mutate }: Props) => {
 			<div className='items-top flex space-x-2 w-full'>
 				<div className='space-y-2 w-full'>
 					<div className='flex items-center justify-between gap-4 w-full'>
-						<HoverCardTrigger asChild>
+						<HoverCardTrigger aria-disabled={pending} asChild>
 							<Button variant='ghost' size='sm' className='line-clamp-1'>
 								<div className='text-sm font-semibold '>{description}</div>
 							</Button>
@@ -75,7 +94,7 @@ const ProductListItem = ({ product, description, mutate }: Props) => {
 				</div>
 			</div>
 			<HoverCardContent className='w-80'>
-				<form action={action} className='grid gap-4'>
+				<div className='grid gap-4'>
 					<div className='space-y-2'>
 						<h4 className='font-medium leading-none'>{description}</h4>
 						<p className='text-sm text-muted-foreground'>View all the totals of this proposal.</p>
@@ -83,7 +102,12 @@ const ProductListItem = ({ product, description, mutate }: Props) => {
 					<div className='grid gap-4'>
 						<div className='grid grid-cols-3 items-center gap-4'>
 							<Label htmlFor='price'>Price</Label>
-							<Input name='price' defaultValue={getCurrencyString(product.price ?? 0)} className='col-span-2 h-8' />
+							<Input
+								name='price'
+								defaultValue={getCurrencyString(product.price ?? 0)}
+								onChange={(e) => setPrice(e.currentTarget.value)}
+								className='col-span-2 h-8'
+							/>
 						</div>
 						<div className='grid grid-cols-3 items-center gap-4'>
 							<Label htmlFor='quantity'>Quantity</Label>
@@ -105,10 +129,16 @@ const ProductListItem = ({ product, description, mutate }: Props) => {
 						</div>
 						<div className='grid grid-cols-3 items-center gap-4'>
 							<Label htmlFor='extended_price'>Extended Price</Label>
-							<Input name='extended_price' value={getCurrencyString((product.price ?? 0) * quantity)} className='col-span-2 h-8' />
+							{/* <Input
+								name='extended_price'
+								value={getCurrencyString((product.price ?? 0) * quantity)}
+								onChange={(e) => setExtendedPrice(e.currentTarget.value)}
+								className='col-span-2 h-8'
+							/> */}
+							<p>{getCurrencyString((product.price ?? 0) * quantity)}</p>
 						</div>
 					</div>
-				</form>
+				</div>
 			</HoverCardContent>
 		</HoverCard>
 	);
