@@ -47,7 +47,7 @@ const TicketListItem = ({ ticket, order, pending, mutate }: Props) => {
 				<div className='flex items-center flex-1 gap-2 flex-shrink-0 flex-grow'>
 					<DragHandleDots2Icon className='w-4 h-4' />
 
-					<Badge variant='secondary' className='text-nowrap'>
+					<Badge variant='secondary' className='flex-shrink-0'>
 						Ticket {order}
 					</Badge>
 					<Input

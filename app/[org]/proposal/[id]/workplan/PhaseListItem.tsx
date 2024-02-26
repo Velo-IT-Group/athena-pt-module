@@ -90,7 +90,9 @@ const PhaseListItem = ({ phase, tickets, order, pending }: Props) => {
 					<DragHandleDots2Icon className='w-4 h-4' />
 
 					<div className='flex items-center gap-2 flex-1'>
-						<p className='rounded-lg bg-primary px-2 py-1 text-xs text-primary-foreground text-nowrap font-medium leading-none'>Phase {order}</p>
+						<p className='flex-shrink-0 rounded-lg bg-primary px-2 py-1 text-xs text-primary-foreground text-nowrap font-medium leading-none'>
+							Phase {order}
+						</p>
 
 						<Input
 							readOnly={pending}
@@ -99,7 +101,7 @@ const PhaseListItem = ({ phase, tickets, order, pending }: Props) => {
 									await updatePhase(phase.id, { description: e.currentTarget.value });
 								}
 							}}
-							className='border border-transparent hover:border-border hover:cursor-default shadow-none px-2'
+							className='flex-grow border border-transparent hover:border-border hover:cursor-default shadow-none px-2 flex-1 w-auto'
 							defaultValue={phase.description}
 						/>
 					</div>
