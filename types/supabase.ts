@@ -3,6 +3,60 @@ export type Json = string | number | boolean | null | { [key: string]: Json | un
 export type Database = {
 	public: {
 		Tables: {
+			integrations: {
+				Row: {
+					auth_type: Database['public']['Enums']['auth_type'] | null;
+					id: string;
+					name: string;
+				};
+				Insert: {
+					auth_type?: Database['public']['Enums']['auth_type'] | null;
+					id?: string;
+					name: string;
+				};
+				Update: {
+					auth_type?: Database['public']['Enums']['auth_type'] | null;
+					id?: string;
+					name?: string;
+				};
+				Relationships: [];
+			};
+			organization_integrations: {
+				Row: {
+					client_id: string | null;
+					integration: string;
+					organization: string;
+					type: Database['public']['Enums']['integration_type'] | null;
+				};
+				Insert: {
+					client_id?: string | null;
+					integration: string;
+					organization: string;
+					type?: Database['public']['Enums']['integration_type'] | null;
+				};
+				Update: {
+					client_id?: string | null;
+					integration?: string;
+					organization?: string;
+					type?: Database['public']['Enums']['integration_type'] | null;
+				};
+				Relationships: [
+					{
+						foreignKeyName: 'public_organization_integrations_integration_fkey';
+						columns: ['integration'];
+						isOneToOne: false;
+						referencedRelation: 'integrations';
+						referencedColumns: ['id'];
+					},
+					{
+						foreignKeyName: 'public_organization_integrations_organization_fkey';
+						columns: ['organization'];
+						isOneToOne: false;
+						referencedRelation: 'organizations';
+						referencedColumns: ['id'];
+					}
+				];
+			};
 			organizations: {
 				Row: {
 					id: string;
@@ -30,6 +84,7 @@ export type Database = {
 					hours: number;
 					id: string;
 					order: number;
+					proposal: string | null;
 					section: string;
 				};
 				Insert: {
@@ -37,6 +92,7 @@ export type Database = {
 					hours?: number;
 					id?: string;
 					order?: number;
+					proposal?: string | null;
 					section: string;
 				};
 				Update: {
@@ -44,14 +100,15 @@ export type Database = {
 					hours?: number;
 					id?: string;
 					order?: number;
+					proposal?: string | null;
 					section?: string;
 				};
 				Relationships: [
 					{
-						foreignKeyName: 'public_phases_section_fkey';
-						columns: ['section'];
+						foreignKeyName: 'public_phases_proposal_fkey';
+						columns: ['proposal'];
 						isOneToOne: false;
-						referencedRelation: 'sections';
+						referencedRelation: 'proposals';
 						referencedColumns: ['id'];
 					}
 				];
@@ -204,41 +261,6 @@ export type Database = {
 					}
 				];
 			};
-			sections: {
-				Row: {
-					created_at: string;
-					hours: number;
-					id: string;
-					name: string;
-					order: number;
-					proposal: string;
-				};
-				Insert: {
-					created_at?: string;
-					hours?: number;
-					id?: string;
-					name: string;
-					order?: number;
-					proposal: string;
-				};
-				Update: {
-					created_at?: string;
-					hours?: number;
-					id?: string;
-					name?: string;
-					order?: number;
-					proposal?: string;
-				};
-				Relationships: [
-					{
-						foreignKeyName: 'public_sections_proposal_fkey';
-						columns: ['proposal'];
-						isOneToOne: false;
-						referencedRelation: 'proposals';
-						referencedColumns: ['id'];
-					}
-				];
-			};
 			tasks: {
 				Row: {
 					created_at: string;
@@ -341,7 +363,8 @@ export type Database = {
 			};
 		};
 		Enums: {
-			[_ in never]: never;
+			auth_type: 'OAuth2';
+			integration_type: 'reseller';
 		};
 		CompositeTypes: {
 			[_ in never]: never;
