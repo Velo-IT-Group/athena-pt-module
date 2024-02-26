@@ -40,6 +40,7 @@ export const deleteTicket = async (id: string) => {
 	}
 
 	revalidateTag('proposals');
+	revalidateTag('sections');
 };
 
 export const deletePhase = async (id: string) => {
@@ -53,6 +54,7 @@ export const deletePhase = async (id: string) => {
 	}
 
 	revalidateTag('proposals');
+	revalidateTag('sections');
 };
 
 export const deleteTask = async (id: string) => {
@@ -66,6 +68,7 @@ export const deleteTask = async (id: string) => {
 	}
 
 	revalidateTag('proposals');
+	revalidateTag('sections');
 };
 
 export const deleteSection = async (id: string) => {

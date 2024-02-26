@@ -79,10 +79,10 @@ export const handleProductDelete = async (id: string) => {
 		console.error(error);
 		return;
 	}
-	// await deleteProduct(id);
 
 	revalidateTag('products');
 	revalidateTag('proposals');
+	redirect('/velo-it-group');
 };
 
 export const handleTicketDelete = async (id: string) => {
@@ -136,6 +136,8 @@ export const handleProposalInsert = async (formData: FormData) => {
 	const templates_used = formData.getAll('templates_used') as unknown as number[];
 	const service_ticket = formData.get('service_ticket') as unknown as number;
 
+	console.log(name, templates_used, service_ticket);
+
 	const { data: proposal, error } = await supabase.from('proposals').insert({ name, templates_used, service_ticket }).select().single();
 
 	if (!proposal || error) {
@@ -151,7 +153,7 @@ export const handleProposalInsert = async (formData: FormData) => {
 
 	console.log(proposal);
 
-	if (templates_used) {
+	if (templates_used && templates_used.length) {
 		const templates = await Promise.all(templates_used.map((template) => getTemplate(template)));
 		console.log('TEMPLATES', templates);
 		if (templates && templates.length) {

@@ -92,7 +92,7 @@ const TicketForm = ({ ticket }: { ticket: Ticket }) => {
 							<FormItem>
 								<FormLabel>Budget Hours</FormLabel>
 								<FormControl>
-									<Input min={0} type='number' placeholder='0hrs' {...field} />
+									<Input min={0} type='number' typeof='number' placeholder='0hrs' {...field} />
 								</FormControl>
 								<FormMessage />
 							</FormItem>

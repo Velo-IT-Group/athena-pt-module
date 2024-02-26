@@ -47,7 +47,7 @@ const Navbar = async ({ title, children, org, tabs }: Props) => {
 					</>
 				)}
 				{(children || user) && (
-					<div className='ml-auto'>
+					<div className='ml-auto flex items-center'>
 						{children}
 						{user && <UserNav user={user} />}
 					</div>

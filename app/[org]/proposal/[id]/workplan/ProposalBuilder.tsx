@@ -224,8 +224,8 @@ const ProposalBuilder = ({ id, sections, templates }: Props) => {
 
 	let sortedSections = state.sections?.sort((a, b) => {
 		// First, compare by score in descending order
-		if (Number(a.order) > Number(b.order)) return -1;
-		if (Number(a.order) < Number(b.order)) return 1;
+		if (Number(a.order) > Number(b.order)) return 1;
+		if (Number(a.order) < Number(b.order)) return -1;
 
 		// If scores are equal, then sort by created_at in ascending order
 		return new Date(a.created_at).getTime() - new Date(b.created_at).getTime();

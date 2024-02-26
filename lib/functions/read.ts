@@ -293,19 +293,21 @@ export const getTemplates = unstable_cache(
 
 export const getTemplate = unstable_cache(
 	async (id: number): Promise<ProjectTemplate | undefined> => {
-		var requestOptions: RequestInit = {
-			method: 'GET',
-			next: {
-				tags: ['templates'],
-				revalidate: 43200,
-			},
+		let config: AxiosRequestConfig = {
+			...baseConfig,
+			url: `/project/projectTemplates/${id}`,
 		};
 
 		try {
-			const response = await fetch(`${process.env.NEXT_PUBLIC_LOCAL_URL}/api/templates/${id}`, requestOptions);
-			return await response.json();
+			const response: AxiosResponse<ProjectTemplate, Error> = await axios.request(config);
+			console.log(response.data);
+			const workplan = await axios.request<ProjectWorkPlan>({ ...baseConfig, url: `/project/projectTemplates/${response.data.id}/workplan` });
+			console.log(workplan.data);
+
+			return { ...response.data, workplan: workplan?.data ?? [] };
 		} catch (error) {
 			console.error(error);
+			return;
 		}
 	},
 	['templates'],

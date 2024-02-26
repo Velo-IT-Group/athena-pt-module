@@ -122,7 +122,15 @@ const TicketListItem = ({ ticket, order, pending, mutate }: Props) => {
 										</DropdownMenuPortal>
 									</DropdownMenuSub>
 									<DropdownMenuSeparator />
-									<DropdownMenuItem onClick={() => handleTicketDelete(ticket.id)} className='text-red-600'>
+									<DropdownMenuItem
+										onClick={() => {
+											startTransition(async () => {
+												mutate({ deletedTicket: ticket.id, pending: true });
+												await handleTicketDelete(ticket.id);
+											});
+										}}
+										className='text-red-600'
+									>
 										Delete
 										<DropdownMenuShortcut>⌘⌫</DropdownMenuShortcut>
 									</DropdownMenuItem>

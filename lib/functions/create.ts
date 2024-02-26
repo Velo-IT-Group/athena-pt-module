@@ -6,7 +6,8 @@ import { revalidateTag } from 'next/cache';
 
 export const newTemplate = async (proposal: string, template: ProjectTemplate, order?: number): Promise<Array<Phase> | undefined> => {
 	'use server';
-	const section = await createSection({ name: template.name, proposal });
+	console.log(template);
+	const section = await createSection({ name: template?.name ?? '', proposal });
 
 	if (!section) return;
 

@@ -26,17 +26,19 @@ import { Input } from '@/components/ui/input';
 import { Draggable, Droppable } from 'react-beautiful-dnd';
 import TicketListItem from './TicketListItem';
 import SubmitButton from '@/components/SubmitButton';
-import { TicketState } from '@/types/optimisticTypes';
+import { PhaseState, TicketState } from '@/types/optimisticTypes';
 import { createTicket } from '@/lib/functions/create';
+import { deletePhase } from '@/lib/functions/delete';
 
 type Props = {
 	phase: Phase;
 	tickets: NestedTicket[];
 	order: number;
 	pending: boolean;
+	phaseMutation: (action: PhaseState) => void;
 };
 
-const PhaseListItem = ({ phase, tickets, order, pending }: Props) => {
+const PhaseListItem = ({ phase, tickets, order, pending, phaseMutation }: Props) => {
 	const [isPending, startTransition] = useTransition();
 	const [open, setOpen] = React.useState(false);
 	const [collapsibleOpen, setCollapsibleOpen] = React.useState(false);
@@ -82,6 +84,16 @@ const PhaseListItem = ({ phase, tickets, order, pending }: Props) => {
 			await createTicket(newTicket, []);
 		});
 	};
+
+	let sortedTickets = state.tickets?.sort((a, b) => {
+		// First, compare by score in descending order
+		if (Number(a.order) > Number(b.order)) return 1;
+		if (Number(a.order) < Number(b.order)) return -1;
+
+		// If scores are equal, then sort by created_at in ascending order
+		// return Number(a.created_at) - Number(b.id);
+		return new Date(a.created_at).getTime() - new Date(b.created_at).getTime();
+	});
 
 	return (
 		<div>
@@ -142,7 +154,15 @@ const PhaseListItem = ({ phase, tickets, order, pending }: Props) => {
 									</DropdownMenuPortal>
 								</DropdownMenuSub>
 								<DropdownMenuSeparator />
-								<DropdownMenuItem onClick={() => handlePhaseDelete(phase.id)} className='text-red-600'>
+								<DropdownMenuItem
+									onClick={() => {
+										startTransition(async () => {
+											phaseMutation({ deletedPhase: phase.id, pending: true });
+											await deletePhase(phase.id);
+										});
+									}}
+									className='text-red-600'
+								>
 									Delete
 									<DropdownMenuShortcut>⌘⌫</DropdownMenuShortcut>
 								</DropdownMenuItem>
@@ -161,7 +181,7 @@ const PhaseListItem = ({ phase, tickets, order, pending }: Props) => {
 						<Droppable droppableId='tickets' type={`droppableSubItem`}>
 							{(provided) => (
 								<div ref={provided.innerRef} className='space-y-2 w-full'>
-									{tickets.map((ticket, index) => (
+									{sortedTickets.map((ticket, index) => (
 										<Draggable key={ticket.id} draggableId={ticket.id} index={index}>
 											{(provided) => {
 												return (

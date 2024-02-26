@@ -37,7 +37,7 @@ const SectionListItem = ({ section, phases, pending }: Props) => {
 	});
 
 	return (
-		<Collapsible className='border rounded-xl overflow-hidden'>
+		<Collapsible className='border rounded-xl overflow-hidden' defaultOpen>
 			<div className='flex flex-row items-center gap-4 p-4 w-full bg-muted/50'>
 				<Input
 					readOnly={pending}

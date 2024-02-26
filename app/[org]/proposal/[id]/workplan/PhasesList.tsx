@@ -78,7 +78,14 @@ const PhasesList = ({ id, phases }: Props) => {
 									{(provided) => {
 										return (
 											<div ref={provided.innerRef} {...provided.draggableProps} {...provided.dragHandleProps}>
-												<PhaseListItem key={phase.id} phase={phase} tickets={phase?.tickets ?? []} order={index + 1} pending={state.pending} />
+												<PhaseListItem
+													key={phase.id}
+													phase={phase}
+													tickets={phase?.tickets ?? []}
+													order={index + 1}
+													pending={state.pending}
+													phaseMutation={mutate}
+												/>
 											</div>
 										);
 									}}
