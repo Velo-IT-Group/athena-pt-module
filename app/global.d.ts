@@ -14,9 +14,6 @@ declare global {
 	type Proposal = DB['public']['Tables']['proposals']['Row'];
 	type ProposalUpdate = DB['public']['Tables']['proposals']['Update'];
 	type ProposalInsert = DB['public']['Tables']['proposals']['Insert'];
-	type Section = Tables<'sections'>;
-	type SectionInsert = DB['public']['Tables']['sections']['Insert'];
-	type SectionUpdate = DB['public']['Tables']['sections']['Update'];
 	type Task = DB['public']['Tables']['tasks']['Row'];
 	type TaskInsert = DB['public']['Tables']['tasks']['Insert'];
 	type TaskUpdate = DB['public']['Tables']['tasks']['Update'];
