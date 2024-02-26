@@ -85,7 +85,6 @@ export type Database = {
 					id: string;
 					order: number;
 					proposal: string | null;
-					section: string;
 				};
 				Insert: {
 					description: string;
@@ -93,7 +92,6 @@ export type Database = {
 					id?: string;
 					order?: number;
 					proposal?: string | null;
-					section: string;
 				};
 				Update: {
 					description?: string;
@@ -101,7 +99,6 @@ export type Database = {
 					id?: string;
 					order?: number;
 					proposal?: string | null;
-					section?: string;
 				};
 				Relationships: [
 					{
