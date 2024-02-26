@@ -21,8 +21,9 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import ProductListItem from '@/components/ProductListItem';
 import { getCurrencyString } from '@/utils/money';
 import { CatalogItem } from '@/types/manage';
-import { handleProductInsert } from '@/app/actions';
 import { ProductState } from '@/types/optimisticTypes';
+import { v4 as uuid } from 'uuid';
+import { createProduct } from '@/lib/functions/create';
 
 interface DataTableProps<TData, TValue> {
 	columns: ColumnDef<TData, TValue>[];
@@ -83,23 +84,17 @@ export function DataTable<TData, TValue>({ columns, data, products, id }: DataTa
 		const catalogItem: CatalogItem = data[parseInt(item)] as CatalogItem;
 		if (!catalogItem || products.some((product) => product.catalog_item_id === catalogItem.id)) return;
 
-		const newProduct: Product = {
-			id: String(catalogItem?.id) ?? '',
-			extended_price: catalogItem?.price ?? 0,
-			price: catalogItem?.price ?? 0,
+		const newProduct: ProductInsert = {
+			name: catalogItem.description,
+			extended_price: catalogItem.price,
+			price: catalogItem.price,
 			proposal: id,
 			quantity: 1,
-			catalog_item_id: 0,
+			catalog_item_id: catalogItem.id,
 		};
 		startTransition(async () => {
-			mutate({ newProduct, pending: true });
-			await handleProductInsert({
-				extended_price: catalogItem?.price ?? 0,
-				price: catalogItem?.price ?? 0,
-				proposal: id,
-				quantity: 1,
-				catalog_item_id: catalogItem.id,
-			});
+			mutate({ newProduct: { ...newProduct, id: uuid() } as Product, pending: true });
+			await createProduct(newProduct);
 		});
 	}, [table.getState().rowSelection]);
 
@@ -197,7 +192,7 @@ export function DataTable<TData, TValue>({ columns, data, products, id }: DataTa
 					{state.products?.map((product) => {
 						// @ts-ignore
 						const item = data.find((item: CatalogItem) => item.id === product.catalog_item_id) as CatalogItem;
-						return <ProductListItem key={product.id} product={product} description={item?.description} mutate={mutate} />;
+						return <ProductListItem key={product.id} product={product} description={item?.description} mutate={mutate} pending={state.pending} />;
 					})}
 				</CardContent>
 			</Card>

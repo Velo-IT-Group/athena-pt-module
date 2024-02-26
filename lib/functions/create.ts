@@ -131,3 +131,17 @@ export const createTicket = async (ticket: TicketInset, tasks: Array<ProjectTemp
 
 	return data;
 };
+
+export const createProduct = async (product: ProductInsert) => {
+	const supabase = createClient();
+
+	const { error } = await supabase.from('products').insert(product);
+
+	if (error) {
+		console.error(error);
+		return;
+	}
+
+	revalidateTag('products');
+	revalidateTag('proposals');
+};

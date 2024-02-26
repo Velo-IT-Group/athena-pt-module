@@ -6,7 +6,7 @@ export const updateProduct = async (id: string, product: ProductUpdate) => {
 	'use server';
 	const supabase = createClient();
 	const { error } = await supabase.from('products').update(product).eq('id', id);
-
+	console.log('running func');
 	if (error) {
 		console.error(error);
 		return;
