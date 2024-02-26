@@ -177,22 +177,6 @@ export const handleSectionInsert = async (formData: FormData) => {
 	revalidateTag('proposals');
 };
 
-export const handleProductInsert = async (data: ProductInsert) => {
-	'use server';
-	const supabase = createClient();
-
-	console.log(data);
-
-	const { data: proposal, error } = await supabase.from('products').insert(data).select().single();
-
-	if (!proposal || error) {
-		console.error(error);
-		return;
-	}
-
-	revalidateTag('products');
-};
-
 export const handleNewTemplateInsert = async (proposalId: string, template: ProjectTemplate, order: number) => {
 	const section = await newTemplate(proposalId, template, order);
 
