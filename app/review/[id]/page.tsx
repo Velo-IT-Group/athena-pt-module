@@ -46,12 +46,12 @@ const ProposalReviewPage = async ({ params }: Props) => {
 	return (
 		<div className='bg-neutral-50 flex-1 h-screen'>
 			<Navbar title={proposal.name} org=''>
-				<Button className='ml-auto' variant='outline'>
+				<Button className='mr-2' variant='outline'>
 					Revise
 				</Button>
 				<Dialog>
 					<DialogTrigger asChild>
-						<Button>Approve</Button>
+						<Button className='mr-2'>Approve</Button>
 					</DialogTrigger>
 					<DialogContent>
 						<DialogHeader>
@@ -78,6 +78,7 @@ const ProposalReviewPage = async ({ params }: Props) => {
 					</DialogContent>
 				</Dialog>
 			</Navbar>
+
 			<div className='border-t'>
 				<div className='grid grid-cols-5 gap-24 py-12 container'>
 					<div className='col-span-2'>
@@ -91,7 +92,7 @@ const ProposalReviewPage = async ({ params }: Props) => {
 								<div className='flex items-center justify-between px-4'>
 									<p className='text-sm text-muted-foreground'>Quote Price</p>
 									<p className='text-sm text-muted-foreground text-right'>
-										<span className='font-medium'>{getCurrencyString(proposal.total_price ?? 0)}</span>
+										<span className='font-medium'>{getCurrencyString(proposal.total_price!)}</span>
 									</p>
 								</div>
 
@@ -105,9 +106,9 @@ const ProposalReviewPage = async ({ params }: Props) => {
 												<HoverCard key={hardwareItem.id}>
 													<HoverCardTrigger asChild>
 														<div className={`flex items-center justify-between`}>
-															<p className='text-sm text-muted-foreground hover:underline'>{hardwareItem.id}</p>
+															<p className='text-sm text-muted-foreground hover:underline line-clamp-1'>{hardwareItem.name}</p>
 															<p className='text-sm text-muted-foreground text-right'>
-																<span className='font-medium'>{getCurrencyString(hardwareItem.price ?? 0)}</span>
+																<span className='font-medium'>{getCurrencyString(hardwareItem.price!)}</span>
 															</p>
 														</div>
 													</HoverCardTrigger>
@@ -146,7 +147,7 @@ const ProposalReviewPage = async ({ params }: Props) => {
 											<div className='flex items-center justify-between w-full'>
 												<p className='text-sm text-muted-foreground'>Hardware Subtotal</p>
 												<p className='text-sm text-muted-foreground text-right'>
-													<span className='font-medium'>{getCurrencyString(proposal.total_product_price ?? 0)}</span>
+													<span className='font-medium'>{getCurrencyString(proposal.total_product_price!)}</span>
 												</p>
 											</div>
 										</CardFooter>
@@ -160,24 +161,24 @@ const ProposalReviewPage = async ({ params }: Props) => {
 									<CardContent className='space-y-2'>
 										<div className='flex items-center justify-between'>
 											<p className='text-sm text-muted-foreground'>Total Labor Hours</p>
-											<p className='text-sm text-muted-foreground text-right font-medium'>{proposal.labor_hours ?? 0}</p>
+											<p className='text-sm text-muted-foreground text-right font-medium'>{proposal.labor_hours!}</p>
 										</div>
 										<div className='flex items-center justify-between'>
 											<p className='text-sm text-muted-foreground'>Sales Work</p>
-											<p className='text-sm text-muted-foreground text-right font-medium'>{proposal.sales_hours ?? 0}</p>
+											<p className='text-sm text-muted-foreground text-right font-medium'>{proposal.sales_hours!}</p>
 										</div>
 										<div className='flex items-center justify-between'>
 											<p className='text-sm text-muted-foreground'>Project Management</p>
-											<p className='text-sm text-muted-foreground text-right font-medium'>{proposal.management_hours ?? 0}</p>
+											<p className='text-sm text-muted-foreground text-right font-medium'>{proposal.management_hours!}</p>
 										</div>
 										<div className='flex items-center justify-between'>
 											<p className='text-sm text-muted-foreground'>Hours Required</p>
-											<p className='text-sm text-muted-foreground text-right font-medium'>{proposal.hours_required ?? 0}</p>
+											<p className='text-sm text-muted-foreground text-right font-medium'>{proposal.hours_required!}</p>
 										</div>
 										<div className='flex items-center justify-between'>
 											<p className='text-sm text-muted-foreground'>Labor Rate</p>
 											<p className='text-sm text-muted-foreground text-right'>
-												<span className='font-medium'>{getCurrencyString(proposal.labor_rate ?? 0)}</span>
+												<span className='font-medium'>{getCurrencyString(proposal.labor_rate!)}</span>
 											</p>
 										</div>
 										<Separator />
@@ -219,7 +220,7 @@ const ProposalReviewPage = async ({ params }: Props) => {
 															<DialogHeader>
 																<DialogTitle>{phase.description}</DialogTitle>
 															</DialogHeader>
-															<form className='overflow-scroll'>
+															<form>
 																<div className='grid w-full items-center gap-4'>
 																	<div className='flex flex-col space-y-1.5'>
 																		<Label htmlFor='comment'>Comment</Label>
