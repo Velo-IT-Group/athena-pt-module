@@ -25,6 +25,7 @@ export const deleteProduct = async (id: string) => {
 		return;
 	}
 
+	revalidateTag('products');
 	revalidateTag('proposals');
 };
 
