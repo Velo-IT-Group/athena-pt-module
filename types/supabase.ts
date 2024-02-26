@@ -61,6 +61,7 @@ export type Database = {
 					catalog_item_id: number | null;
 					extended_price: number;
 					id: string;
+					name: string;
 					price: number | null;
 					proposal: string;
 					quantity: number;
@@ -69,6 +70,7 @@ export type Database = {
 					catalog_item_id?: number | null;
 					extended_price: number;
 					id?: string;
+					name?: string;
 					price?: number | null;
 					proposal: string;
 					quantity?: number;
@@ -77,6 +79,7 @@ export type Database = {
 					catalog_item_id?: number | null;
 					extended_price?: number;
 					id?: string;
+					name?: string;
 					price?: number | null;
 					proposal?: string;
 					quantity?: number;
@@ -311,6 +314,13 @@ export type Database = {
 			[_ in never]: never;
 		};
 		Functions: {
+			is_organization_member: {
+				Args: {
+					organization_id: string;
+					user_id: string;
+				};
+				Returns: boolean;
+			};
 			slugify: {
 				Args: {
 					value: string;
