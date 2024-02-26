@@ -16,16 +16,13 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { Button } from '@/components/ui/button';
 import { ArrowDownIcon, ArrowUpIcon, DotsHorizontalIcon, DragHandleDots2Icon, PlusIcon } from '@radix-ui/react-icons';
-import { handlePhaseDelete } from '@/app/actions';
 import { CaretSortIcon } from '@radix-ui/react-icons';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
-import TicketsList from './TicketsList';
 import { v4 as uuid } from 'uuid';
 import { updatePhase } from '@/lib/functions/update';
 import { Input } from '@/components/ui/input';
 import { Draggable, Droppable } from 'react-beautiful-dnd';
 import TicketListItem from './TicketListItem';
-import SubmitButton from '@/components/SubmitButton';
 import { PhaseState, TicketState } from '@/types/optimisticTypes';
 import { createTicket } from '@/lib/functions/create';
 import { deletePhase } from '@/lib/functions/delete';
@@ -96,9 +93,10 @@ const PhaseListItem = ({ phase, tickets, order, pending, phaseMutation }: Props)
 	});
 
 	return (
-		<div>
-			<Collapsible open={collapsibleOpen} onOpenChange={setCollapsibleOpen} className='space-y-2 bg-background'>
-				<div className='flex w-full flex-col items-start rounded-md border p-3 sm:flex-row sm:items-center gap-4'>
+		<div className='flex-1 space-y-2'>
+			<Collapsible open={collapsibleOpen} onOpenChange={setCollapsibleOpen} className='space-y-2 border rounded-xl overflow-hidden'>
+				{/* <div className='flex flex-row items-center gap-4 p-4 w-full bg-muted/50'></div> */}
+				<div className='flex flex-row items-center gap-4 p-4 w-full bg-muted/50'>
 					<DragHandleDots2Icon className='w-4 h-4' />
 
 					<div className='flex items-center gap-2 flex-1'>
@@ -177,7 +175,7 @@ const PhaseListItem = ({ phase, tickets, order, pending, phaseMutation }: Props)
 					</CollapsibleTrigger>
 				</div>
 				<CollapsibleContent className='space-y-2'>
-					<div className='w-full flex flex-col space-y-2'>
+					<div className='w-full flex flex-col space-y-2 p-4'>
 						<Droppable droppableId='tickets' type={`droppableSubItem`}>
 							{(provided) => (
 								<div ref={provided.innerRef} className='space-y-2 w-full'>
@@ -196,12 +194,17 @@ const PhaseListItem = ({ phase, tickets, order, pending, phaseMutation }: Props)
 								</div>
 							)}
 						</Droppable>
-						<form action={action} className='mx-auto'>
+						<form action={action}>
+							<Button variant='outline' className='w-full'>
+								<PlusIcon className='w-4 h-4 mr-2' /> Add Ticket
+							</Button>
+						</form>
+						{/* <form action={action} className='mx-auto'>
 							<Button size='sm'>
 								<PlusIcon className='w-4 h-4 mr-2' />
 								Add Ticket
 							</Button>
-						</form>
+						</form> */}
 					</div>
 				</CollapsibleContent>
 			</Collapsible>

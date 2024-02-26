@@ -1,10 +1,3 @@
-export type SectionState = {
-	newSection?: NestedSection;
-	updatedSection?: Section;
-	deletedSection?: string;
-	pending: boolean;
-};
-
 export type ProductState = {
 	newProduct?: Product;
 	updatedProduct?: Product;
@@ -13,6 +6,7 @@ export type ProductState = {
 };
 
 export type PhaseState = {
+	newPhases?: NestedPhase[];
 	newPhase?: NestedPhase;
 	updatedPhase?: NestedPhase;
 	deletedPhase?: string;

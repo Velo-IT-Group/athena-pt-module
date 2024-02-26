@@ -1,4 +1,4 @@
-import { getProposal, getSections, getTemplates } from '@/lib/functions/read';
+import { getProposal, getTemplates } from '@/lib/functions/read';
 import ProposalBuilder from './ProposalBuilder';
 
 import React from 'react';
@@ -9,14 +9,13 @@ type Props = {
 
 const ProposalWorkplanPage = async ({ params }: Props) => {
 	const proposal = await getProposal(params.id);
-	const sections = await getSections(params.id);
 	const templates = await getTemplates();
 
 	if (!proposal) return <div></div>;
 
 	return (
 		<main className='min-h-header bg-background'>
-			<ProposalBuilder sections={sections ?? []} templates={templates ?? []} id={params.id} />
+			<ProposalBuilder phases={proposal?.phases ?? []} templates={templates ?? []} id={params.id} />
 		</main>
 	);
 };

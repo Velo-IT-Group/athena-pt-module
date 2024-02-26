@@ -40,7 +40,6 @@ export const deleteTicket = async (id: string) => {
 	}
 
 	revalidateTag('proposals');
-	revalidateTag('sections');
 };
 
 export const deletePhase = async (id: string) => {
@@ -54,7 +53,6 @@ export const deletePhase = async (id: string) => {
 	}
 
 	revalidateTag('proposals');
-	revalidateTag('sections');
 };
 
 export const deleteTask = async (id: string) => {
@@ -68,19 +66,4 @@ export const deleteTask = async (id: string) => {
 	}
 
 	revalidateTag('proposals');
-	revalidateTag('sections');
-};
-
-export const deleteSection = async (id: string) => {
-	'use server';
-	const supabase = createClient();
-	const { error } = await supabase.from('sections').delete().eq('id', id);
-
-	if (error) {
-		console.error(error);
-		return;
-	}
-
-	revalidateTag('proposals');
-	revalidateTag('sections');
 };

@@ -1,9 +1,9 @@
 'use server';
-import { deletePhase, deleteProposal, deleteSection, deleteTicket } from '@/lib/functions/delete';
-import { updateProposal, updateSection } from '@/lib/functions/update';
+import { deletePhase, deleteProposal, deleteTicket } from '@/lib/functions/delete';
+import { updateProposal } from '@/lib/functions/update';
 import { getTemplate } from '@/lib/functions/read';
 import { newTemplate } from '@/lib/functions/create';
-import { createPhase, createSection, createTask, createTicket } from '@/lib/functions/create';
+import { createPhase, createTask, createTicket } from '@/lib/functions/create';
 import { ProjectTemplate } from '@/types/manage';
 import { createClient } from '@/utils/supabase/server';
 import { revalidateTag } from 'next/cache';
@@ -39,26 +39,18 @@ export const handleTaskInsert = async (formData: FormData) => {
 	revalidateTag('proposals');
 };
 
-export async function deliverSection(section: Section) {
-	'use server';
-	await new Promise((res) => setTimeout(res, 1000));
-
-	return section;
-}
-
 export const handlePhaseInsert = async (formData: FormData) => {
 	'use server';
 	// const supabase = createClient();
 
 	const description = formData.get('description') as string;
 	const order = formData.get('order') as unknown as number;
-	const section = formData.get('section') as string;
+	const proposal = formData.get('proposal') as string;
 
-	console.log(description, order, section);
+	console.log(description, order, proposal);
 
-	await createPhase({ description: description ?? 'New Phase', order: order ?? 0, section }, []);
+	await createPhase({ description: description ?? 'New Phase', order: order ?? 0, proposal }, []);
 
-	revalidateTag('sections');
 	revalidateTag('proposals');
 	revalidateTag('phases');
 	// return phase;
@@ -101,14 +93,6 @@ export const handlePhaseDelete = async (id: string) => {
 	revalidateTag('phases');
 };
 
-export const handleSectionDelete = async (id: string) => {
-	'use server';
-	await deleteSection(id);
-
-	revalidateTag('proposals');
-	revalidateTag('sections');
-};
-
 export const handleProposalUpdate = async (formData: FormData) => {
 	const id = formData.get('id') as string;
 	const name = formData.get('name') as string;
@@ -119,13 +103,6 @@ export const handleProposalUpdate = async (formData: FormData) => {
 	console.log(id, name, sales_hours, management_hours, labor_rate, service_ticket);
 	await updateProposal(id, { name, sales_hours, management_hours, labor_rate, service_ticket });
 
-	revalidateTag('proposals');
-};
-
-export const handleSectionNameUpdate = async (id: string, name: string) => {
-	await updateSection(id, { name });
-
-	revalidateTag('sections');
 	revalidateTag('proposals');
 };
 
@@ -166,23 +143,10 @@ export const handleProposalInsert = async (formData: FormData) => {
 	redirect(`/proposal/${proposal.id}`);
 };
 
-export const handleSectionInsert = async (formData: FormData) => {
-	const name = formData.get('name') as string;
-	const proposal = formData.get('proposal') as string;
-	const order = formData.get('order') as unknown as number;
-
-	console.log(name, proposal, order);
-
-	await createSection({ name: name ?? 'New Section', proposal, order: order ?? 0 });
-
-	revalidateTag('sections');
-	revalidateTag('proposals');
-};
-
 export const handleNewTemplateInsert = async (proposalId: string, template: ProjectTemplate, order: number) => {
-	const section = await newTemplate(proposalId, template, order);
+	const phase = await newTemplate(proposalId, template, order);
 
-	if (!!!section) {
+	if (!!!phase) {
 		return;
 	}
 

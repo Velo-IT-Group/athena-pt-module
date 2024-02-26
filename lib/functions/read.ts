@@ -11,7 +11,7 @@ export const getPhases = unstable_cache(
 		'use server';
 		const supabase = createClient();
 
-		const { data, error } = await supabase.from('phases').select('*, tickets(*, tasks(*))').eq('section', id).order('order');
+		const { data, error } = await supabase.from('phases').select('*, tickets(*, tasks(*))').eq('proposal', id).order('order');
 
 		if (!data || error) {
 			console.error(error);
@@ -22,32 +22,6 @@ export const getPhases = unstable_cache(
 	},
 	['phases'],
 	{ tags: ['phases'] }
-);
-
-export const getSections = unstable_cache(
-	async (id: string) => {
-		'use server';
-		const supabase = createClient();
-
-		const sectionsWithPhases = supabase.from('sections').select('*, phases(*, tickets(*, tasks(*)))').eq('proposal', id);
-		// .order('order', { referencedTable: 'phases', ascending: true })
-		// .single();
-
-		type SectionsWithPhases = QueryData<typeof sectionsWithPhases>;
-
-		const { data, error } = await sectionsWithPhases;
-
-		// console.log(data, id);
-
-		if (!data || error) {
-			console.error(error);
-			return;
-		}
-
-		return data as SectionsWithPhases;
-	},
-	['sections'],
-	{ tags: ['sections'] }
 );
 
 export const getUser = async () => {
@@ -188,25 +162,23 @@ export const getProposal = unstable_cache(
 		'use server';
 		const supabase = createClient();
 
-		const proposalWithSectionsQuery = supabase
+		const proposalWithPhasesQuery = supabase
 			.from('proposals')
-			.select('*, sections(*, phases(*, tickets(*, tasks(*))))')
+			.select('*, phases(*, tickets(*, tasks(*)))')
 			.eq('id', id)
-			.order('order', { referencedTable: 'sections', ascending: true })
+			.order('order', { referencedTable: 'phases', ascending: true })
 			.single();
 
-		type ProposalWithSections = QueryData<typeof proposalWithSectionsQuery>;
+		type ProposalWithPhases = QueryData<typeof proposalWithPhasesQuery>;
 
-		const { data: proposal, error } = await proposalWithSectionsQuery;
+		const { data: proposal, error } = await proposalWithPhasesQuery;
 
 		if (!proposal || error) {
 			console.error('ERROR IN GET PROPOSAL QUERY', error);
 			return;
 		}
 
-		// console.log(proposal);
-
-		return proposal as ProposalWithSections;
+		return proposal as ProposalWithPhases;
 	},
 	['proposals'],
 	{ tags: ['proposals'] }
@@ -234,10 +206,7 @@ export const getProposals = unstable_cache(
 		'use server';
 		const supabase = createClient();
 
-		const proposalsQuery = supabase
-			.from('proposals')
-			.select('*, sections(*, phases(*, tickets(*, tasks(*))))')
-			.order('updated_at', { ascending: false });
+		const proposalsQuery = supabase.from('proposals').select('*, phases(*, tickets(*, tasks(*)))').order('updated_at', { ascending: false });
 
 		type Proposals = QueryData<typeof proposalsQuery>;
 

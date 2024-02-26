@@ -39,7 +39,6 @@ export const updateTicket = async (id: string, ticket: TicketUpdate) => {
 		return;
 	}
 
-	revalidateTag('sections');
 	revalidateTag('tickets');
 };
 
@@ -67,18 +66,4 @@ export const updateTask = async (id: string, task: TaskUpdate) => {
 	}
 
 	revalidateTag('tasks');
-};
-
-export const updateSection = async (id: string, section: SectionUpdate) => {
-	'use server';
-	const supabase = createClient();
-	const { error } = await supabase.from('sections').update(section).eq('id', id);
-
-	if (error) {
-		console.error(error);
-		return;
-	}
-
-	revalidateTag('proposals');
-	revalidateTag('sections');
 };

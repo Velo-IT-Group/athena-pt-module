@@ -5,18 +5,12 @@ import { createClient } from '@/utils/supabase/server';
 import { revalidateTag } from 'next/cache';
 
 export const newTemplate = async (proposal: string, template: ProjectTemplate, order?: number): Promise<Array<Phase> | undefined> => {
-	'use server';
-	console.log(template);
-	const section = await createSection({ name: template?.name ?? '', proposal });
-
-	if (!section) return;
-
 	const phases = await Promise.all(
 		template?.workplan?.phases.map((phase: ProjectPhase, index: number) =>
 			createPhase(
 				{
 					order: index,
-					section: section.id,
+					proposal,
 					description: phase.description,
 				},
 				phase.tickets
@@ -35,25 +29,8 @@ export const createTask = async (task: TaskInsert): Promise<Array<Task> | Postgr
 	const { data, error } = await supabase.from('tasks').insert(task).select();
 
 	revalidateTag('proposals');
-	revalidateTag('sections');
 
 	return data ?? error;
-};
-
-export const createSection = async (section: SectionInsert): Promise<Section | undefined> => {
-	'use server';
-	const supabase = createClient();
-	const { data, error } = await supabase.from('sections').insert(section).select().single();
-
-	if (!data || error) {
-		console.error(error);
-		return;
-	}
-
-	revalidateTag('sections');
-	revalidateTag('proposals');
-
-	return data;
 };
 
 export const createTasks = async (tasks: Array<TaskInsert>): Promise<Array<Task> | PostgrestError> => {
@@ -93,12 +70,13 @@ export const createPhase = async (phase: PhaseInsert, tickets: Array<ProjectTemp
 
 	if (tickets.length) {
 		await Promise.all(
-			tickets.map((ticket: ProjectTemplateTicket) =>
-				createTicket(
+			tickets.map((ticket: ProjectTemplateTicket) => {
+				console.log(ticket);
+				return createTicket(
 					{ phase: data.id, summary: ticket.summary, budget_hours: ticket.budgetHours, order: parseInt(ticket.wbsCode!) },
 					ticket.tasks ?? []
-				)
-			)
+				);
+			})
 		);
 	}
 
@@ -111,6 +89,7 @@ export const createTicket = async (ticket: TicketInset, tasks: Array<ProjectTemp
 	'use server';
 	const supabase = createClient();
 
+	console.log(ticket);
 	const { data, error } = await supabase.from('tickets').insert(ticket).select().single();
 
 	if (!data || error) {
@@ -127,7 +106,6 @@ export const createTicket = async (ticket: TicketInset, tasks: Array<ProjectTemp
 		await createTasks(mappedTasks);
 	}
 
-	revalidateTag('sections');
 	revalidateTag('proposals');
 
 	return data;

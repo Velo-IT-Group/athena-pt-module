@@ -202,48 +202,44 @@ const ProposalReviewPage = async ({ params }: Props) => {
 						<CardContent>
 							<div className='space-y-4'>
 								<Separator />
-								{proposal.sections.map((section) => (
-									<div key={section.id} className='space-y-2'>
-										{section?.phases?.map((phase) => (
-											<div className='space-y-4' key={phase.id}>
-												<div className='flex items-center gap-2'>
-													<h3 className='font-medium tracking-tight'>
-														{phase.description} - {phase.hours}hrs
-													</h3>
-													<Dialog>
-														<DialogTrigger asChild>
-															<Button size='icon' variant='link' className='opacity-0 transition-opacity hover:opacity-100 '>
-																<Pencil1Icon className='w-4 h-4' />
-															</Button>
-														</DialogTrigger>
-														<DialogContent>
-															<DialogHeader>
-																<DialogTitle>{phase.description}</DialogTitle>
-															</DialogHeader>
-															<form>
-																<div className='grid w-full items-center gap-4'>
-																	<div className='flex flex-col space-y-1.5'>
-																		<Label htmlFor='comment'>Comment</Label>
-																		<Textarea id='comment' placeholder='Add a comment to this section' className='min-h-40' />
-																	</div>
-																</div>
-															</form>
-															<DialogFooter>
-																<SubmitButton>Comment</SubmitButton>
-															</DialogFooter>
-														</DialogContent>
-													</Dialog>
-												</div>
+								{proposal?.phases?.map((phase) => (
+									<div className='space-y-4' key={phase.id}>
+										<div className='flex items-center gap-2'>
+											<h3 className='font-medium tracking-tight'>
+												{phase.description} - {phase.hours}hrs
+											</h3>
+											<Dialog>
+												<DialogTrigger asChild>
+													<Button size='icon' variant='link' className='opacity-0 transition-opacity hover:opacity-100 '>
+														<Pencil1Icon className='w-4 h-4' />
+													</Button>
+												</DialogTrigger>
+												<DialogContent>
+													<DialogHeader>
+														<DialogTitle>{phase.description}</DialogTitle>
+													</DialogHeader>
+													<form>
+														<div className='grid w-full items-center gap-4'>
+															<div className='flex flex-col space-y-1.5'>
+																<Label htmlFor='comment'>Comment</Label>
+																<Textarea id='comment' placeholder='Add a comment to this section' className='min-h-40' />
+															</div>
+														</div>
+													</form>
+													<DialogFooter>
+														<SubmitButton>Comment</SubmitButton>
+													</DialogFooter>
+												</DialogContent>
+											</Dialog>
+										</div>
 
-												<ul className='list-disc list-inside px-4'>
-													{phase.tickets.map((ticket) => (
-														<li key={ticket.id} className='text-sm'>
-															{ticket.summary}
-														</li>
-													))}
-												</ul>
-											</div>
-										))}
+										<ul className='list-disc list-inside px-4'>
+											{phase.tickets.map((ticket) => (
+												<li key={ticket.id} className='text-sm'>
+													{ticket.summary}
+												</li>
+											))}
+										</ul>
 									</div>
 								))}
 							</div>

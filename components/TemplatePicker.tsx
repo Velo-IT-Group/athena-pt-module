@@ -37,7 +37,7 @@ const TemplatePicker = ({ templates }: Props) => {
 									<div key={template.id} ref={provided.innerRef} {...provided.draggableProps} {...provided.dragHandleProps} className=''>
 										<Card>
 											<CardHeader className='flex flex-row items-center gap-2 p-2 space-y-0'>
-												<DragHandleDots2Icon className='w-4 h-4' />
+												<DragHandleDots2Icon className='w-4 h-4 flex-shrink-0' />
 												<p className='text-sm tracking-tight line-clamp-1'>{template.name}</p>
 											</CardHeader>
 										</Card>
