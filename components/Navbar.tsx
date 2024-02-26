@@ -46,8 +46,12 @@ const Navbar = async ({ title, children, org, tabs }: Props) => {
 						<span className='font-semibold'>{title}</span>
 					</>
 				)}
-				{children}
-				{user && <UserNav className='ml-auto' user={user} />}
+				{(children || user) && (
+					<div className='ml-auto'>
+						{children}
+						{user && <UserNav user={user} />}
+					</div>
+				)}
 			</nav>
 			{tabs && <NavigationTabs tabs={tabs} />}
 		</>
