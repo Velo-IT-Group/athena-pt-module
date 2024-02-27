@@ -3,13 +3,15 @@ import { ProjectPhase, ProjectTemplate, ProjectTemplateTask, ProjectTemplateTick
 import { PostgrestError } from '@supabase/supabase-js';
 import { createClient } from '@/utils/supabase/server';
 import { revalidateTag } from 'next/cache';
+import { headers } from 'next/headers';
+import { redirect } from 'next/navigation';
 
-export const newTemplate = async (proposal: string, template: ProjectTemplate, order?: number): Promise<Array<Phase> | undefined> => {
-	const phases = await Promise.all(
+export const newTemplate = async (proposal: string, template: ProjectTemplate, order: number) => {
+	await Promise.all(
 		template?.workplan?.phases.map((phase: ProjectPhase, index: number) =>
 			createPhase(
 				{
-					order: index,
+					order: order + index + 1,
 					proposal,
 					description: phase.description,
 				},
@@ -19,8 +21,6 @@ export const newTemplate = async (proposal: string, template: ProjectTemplate, o
 	);
 
 	revalidateTag('proposals');
-
-	return phases as Array<Phase>;
 };
 
 export const createTask = async (task: TaskInsert) => {
@@ -61,7 +61,7 @@ export const createProposal = async (proposal: ProposalInsert): Promise<Proposal
 	return data;
 };
 
-export const createPhase = async (phase: PhaseInsert, tickets: Array<ProjectTemplateTicket>): Promise<Phase | undefined> => {
+export const createPhase = async (phase: PhaseInsert, tickets: Array<ProjectTemplateTicket>) => {
 	'use server';
 	const supabase = createClient();
 	const { data, error } = await supabase.from('phases').insert(phase).select().single();
@@ -84,8 +84,6 @@ export const createPhase = async (phase: PhaseInsert, tickets: Array<ProjectTemp
 	}
 
 	revalidateTag('proposals');
-
-	return data;
 };
 
 export const createTicket = async (ticket: TicketInset, tasks: Array<ProjectTemplateTask>): Promise<Ticket | undefined> => {
@@ -126,4 +124,27 @@ export const createProduct = async (product: ProductInsert) => {
 
 	revalidateTag('products');
 	revalidateTag('proposals');
+};
+
+export const signUp = async (formData: FormData) => {
+	'use server';
+
+	const origin = headers().get('origin');
+	const email = formData.get('email') as string;
+	const password = formData.get('password') as string;
+	const supabase = createClient();
+
+	const { error } = await supabase.auth.signUp({
+		email,
+		password,
+		options: {
+			emailRedirectTo: `${origin}/auth/callback`,
+		},
+	});
+
+	if (error) {
+		return redirect('/login?message=Could not authenticate user');
+	}
+
+	return redirect('/login?message=Check email to continue sign in process');
 };
