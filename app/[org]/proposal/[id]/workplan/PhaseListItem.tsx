@@ -54,7 +54,7 @@ const PhaseListItem = ({ phase, tickets, order, pending, phaseMutation }: Props)
 	};
 
 	const action = async (data: FormData) => {
-		const newTicket = { ...ticketStub, summary: 'New Ticket', order: state.tickets.length };
+		const newTicket = { ...ticketStub, summary: 'New Ticket', order: state.tickets.length + 1 };
 		data.set('phase', phase.id);
 
 		startTransition(async () => {
@@ -69,8 +69,8 @@ const PhaseListItem = ({ phase, tickets, order, pending, phaseMutation }: Props)
 
 	let sortedTickets = state.tickets?.sort((a, b) => {
 		// First, compare by score in descending order
-		if (Number(a.order) > Number(b.order)) return -1;
-		if (Number(a.order) < Number(b.order)) return 1;
+		if (Number(a.order) > Number(b.order)) return 1;
+		if (Number(a.order) < Number(b.order)) return -1;
 
 		// If scores are equal, then sort by created_at in ascending order
 		// return Number(a.created_at) - Number(b.id);
@@ -78,7 +78,7 @@ const PhaseListItem = ({ phase, tickets, order, pending, phaseMutation }: Props)
 	});
 
 	return (
-		<Collapsible className='border rounded-xl overflow-hidden' defaultOpen>
+		<Collapsible className='border rounded-xl overflow-hidden'>
 			<div className='flex flex-row items-center gap-4 p-4 w-full bg-muted/50'>
 				<Input
 					readOnly={pending}
@@ -126,7 +126,7 @@ const PhaseListItem = ({ phase, tickets, order, pending, phaseMutation }: Props)
 			<CollapsibleContent>
 				<div className='p-4 space-y-2 border-t'>
 					<div className='w-full flex flex-col space-y-2'>
-						<Droppable droppableId='tickets' type={`droppableSubItem`}>
+						<Droppable droppableId='tickets' type={`${order - 1}_droppableSubItem`}>
 							{(provided) => (
 								<div ref={provided.innerRef} className='space-y-2 w-full'>
 									{sortedTickets.map((ticket, index) => (
