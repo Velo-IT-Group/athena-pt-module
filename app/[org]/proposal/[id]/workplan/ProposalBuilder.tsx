@@ -1,6 +1,6 @@
 'use client';
 import React, { useOptimistic, useTransition } from 'react';
-import { DragDropContext, Draggable, DropResult, Droppable } from 'react-beautiful-dnd';
+import { DragDropContext, Draggable, DropResult, Droppable, DroppableStateSnapshot } from 'react-beautiful-dnd';
 import TemplateCatalog from '@/components/TemplateCatalog';
 import { updatePhase } from '@/lib/functions/update';
 import { ProjectPhase, ProjectTemplate } from '@/types/manage';
@@ -12,6 +12,7 @@ import { PhaseState } from '@/types/optimisticTypes';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import PhaseListItem from './PhaseListItem';
 import { Button } from '@/components/ui/button';
+import { cn } from '@/lib/utils';
 
 type Props = {
 	id: string;
@@ -21,6 +22,21 @@ type Props = {
 
 const ProposalBuilder = ({ id, phases, templates }: Props) => {
 	const [isPending, startTransition] = useTransition();
+
+	const getBackgroundColor = (snapshot: DroppableStateSnapshot): string => {
+		// Giving isDraggingOver preference
+		if (snapshot.isDraggingOver) {
+			return 'bg-pink-50';
+		}
+
+		// If it is the home list but not dragging over
+		if (snapshot.draggingFromThisWith) {
+			return 'bg-blue-50';
+		}
+
+		// Otherwise use our default background
+		return 'bg-transparent';
+	};
 
 	const [state, mutate] = useOptimistic({ phases, pending: false }, function createReducer(state, newState: PhaseState) {
 		if (newState.newPhase) {
@@ -212,37 +228,34 @@ const ProposalBuilder = ({ id, phases, templates }: Props) => {
 						{sortedPhases.length ? (
 							<div className='w-full space-y-2'>
 								<Droppable droppableId='phases' type={`droppablePhaseItem_${id}`}>
-									{(provided) => (
-										<div {...provided.droppableProps} ref={provided.innerRef} className='space-y-2'>
-											{sortedPhases?.map((phase, index) => {
-												return (
-													<Draggable key={phase.id} draggableId={phase.id} index={index}>
-														{(provided) => {
-															return (
-																<div ref={provided.innerRef} {...provided.draggableProps} {...provided.dragHandleProps}>
-																	<PhaseListItem
-																		key={phase.id}
-																		phase={phase}
-																		tickets={phase?.tickets ?? []}
-																		order={index + 1}
-																		pending={state.pending}
-																		phaseMutation={mutate}
-																	/>
-																</div>
-															);
-														}}
-													</Draggable>
-												);
-											})}
+									{(provided, snapshot) => (
+										<div
+											{...provided.droppableProps}
+											ref={provided.innerRef}
+											className={cn('space-y-4 rounded-xl h-full min-h-halfScreen', getBackgroundColor(snapshot))}
+										>
+											{sortedPhases.map((phase, index) => (
+												<Draggable key={phase.id} draggableId={phase.id} index={index}>
+													{(provided) => {
+														return (
+															<div ref={provided.innerRef} {...provided.draggableProps} {...provided.dragHandleProps} className='overflow-hidden'>
+																<PhaseListItem
+																	order={index + 1}
+																	pending={state.pending}
+																	phase={phase}
+																	phaseMutation={mutate}
+																	tickets={phase?.tickets ?? []}
+																/>
+																{/* <SectionListItem key={section.id} section={section} phases={section.phases ?? []} pending={pending} /> */}
+															</div>
+														);
+													}}
+												</Draggable>
+											))}
 											{provided.placeholder}
 										</div>
 									)}
 								</Droppable>
-								<form action={action}>
-									<Button variant='outline' className='w-full'>
-										<PlusIcon className='w-4 h-4 mr-2' /> Add Phase
-									</Button>
-								</form>
 							</div>
 						) : (
 							<form action={action} className='h-full border border-dotted flex flex-col justify-center items-center gap-4 rounded-xl'>

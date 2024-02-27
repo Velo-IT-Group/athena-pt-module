@@ -7,6 +7,7 @@ import { PlusIcon } from '@radix-ui/react-icons';
 import SubmitButton from '../../../../../components/SubmitButton';
 import { TicketState } from '@/types/optimisticTypes';
 import { createTicket } from '@/lib/functions/create';
+import { Button } from '@/components/ui/button';
 
 type Props = {
 	phase: string;
@@ -78,7 +79,14 @@ const TicketsList = ({ phase, tickets }: Props) => {
 								{(provided) => {
 									return (
 										<div ref={provided.innerRef} {...provided.draggableProps} {...provided.dragHandleProps}>
-											<TicketListItem key={ticket.id} ticket={ticket} order={index + 1} pending={state.pending} mutate={mutate} />
+											<TicketListItem
+												key={ticket.id}
+												ticket={ticket}
+												tasks={ticket.tasks ?? []}
+												order={index + 1}
+												pending={state.pending}
+												ticketMutation={mutate}
+											/>
 										</div>
 									);
 								}}
@@ -88,11 +96,10 @@ const TicketsList = ({ phase, tickets }: Props) => {
 					</div>
 				)}
 			</Droppable>
-			<form action={action} className='mx-auto'>
-				<SubmitButton size='sm'>
-					<PlusIcon className='w-4 h-4 mr-2' />
-					Add Ticket
-				</SubmitButton>
+			<form action={action}>
+				<Button variant='outline' className='w-full'>
+					<PlusIcon className='w-4 h-4 mr-2' /> Add Ticket
+				</Button>
 			</form>
 		</div>
 	);

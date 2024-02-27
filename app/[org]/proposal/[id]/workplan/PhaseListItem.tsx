@@ -26,6 +26,7 @@ import TicketListItem from './TicketListItem';
 import { PhaseState, TicketState } from '@/types/optimisticTypes';
 import { createTicket } from '@/lib/functions/create';
 import { deletePhase } from '@/lib/functions/delete';
+import TicketsList from './TicketsList';
 
 type Props = {
 	phase: Phase;
@@ -93,122 +94,48 @@ const PhaseListItem = ({ phase, tickets, order, pending, phaseMutation }: Props)
 	});
 
 	return (
-		<div className='flex-1 space-y-2'>
-			<Collapsible open={collapsibleOpen} onOpenChange={setCollapsibleOpen} className='space-y-2 border rounded-xl overflow-hidden'>
-				{/* <div className='flex flex-row items-center gap-4 p-4 w-full bg-muted/50'></div> */}
-				<div className='flex flex-row items-center gap-4 p-4 w-full bg-muted/50'>
-					<DragHandleDots2Icon className='w-4 h-4' />
+		<Collapsible className='border rounded-xl overflow-hidden' defaultOpen>
+			<div className='flex flex-row items-center gap-4 p-4 w-full bg-muted/50'>
+				<Input
+					readOnly={pending}
+					onBlur={async (e) => {
+						if (e.currentTarget.value !== phase.description) {
+							console.log('updating phase');
+							await updatePhase(phase.id, { description: e.currentTarget.value });
+						}
+					}}
+					className='border border-transparent hover:border-border hover:cursor-default rounded-lg shadow-none px-2 -mx-2 py-2 -my-2 min-w-60'
+					defaultValue={phase.description}
+				/>
 
-					<div className='flex items-center gap-2 flex-1'>
-						<p className='flex-shrink-0 rounded-lg bg-primary px-2 py-1 text-xs text-primary-foreground text-nowrap font-medium leading-none'>
-							Phase {order}
-						</p>
+				<p className='ml-auto text-sm text-muted-foreground'>
+					{state.tickets.reduce((accumulator, currentValue) => accumulator + (currentValue?.budget_hours ?? 0), 0)}hrs
+				</p>
 
-						<Input
-							readOnly={pending}
-							onBlur={async (e) => {
-								if (e.currentTarget.value !== phase.description) {
-									await updatePhase(phase.id, { description: e.currentTarget.value });
-								}
-							}}
-							className='flex-grow border border-transparent hover:border-border hover:cursor-default shadow-none px-2 flex-1 w-auto'
-							defaultValue={phase.description}
-						/>
-					</div>
-
-					<p className='ml-auto text-sm text-muted-foreground'>
-						{state.tickets.reduce((accumulator, currentValue) => accumulator + (currentValue?.budget_hours ?? 0), 0)}hrs
-					</p>
-
-					<DropdownMenu open={open} onOpenChange={setOpen}>
-						<DropdownMenuTrigger asChild disabled={pending}>
-							<Button variant='ghost' size='sm'>
-								<DotsHorizontalIcon />
-							</Button>
-						</DropdownMenuTrigger>
-						<DropdownMenuContent align='end' className='w-[200px]'>
-							<DropdownMenuLabel>Actions</DropdownMenuLabel>
-							<DropdownMenuGroup>
-								<DropdownMenuItem>Assign to...</DropdownMenuItem>
-								<DropdownMenuItem>Set due date...</DropdownMenuItem>
-								<DropdownMenuSeparator />
-								<DropdownMenuSub>
-									<DropdownMenuSubTrigger>Move</DropdownMenuSubTrigger>
-									<DropdownMenuPortal>
-										<DropdownMenuSubContent>
-											<DropdownMenuItem>
-												Move Up
-												<DropdownMenuShortcut>
-													<ArrowUpIcon />
-												</DropdownMenuShortcut>
-											</DropdownMenuItem>
-											<DropdownMenuItem>
-												Move Down
-												<DropdownMenuShortcut>
-													<ArrowDownIcon />
-												</DropdownMenuShortcut>
-											</DropdownMenuItem>
-										</DropdownMenuSubContent>
-									</DropdownMenuPortal>
-								</DropdownMenuSub>
-								<DropdownMenuSeparator />
-								<DropdownMenuItem
-									onClick={() => {
-										startTransition(async () => {
-											phaseMutation({ deletedPhase: phase.id, pending: true });
-											await deletePhase(phase.id);
-										});
-									}}
-									className='text-red-600'
-								>
-									Delete
-									<DropdownMenuShortcut>⌘⌫</DropdownMenuShortcut>
-								</DropdownMenuItem>
-							</DropdownMenuGroup>
-						</DropdownMenuContent>
-					</DropdownMenu>
-					<CollapsibleTrigger asChild>
-						<Button variant='ghost' size='sm'>
-							<CaretSortIcon className='h-4 w-4' />
-							<span className='sr-only'>Toggle</span>
+				<DropdownMenu>
+					<DropdownMenuTrigger disabled={pending} asChild>
+						<Button variant='outline' size='icon' className='ml-auto'>
+							<DotsHorizontalIcon className='w-4 h-4' />
 						</Button>
-					</CollapsibleTrigger>
+					</DropdownMenuTrigger>
+					<DropdownMenuContent>
+						<DropdownMenuItem onClick={async () => await deletePhase(phase.id)}>Delete</DropdownMenuItem>
+					</DropdownMenuContent>
+				</DropdownMenu>
+				<CollapsibleTrigger asChild>
+					<Button variant='ghost' size='sm'>
+						<CaretSortIcon className='h-4 w-4' />
+						<span className='sr-only'>Toggle</span>
+					</Button>
+				</CollapsibleTrigger>
+			</div>
+
+			<CollapsibleContent>
+				<div className='p-4 space-y-2 border-t'>
+					<TicketsList phase={phase.id} tickets={sortedTickets} />
 				</div>
-				<CollapsibleContent className='space-y-2'>
-					<div className='w-full flex flex-col space-y-2 p-4'>
-						<Droppable droppableId='tickets' type={`droppableSubItem`}>
-							{(provided) => (
-								<div ref={provided.innerRef} className='space-y-2 w-full'>
-									{sortedTickets.map((ticket, index) => (
-										<Draggable key={ticket.id} draggableId={ticket.id} index={index}>
-											{(provided) => {
-												return (
-													<div ref={provided.innerRef} {...provided.draggableProps} {...provided.dragHandleProps}>
-														<TicketListItem key={ticket.id} ticket={ticket} order={index + 1} pending={state.pending} mutate={mutate} />
-													</div>
-												);
-											}}
-										</Draggable>
-									))}
-									{provided.placeholder}
-								</div>
-							)}
-						</Droppable>
-						<form action={action}>
-							<Button variant='outline' className='w-full'>
-								<PlusIcon className='w-4 h-4 mr-2' /> Add Ticket
-							</Button>
-						</form>
-						{/* <form action={action} className='mx-auto'>
-							<Button size='sm'>
-								<PlusIcon className='w-4 h-4 mr-2' />
-								Add Ticket
-							</Button>
-						</form> */}
-					</div>
-				</CollapsibleContent>
-			</Collapsible>
-		</div>
+			</CollapsibleContent>
+		</Collapsible>
 	);
 };
 
