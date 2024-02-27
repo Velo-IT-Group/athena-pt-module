@@ -165,28 +165,12 @@ const TicketListItem = ({ ticket, tasks, order, pending, ticketMutation }: Props
 				</div>
 				<CollapsibleContent className='space-y-2'>
 					<div className='w-full flex flex-col space-y-2'>
-						<Droppable droppableId='tickets' type={`droppableSubItem`}>
-							{(provided) => (
-								<div ref={provided.innerRef} className='space-y-2 w-full'>
-									{state.tasks.map((task, index) => (
-										<Draggable key={task.id} draggableId={task.id} index={index}>
-											{(provided) => {
-												return (
-													<div ref={provided.innerRef} {...provided.draggableProps} {...provided.dragHandleProps}>
-														<TaskListItem taskMutation={taskMutation} order={index + 1} pending={state.pending} task={task} />
-													</div>
-												);
-											}}
-										</Draggable>
-									))}
-									{provided.placeholder}
-								</div>
-							)}
-						</Droppable>
+						{state.tasks.map((task, index) => (
+							<TaskListItem key={task.id} taskMutation={taskMutation} order={index + 1} pending={state.pending} task={task} />
+						))}
 						<form
 							action={() => {
 								const newTask = { ...taskStub, summary: 'New Ticket' };
-								console.log('ACTION TASK', newTask);
 
 								startTransition(async () => {
 									taskMutation({ newTask: { ...newTask, id: uuid() } as Task, pending: true });
