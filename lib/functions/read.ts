@@ -5,6 +5,7 @@ import { QueryData } from '@supabase/supabase-js';
 import { createClient } from '@/utils/supabase/server';
 import { baseConfig } from '@/lib/utils';
 import { unstable_cache } from 'next/cache';
+import { redirect } from 'next/navigation';
 
 export const getPhases = unstable_cache(
 	async (id: string): Promise<Array<Phase & { tickets: Array<Ticket & { tasks: Task[] }> }> | undefined> => {
@@ -282,3 +283,23 @@ export const getTemplate = unstable_cache(
 	['templates'],
 	{ tags: ['templates'] }
 );
+
+export const signIn = async (formData: FormData) => {
+	'use server';
+
+	const email = formData.get('email') as string;
+	const password = formData.get('password') as string;
+	const supabase = createClient();
+
+	const { error } = await supabase.auth.signInWithPassword({
+		email,
+		password,
+	});
+
+	if (error) {
+		console.error(error);
+		return redirect('/login?message=Could not authenticate user');
+	}
+
+	return redirect('/velo-it-group');
+};
