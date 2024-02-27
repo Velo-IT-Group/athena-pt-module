@@ -39,7 +39,7 @@ export const updateTicket = async (id: string, ticket: TicketUpdate) => {
 		return;
 	}
 
-	revalidateTag('tickets');
+	revalidateTag('proposals');
 };
 
 export const updatePhase = async (id: string, phase: PhaseUpdate) => {
@@ -52,7 +52,7 @@ export const updatePhase = async (id: string, phase: PhaseUpdate) => {
 		return;
 	}
 
-	revalidateTag('phases');
+	revalidateTag('proposals');
 };
 
 export const updateTask = async (id: string, task: TaskUpdate) => {
@@ -65,5 +65,5 @@ export const updateTask = async (id: string, task: TaskUpdate) => {
 		return;
 	}
 
-	revalidateTag('tasks');
+	revalidateTag('proposals');
 };

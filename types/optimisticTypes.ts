@@ -9,6 +9,7 @@ export type PhaseState = {
 	newPhases?: NestedPhase[];
 	newPhase?: NestedPhase;
 	updatedPhase?: NestedPhase;
+	updatedPhases?: NestedPhase[];
 	deletedPhase?: string;
 	pending: boolean;
 };

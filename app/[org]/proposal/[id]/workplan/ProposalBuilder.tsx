@@ -2,7 +2,7 @@
 import React, { useOptimistic, useTransition } from 'react';
 import { DragDropContext, Draggable, DropResult, Droppable, DroppableStateSnapshot } from 'react-beautiful-dnd';
 import TemplateCatalog from '@/components/TemplateCatalog';
-import { updatePhase } from '@/lib/functions/update';
+// import { updatePhase } from '@/lib/functions/update';
 import { ProjectPhase, ProjectTemplate } from '@/types/manage';
 import { v4 as uuid } from 'uuid';
 import { FileTextIcon, PlusIcon } from '@radix-ui/react-icons';
@@ -11,8 +11,9 @@ import { handleNewTemplateInsert, handlePhaseInsert } from '@/app/actions';
 import { PhaseState } from '@/types/optimisticTypes';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import PhaseListItem from './PhaseListItem';
-import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
+import { move, reorder } from '@/utils/array';
+import { updatePhase } from '@/lib/functions/update';
 
 type Props = {
 	id: string;
@@ -54,6 +55,11 @@ const ProposalBuilder = ({ id, phases, templates }: Props) => {
 				phases: [...state.phases.filter((f) => f.id !== newState.updatedPhase!.id), newState.updatedPhase] as NestedPhase[],
 				pending: newState.pending,
 			};
+		} else if (newState.updatedPhases) {
+			return {
+				phases: [...state.phases, ...newState.updatedPhases] as NestedPhase[],
+				pending: newState.pending,
+			};
 		} else {
 			return {
 				phases: [...state.phases.filter((f) => f.id !== newState.deletedPhase)] as NestedPhase[],
@@ -72,25 +78,25 @@ const ProposalBuilder = ({ id, phases, templates }: Props) => {
 	};
 
 	// a little function to help us with reordering the result
-	const reorder = (list: NestedPhase[], startIndex: number, endIndex: number) => {
-		const result = Array.from(list);
-		const [removed] = result.splice(startIndex, 1);
-		result.splice(endIndex, 0, removed);
-		result.forEach((item, index) => (item.order = index + 1));
+	// const reorder = (list: NestedPhase[], startIndex: number, endIndex: number) => {
+	// 	const result = Array.from(list);
+	// 	const [removed] = result.splice(startIndex, 1);
+	// 	result.splice(endIndex, 0, removed);
+	// 	result.forEach((item, index) => (item.order = index + 1));
 
-		const changedPhases: NestedPhase[] = [];
+	// 	const changedPhases: NestedPhase[] = [];
 
-		for (var i = endIndex; i < result.length; i++) {
-			// console.log(result[i], i);
-			result[i].order = i + 1;
-			changedPhases.push(result[i]);
-		}
-		console.log(changedPhases);
+	// 	for (var i = endIndex; i < result.length; i++) {
+	// 		// console.log(result[i], i);
+	// 		result[i].order = i + 1;
+	// 		changedPhases.push(result[i]);
+	// 	}
+	// 	console.log(changedPhases);
 
-		Promise.all(changedPhases.map((phase) => updatePhase(phase.id, { order: phase.order })));
+	// 	Promise.all(changedPhases.map((phase) => updatePhase(phase.id, { order: phase.order })));
 
-		return result;
-	};
+	// 	return result;
+	// };
 
 	const handleTemplateDrop = async (templateIndex: number, destinationIndex?: number) => {
 		const template = templates[templateIndex];
@@ -148,13 +154,12 @@ const ProposalBuilder = ({ id, phases, templates }: Props) => {
 
 	async function onDragEnd(result: DropResult) {
 		const { destination, source } = result;
-		console.log(result);
 
 		// handle dropping a template onto proposal
 		if (!destination && source.droppableId === 'templates') {
 			console.log('running func');
 			await handleTemplateDrop(0);
-			// reorder(state.sections, source.index, destination?.index);
+			// reorder(state.phases, source.index, destination?.index);
 			return;
 		}
 
@@ -162,7 +167,12 @@ const ProposalBuilder = ({ id, phases, templates }: Props) => {
 
 		if (result.type.includes('droppablePhaseItem')) {
 			const parentId = result.type.split('_')[1];
-			console.log(parentId, source.index, destination?.index);
+			const test = reorder(state.phases, source.index, destination?.index);
+			startTransition(async () => {
+				mutate({ updatedPhases: test, pending: true });
+				await Promise.all(test.map((phase) => updatePhase(phase.id, { order: phase.order })));
+			});
+			// console.log(parentId, source.index, destination?.index);
 
 			// phaseReorder(parentId, source.index, destination?.index);
 		}
@@ -171,7 +181,10 @@ const ProposalBuilder = ({ id, phases, templates }: Props) => {
 
 		// handle dropping a template onto proposal
 		if (destination?.droppableId === 'phases' && source.droppableId === 'templates') {
-			await handleTemplateDrop(source.index, destination.index);
+			const test = reorder(state.phases, source.index, destination?.index);
+			mutate({ updatedPhases: test, pending: true });
+			// console.log(test);
+			// await handleTemplateDrop(source.index, destination.index);
 
 			return;
 		}
@@ -238,7 +251,7 @@ const ProposalBuilder = ({ id, phases, templates }: Props) => {
 												<Draggable key={phase.id} draggableId={phase.id} index={index}>
 													{(provided) => {
 														return (
-															<div ref={provided.innerRef} {...provided.draggableProps} {...provided.dragHandleProps} className='overflow-hidden'>
+															<div ref={provided.innerRef} {...provided.draggableProps} {...provided.dragHandleProps}>
 																<PhaseListItem
 																	order={index + 1}
 																	pending={state.pending}
@@ -246,7 +259,6 @@ const ProposalBuilder = ({ id, phases, templates }: Props) => {
 																	phaseMutation={mutate}
 																	tickets={phase?.tickets ?? []}
 																/>
-																{/* <SectionListItem key={section.id} section={section} phases={section.phases ?? []} pending={pending} /> */}
 															</div>
 														);
 													}}

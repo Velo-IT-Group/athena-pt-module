@@ -1,6 +1,5 @@
 'use client';
 import { ArrowDownIcon, ArrowUpIcon, CaretSortIcon, DotsHorizontalIcon, DragHandleDots2Icon, PlusIcon } from '@radix-ui/react-icons';
-import { Dialog, DialogContent, DialogTrigger } from '@/components/ui/dialog';
 import {
 	DropdownMenu,
 	DropdownMenuContent,
@@ -18,12 +17,6 @@ import {
 import { v4 as uuid } from 'uuid';
 import React, { useOptimistic, useTransition } from 'react';
 import { Button } from '@/components/ui/button';
-import { handleTicketDelete } from '@/app/actions';
-import { Badge } from '@/components/ui/badge';
-import TasksList from './TasksList';
-import CornerDownRightIcon from '@/components/icons/CornerDownRightIcon';
-import TicketForm from '@/components/forms/TicketForm';
-import { ScrollArea } from '@/components/ui/scroll-area';
 import { Input } from '@/components/ui/input';
 import { updateTicket } from '@/lib/functions/update';
 import { TaskState, TicketState } from '@/types/optimisticTypes';
@@ -31,6 +24,7 @@ import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/component
 import { deleteTicket } from '@/lib/functions/delete';
 import { Draggable, Droppable } from 'react-beautiful-dnd';
 import { createTask } from '@/lib/functions/create';
+import TaskListItem from './TaskListItem';
 
 type Props = {
 	ticket: NestedTicket;
@@ -45,7 +39,7 @@ const TicketListItem = ({ ticket, tasks, order, pending, ticketMutation }: Props
 	const [open, setOpen] = React.useState(false);
 	const [collapsibleOpen, setCollapsibleOpen] = React.useState(false);
 
-	const [state, mutate] = useOptimistic({ tasks, pending: false }, function createReducer(state, newState: TaskState) {
+	const [state, taskMutation] = useOptimistic({ tasks, pending: false }, function createReducer(state, newState: TaskState) {
 		if (newState.newTask) {
 			return {
 				tasks: [...state.tasks, newState.newTask] as Task[],
@@ -64,27 +58,12 @@ const TicketListItem = ({ ticket, tasks, order, pending, ticketMutation }: Props
 		}
 	});
 
-	const taskStub: Task = {
-		id: uuid(),
+	const taskStub: TaskInsert = {
 		summary: 'New Ticket',
 		notes: '',
 		priority: 1,
 		ticket: ticket.id,
 		created_at: new Date().toISOString(),
-	};
-
-	const action = async (data: FormData) => {
-		const newTask = { ...taskStub, summary: 'New Ticket' };
-		data.set('ticket', ticket.id);
-
-		startTransition(async () => {
-			mutate({ newTask, pending: true });
-
-			// @ts-ignore
-			delete newTicket['id'];
-
-			await createTask(newTask);
-		});
 	};
 
 	return (
@@ -110,72 +89,91 @@ const TicketListItem = ({ ticket, tasks, order, pending, ticketMutation }: Props
 							defaultValue={ticket.summary}
 						/>
 					</div>
+					<div className='flex items-center flex-shrink flex-grow-0'>
+						<Input
+							type='number'
+							readOnly={pending || isPending}
+							onBlur={(e) => {
+								if (e.currentTarget.valueAsNumber !== ticket.budget_hours) {
+									startTransition(async () => {
+										ticketMutation({ updatedTicket: { ...ticket, budget_hours: e.currentTarget.valueAsNumber }, pending: true });
 
-					<DropdownMenu open={open} onOpenChange={setOpen}>
-						<DropdownMenuTrigger asChild disabled={pending}>
+										// @ts-ignore
+										await updateTicket(ticket.id, { budget_hours: e.currentTarget.valueAsNumber });
+									});
+								}
+							}}
+							min={0}
+							step={0.25}
+							className='border border-transparent hover:border-border hover:cursor-default shadow-none px-2 max-w-20 text-right'
+							defaultValue={ticket.budget_hours}
+						/>
+						<DropdownMenu open={open} onOpenChange={setOpen}>
+							<DropdownMenuTrigger asChild disabled={pending}>
+								<Button variant='ghost' size='sm'>
+									<DotsHorizontalIcon />
+								</Button>
+							</DropdownMenuTrigger>
+							<DropdownMenuContent align='end' className='w-[200px]'>
+								<DropdownMenuLabel>Actions</DropdownMenuLabel>
+								<DropdownMenuGroup>
+									<DropdownMenuItem>Assign to...</DropdownMenuItem>
+									<DropdownMenuItem>Set due date...</DropdownMenuItem>
+									<DropdownMenuSeparator />
+									<DropdownMenuSub>
+										<DropdownMenuSubTrigger>Move</DropdownMenuSubTrigger>
+										<DropdownMenuPortal>
+											<DropdownMenuSubContent>
+												<DropdownMenuItem>
+													Move Up
+													<DropdownMenuShortcut>
+														<ArrowUpIcon />
+													</DropdownMenuShortcut>
+												</DropdownMenuItem>
+												<DropdownMenuItem>
+													Move Down
+													<DropdownMenuShortcut>
+														<ArrowDownIcon />
+													</DropdownMenuShortcut>
+												</DropdownMenuItem>
+											</DropdownMenuSubContent>
+										</DropdownMenuPortal>
+									</DropdownMenuSub>
+									<DropdownMenuSeparator />
+									<DropdownMenuItem
+										onClick={() => {
+											startTransition(async () => {
+												ticketMutation({ deletedTicket: ticket.id, pending: true });
+												await deleteTicket(ticket.id);
+											});
+										}}
+										className='text-red-600'
+									>
+										Delete
+										<DropdownMenuShortcut>⌘⌫</DropdownMenuShortcut>
+									</DropdownMenuItem>
+								</DropdownMenuGroup>
+							</DropdownMenuContent>
+						</DropdownMenu>
+						<CollapsibleTrigger asChild>
 							<Button variant='ghost' size='sm'>
-								<DotsHorizontalIcon />
+								<CaretSortIcon className='h-4 w-4' />
+								<span className='sr-only'>Toggle</span>
 							</Button>
-						</DropdownMenuTrigger>
-						<DropdownMenuContent align='end' className='w-[200px]'>
-							<DropdownMenuLabel>Actions</DropdownMenuLabel>
-							<DropdownMenuGroup>
-								<DropdownMenuItem>Assign to...</DropdownMenuItem>
-								<DropdownMenuItem>Set due date...</DropdownMenuItem>
-								<DropdownMenuSeparator />
-								<DropdownMenuSub>
-									<DropdownMenuSubTrigger>Move</DropdownMenuSubTrigger>
-									<DropdownMenuPortal>
-										<DropdownMenuSubContent>
-											<DropdownMenuItem>
-												Move Up
-												<DropdownMenuShortcut>
-													<ArrowUpIcon />
-												</DropdownMenuShortcut>
-											</DropdownMenuItem>
-											<DropdownMenuItem>
-												Move Down
-												<DropdownMenuShortcut>
-													<ArrowDownIcon />
-												</DropdownMenuShortcut>
-											</DropdownMenuItem>
-										</DropdownMenuSubContent>
-									</DropdownMenuPortal>
-								</DropdownMenuSub>
-								<DropdownMenuSeparator />
-								<DropdownMenuItem
-									onClick={() => {
-										startTransition(async () => {
-											ticketMutation({ deletedTicket: ticket.id, pending: true });
-											await deleteTicket(ticket.id);
-										});
-									}}
-									className='text-red-600'
-								>
-									Delete
-									<DropdownMenuShortcut>⌘⌫</DropdownMenuShortcut>
-								</DropdownMenuItem>
-							</DropdownMenuGroup>
-						</DropdownMenuContent>
-					</DropdownMenu>
-					<CollapsibleTrigger asChild>
-						<Button variant='ghost' size='sm'>
-							<CaretSortIcon className='h-4 w-4' />
-							<span className='sr-only'>Toggle</span>
-						</Button>
-					</CollapsibleTrigger>
+						</CollapsibleTrigger>
+					</div>
 				</div>
 				<CollapsibleContent className='space-y-2'>
 					<div className='w-full flex flex-col space-y-2'>
 						<Droppable droppableId='tickets' type={`droppableSubItem`}>
 							{(provided) => (
 								<div ref={provided.innerRef} className='space-y-2 w-full'>
-									{tasks.map((task, index) => (
+									{state.tasks.map((task, index) => (
 										<Draggable key={task.id} draggableId={task.id} index={index}>
 											{(provided) => {
 												return (
 													<div ref={provided.innerRef} {...provided.draggableProps} {...provided.dragHandleProps}>
-														{/* <TicketListItem key={ticket.id} ticket={ticket} order={index + 1} pending={state.pending} ticketMutation={mutate} /> */}
+														<TaskListItem taskMutation={taskMutation} order={index + 1} pending={state.pending} task={task} />
 													</div>
 												);
 											}}
@@ -185,7 +183,19 @@ const TicketListItem = ({ ticket, tasks, order, pending, ticketMutation }: Props
 								</div>
 							)}
 						</Droppable>
-						<form action={action} className='mx-auto'>
+						<form
+							action={() => {
+								const newTask = { ...taskStub, summary: 'New Ticket' };
+								console.log('ACTION TASK', newTask);
+
+								startTransition(async () => {
+									taskMutation({ newTask: { ...newTask, id: uuid() } as Task, pending: true });
+
+									await createTask(newTask);
+								});
+							}}
+							className='mx-auto'
+						>
 							<Button size='sm'>
 								<PlusIcon className='w-4 h-4 mr-2' />
 								Add Task

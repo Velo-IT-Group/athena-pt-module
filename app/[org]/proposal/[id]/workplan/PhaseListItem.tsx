@@ -1,21 +1,8 @@
 'use client';
 import React, { useOptimistic, useTransition } from 'react';
-import {
-	DropdownMenu,
-	DropdownMenuContent,
-	DropdownMenuGroup,
-	DropdownMenuItem,
-	DropdownMenuLabel,
-	DropdownMenuPortal,
-	DropdownMenuSeparator,
-	DropdownMenuShortcut,
-	DropdownMenuSub,
-	DropdownMenuSubContent,
-	DropdownMenuSubTrigger,
-	DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { Button } from '@/components/ui/button';
-import { ArrowDownIcon, ArrowUpIcon, DotsHorizontalIcon, DragHandleDots2Icon, PlusIcon } from '@radix-ui/react-icons';
+import { DotsHorizontalIcon, PlusIcon } from '@radix-ui/react-icons';
 import { CaretSortIcon } from '@radix-ui/react-icons';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { v4 as uuid } from 'uuid';
@@ -26,7 +13,6 @@ import TicketListItem from './TicketListItem';
 import { PhaseState, TicketState } from '@/types/optimisticTypes';
 import { createTicket } from '@/lib/functions/create';
 import { deletePhase } from '@/lib/functions/delete';
-import TicketsList from './TicketsList';
 
 type Props = {
 	phase: Phase;
@@ -38,8 +24,6 @@ type Props = {
 
 const PhaseListItem = ({ phase, tickets, order, pending, phaseMutation }: Props) => {
 	const [isPending, startTransition] = useTransition();
-	const [open, setOpen] = React.useState(false);
-	const [collapsibleOpen, setCollapsibleOpen] = React.useState(false);
 
 	const [state, mutate] = useOptimistic({ tickets, pending: false }, function createReducer(state, newState: TicketState) {
 		if (newState.newTicket) {
@@ -85,8 +69,8 @@ const PhaseListItem = ({ phase, tickets, order, pending, phaseMutation }: Props)
 
 	let sortedTickets = state.tickets?.sort((a, b) => {
 		// First, compare by score in descending order
-		if (Number(a.order) > Number(b.order)) return 1;
-		if (Number(a.order) < Number(b.order)) return -1;
+		if (Number(a.order) > Number(b.order)) return -1;
+		if (Number(a.order) < Number(b.order)) return 1;
 
 		// If scores are equal, then sort by created_at in ascending order
 		// return Number(a.created_at) - Number(b.id);
@@ -119,7 +103,16 @@ const PhaseListItem = ({ phase, tickets, order, pending, phaseMutation }: Props)
 						</Button>
 					</DropdownMenuTrigger>
 					<DropdownMenuContent>
-						<DropdownMenuItem onClick={async () => await deletePhase(phase.id)}>Delete</DropdownMenuItem>
+						<DropdownMenuItem
+							onClick={async () => {
+								startTransition(async () => {
+									phaseMutation({ deletedPhase: phase.id, pending: true });
+									await deletePhase(phase.id);
+								});
+							}}
+						>
+							Delete
+						</DropdownMenuItem>
 					</DropdownMenuContent>
 				</DropdownMenu>
 				<CollapsibleTrigger asChild>
@@ -132,7 +125,38 @@ const PhaseListItem = ({ phase, tickets, order, pending, phaseMutation }: Props)
 
 			<CollapsibleContent>
 				<div className='p-4 space-y-2 border-t'>
-					<TicketsList phase={phase.id} tickets={sortedTickets} />
+					<div className='w-full flex flex-col space-y-2'>
+						<Droppable droppableId='tickets' type={`droppableSubItem`}>
+							{(provided) => (
+								<div ref={provided.innerRef} className='space-y-2 w-full'>
+									{sortedTickets.map((ticket, index) => (
+										<Draggable key={ticket.id} draggableId={ticket.id} index={index}>
+											{(provided) => {
+												return (
+													<div ref={provided.innerRef} {...provided.draggableProps} {...provided.dragHandleProps}>
+														<TicketListItem
+															key={ticket.id}
+															ticket={ticket}
+															tasks={ticket.tasks ?? []}
+															order={index + 1}
+															pending={state.pending}
+															ticketMutation={mutate}
+														/>
+													</div>
+												);
+											}}
+										</Draggable>
+									))}
+									{provided.placeholder}
+								</div>
+							)}
+						</Droppable>
+						<form action={action}>
+							<Button variant='outline' className='w-full'>
+								<PlusIcon className='w-4 h-4 mr-2' /> Add Ticket
+							</Button>
+						</form>
+					</div>
 				</div>
 			</CollapsibleContent>
 		</Collapsible>

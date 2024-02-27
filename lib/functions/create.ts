@@ -23,14 +23,17 @@ export const newTemplate = async (proposal: string, template: ProjectTemplate, o
 	return phases as Array<Phase>;
 };
 
-export const createTask = async (task: TaskInsert): Promise<Array<Task> | PostgrestError> => {
-	'use server';
+export const createTask = async (task: TaskInsert) => {
 	const supabase = createClient();
-	const { data, error } = await supabase.from('tasks').insert(task).select();
+	const { error } = await supabase.from('tasks').insert(task);
+	console.log('CREATE TASK FUNCTION', task);
+
+	if (error) {
+		console.error(error);
+		return;
+	}
 
 	revalidateTag('proposals');
-
-	return data ?? error;
 };
 
 export const createTasks = async (tasks: Array<TaskInsert>): Promise<Array<Task> | PostgrestError> => {
