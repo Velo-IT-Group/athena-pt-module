@@ -134,7 +134,7 @@ export const handleProposalInsert = async (formData: FormData) => {
 		const templates = await Promise.all(templates_used.map((template) => getTemplate(template)));
 		console.log('TEMPLATES', templates);
 		if (templates && templates.length) {
-			await Promise.all(templates.map((template) => newTemplate(proposal.id, template!)));
+			await Promise.all(templates.map((template) => newTemplate(proposal.id, template!, 0)));
 		}
 	}
 
@@ -144,11 +144,7 @@ export const handleProposalInsert = async (formData: FormData) => {
 };
 
 export const handleNewTemplateInsert = async (proposalId: string, template: ProjectTemplate, order: number) => {
-	const phase = await newTemplate(proposalId, template, order);
-
-	if (!!!phase) {
-		return;
-	}
+	await newTemplate(proposalId, template, order);
 
 	revalidateTag('proposals');
 	revalidateTag('phases');
