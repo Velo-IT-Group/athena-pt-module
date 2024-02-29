@@ -59,18 +59,21 @@ export type Database = {
 			};
 			organizations: {
 				Row: {
+					default_template: number | null;
 					id: string;
 					labor_rate: number;
 					name: string;
 					slug: string | null;
 				};
 				Insert: {
+					default_template?: number | null;
 					id?: string;
 					labor_rate: number;
 					name: string;
 					slug?: string | null;
 				};
 				Update: {
+					default_template?: number | null;
 					id?: string;
 					labor_rate?: number;
 					name?: string;
@@ -113,30 +116,57 @@ export type Database = {
 			products: {
 				Row: {
 					catalog_item_id: number | null;
+					cost: number | null;
 					extended_price: number;
 					id: string;
+					is_phase_item: boolean | null;
+					is_recurring: boolean | null;
+					is_taxable: boolean | null;
+					manufacturing_part_number: string | null;
 					name: string;
+					notes: string | null;
 					price: number | null;
 					proposal: string;
 					quantity: number;
+					suggested_price: number | null;
+					vendor_name: string | null;
+					vendor_part_number: string | null;
 				};
 				Insert: {
 					catalog_item_id?: number | null;
+					cost?: number | null;
 					extended_price: number;
 					id?: string;
+					is_phase_item?: boolean | null;
+					is_recurring?: boolean | null;
+					is_taxable?: boolean | null;
+					manufacturing_part_number?: string | null;
 					name?: string;
+					notes?: string | null;
 					price?: number | null;
 					proposal: string;
 					quantity?: number;
+					suggested_price?: number | null;
+					vendor_name?: string | null;
+					vendor_part_number?: string | null;
 				};
 				Update: {
 					catalog_item_id?: number | null;
+					cost?: number | null;
 					extended_price?: number;
 					id?: string;
+					is_phase_item?: boolean | null;
+					is_recurring?: boolean | null;
+					is_taxable?: boolean | null;
+					manufacturing_part_number?: string | null;
 					name?: string;
+					notes?: string | null;
 					price?: number | null;
 					proposal?: string;
 					quantity?: number;
+					suggested_price?: number | null;
+					vendor_name?: string | null;
+					vendor_part_number?: string | null;
 				};
 				Relationships: [
 					{
