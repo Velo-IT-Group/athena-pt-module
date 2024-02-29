@@ -1,10 +1,11 @@
 import Link from 'next/link';
 import React from 'react';
 import VeloLogo from './icons/VeloLogo';
-import { SlashIcon } from '@radix-ui/react-icons';
+import { BellIcon, SlashIcon } from '@radix-ui/react-icons';
 import { getOrganization, getUser } from '@/lib/functions/read';
 import NavigationTabs from './NavigationTabs';
 import UserNav from './UserNav';
+import { Button } from './ui/button';
 
 export type Tab = {
 	name: string;
@@ -47,9 +48,17 @@ const Navbar = async ({ title, children, org, tabs }: Props) => {
 					</>
 				)}
 				{(children || user) && (
-					<div className='ml-auto flex items-center'>
+					<div className='ml-auto flex items-center gap-4'>
 						{children}
-						{user && <UserNav user={user} />}
+						{user && (
+							<>
+								<Button variant='outline' size='icon'>
+									<BellIcon className='h-4 w-4' />
+								</Button>
+
+								<UserNav user={user} />
+							</>
+						)}
 					</div>
 				)}
 			</nav>
