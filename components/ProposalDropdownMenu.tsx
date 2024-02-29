@@ -10,7 +10,7 @@ const ProposalDropdownMenu = ({ id }: { id: string }) => {
 	return (
 		<DropdownMenu>
 			<DropdownMenuTrigger asChild>
-				<Button variant='outline' size='icon' className='mr-4'>
+				<Button variant='outline' size='icon'>
 					<DotsHorizontalIcon className='w-4 h-4' />
 				</Button>
 			</DropdownMenuTrigger>
