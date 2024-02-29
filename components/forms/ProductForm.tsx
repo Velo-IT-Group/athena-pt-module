@@ -8,7 +8,6 @@ import { Button } from '../ui/button';
 import { Input } from '../ui/input';
 import { updateProduct } from '@/lib/functions/update';
 import { Switch } from '../ui/switch';
-import { createOptions } from '@/utils/formGenerator';
 
 function capitalizeFirstLetter(string: string) {
 	return string.charAt(0).toUpperCase() + string.slice(1);
@@ -73,14 +72,11 @@ const ProductForm = ({ product }: { product: Product }) => {
 		return [parentKey].filter(Boolean);
 	};
 
-	const createdOptions = createOptions(productFormSchema);
-
 	return (
 		<SheetContent className='max-w-none sm:max-w-none w-[800px] space-y-4 flex flex-col'>
 			<SheetHeader>
 				<SheetTitle>{product.name}</SheetTitle>
 			</SheetHeader>
-			{JSON.stringify(createdOptions)}
 			<Form {...form}>
 				<form onSubmit={form.handleSubmit(onSubmit)} className='space-y-8 flex-1'>
 					<FormField
