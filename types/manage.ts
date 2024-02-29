@@ -100,8 +100,43 @@ export type CatalogItem = {
 	id: number;
 	identifier: string;
 	description: string;
+	inactiveFlag: boolean;
+	subcategory: Subcategory;
+	type: Type;
+	productClass: string;
+	serializedFlag: boolean;
+	serializedCostFlag: boolean;
+	phaseProductFlag: boolean;
+	unitOfMeasure: UnitOfMeasure;
+	minStockLevel: number;
 	price: number;
 	cost: number;
+	priceAttribute: string;
+	taxableFlag: boolean;
+	dropShipFlag: boolean;
+	specialOrderFlag: boolean;
+	customerDescription: string;
+	manufacturer: Manufacturer;
+	manufacturerPartNumber: string;
+	vendor: Vendor;
+	vendorSku: string;
+	notes: string;
+	integrationXRef: string;
+	sla: Sla;
+	entityType: EntityType;
+	recurringFlag: boolean;
+	recurringRevenue: number;
+	recurringCost: number;
+	recurringOneTimeFlag: boolean;
+	recurringBillCycle: RecurringBillCycle;
+	recurringCycleType: string;
+	dateEntered: string;
+	calculatedPriceFlag: boolean;
+	calculatedCostFlag: boolean;
+	category: Category;
+	calculatedPrice: number;
+	calculatedCost: number;
+	billableOption: string;
 };
 
 export interface ServiceTicket {
@@ -218,6 +253,51 @@ export interface ServiceTicket {
 	resolutionHours?: number;
 	resolvedBy?: string;
 	minutesWaiting?: number;
+}
+
+export interface Subcategory {
+	id: number;
+	name: string;
+}
+
+export interface Type {
+	id: number;
+	name: string;
+}
+
+export interface UnitOfMeasure {
+	id: number;
+	name: string;
+}
+
+export interface Manufacturer {
+	id: number;
+	name: string;
+}
+
+export interface Vendor {
+	id: number;
+	identifier: string;
+	name: string;
+}
+
+export interface Sla {
+	id: number;
+	name: string;
+}
+
+export interface EntityType {
+	id: number;
+	name: string;
+}
+export interface RecurringBillCycle {
+	id: number;
+	name: string;
+}
+
+export interface Category {
+	id: number;
+	name: string;
 }
 
 export interface Board {

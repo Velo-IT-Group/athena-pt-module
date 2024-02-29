@@ -13,7 +13,7 @@ const OrganizationLayout = ({ org, children }: { org: string; children: React.Re
 		},
 		{
 			name: 'Activity',
-			href: `/${org}/integrations`,
+			href: `/${org}/activities`,
 		},
 		{
 			name: 'Settings',

@@ -3,9 +3,11 @@ import { Tables } from '@/types/supabase';
 
 declare global {
 	type Database = DB;
+	type Integration = DB['public']['Tables']['integrations']['Row'];
 	type Organization = DB['public']['Tables']['organizations']['Row'];
 	type OrganizationUpdate = DB['public']['Tables']['organizations']['Update'];
 	type OrganizationInsert = DB['public']['Tables']['organizations']['Insert'];
+	type OrganizationIntegration = DB['public']['Tables']['organization_integrations']['Insert'];
 	type Phase = DB['public']['Tables']['phases']['Row'];
 	type PhaseInsert = DB['public']['Tables']['phases']['Insert'];
 	type PhaseUpdate = DB['public']['Tables']['phases']['Update'];

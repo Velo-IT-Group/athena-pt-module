@@ -135,6 +135,34 @@ export const createProduct = async (product: ProductInsert) => {
 	revalidateTag('proposals');
 };
 
+export const createProducts = async (product: ProductInsert[]) => {
+	const supabase = createClient();
+
+	const { error } = await supabase.from('products').insert(product);
+
+	if (error) {
+		console.error(error);
+		return;
+	}
+
+	revalidateTag('products');
+	revalidateTag('proposals');
+};
+
+export const createOrganizationIntegration = async (organization: OrganizationIntegration) => {
+	'use server';
+	const supabase = createClient();
+	const { error } = await supabase.from('organization_integrations').insert(organization);
+
+	if (error) {
+		console.error(error);
+		return;
+	}
+
+	revalidateTag('organizations');
+	revalidateTag('proposals');
+};
+
 export const signUp = async (formData: FormData) => {
 	'use server';
 

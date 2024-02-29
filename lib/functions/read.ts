@@ -205,7 +205,7 @@ export const getOrganization = unstable_cache(
 	async () => {
 		'use server';
 		const supabase = createClient();
-		const { data, error } = await supabase.from('organizations').select().single();
+		const { data, error } = await supabase.from('organizations').select('*, organization_integrations(*)').single();
 
 		if (!data || error) {
 			console.error('ERROR IN GETTING ORGANIZATION QUERY', error);
@@ -217,6 +217,20 @@ export const getOrganization = unstable_cache(
 	['organizations'],
 	{ tags: ['organizations'] }
 );
+
+export const getIntegrations = unstable_cache(async () => {
+	'use server';
+	const supabase = createClient();
+
+	const { data, error } = await supabase.from('integrations').select().order('name', { ascending: true });
+
+	if (!data || error) {
+		console.error(error);
+		return;
+	}
+
+	return data;
+});
 
 export const getProposals = unstable_cache(
 	async () => {

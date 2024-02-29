@@ -8,16 +8,19 @@ export type Database = {
 					auth_type: Database['public']['Enums']['auth_type'] | null;
 					id: string;
 					name: string;
+					logo: string | null;
 				};
 				Insert: {
 					auth_type?: Database['public']['Enums']['auth_type'] | null;
 					id?: string;
 					name: string;
+					logo?: string | null;
 				};
 				Update: {
 					auth_type?: Database['public']['Enums']['auth_type'] | null;
 					id?: string;
 					name?: string;
+					logo?: string | null;
 				};
 				Relationships: [];
 			};

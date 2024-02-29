@@ -81,3 +81,17 @@ export const updateOrganization = async (id: string, organization: OrganizationU
 	revalidateTag('organizations');
 	revalidateTag('proposals');
 };
+
+export const updateOrganizationIntegration = async (id: string, organization: OrganizationIntegration) => {
+	'use server';
+	const supabase = createClient();
+	const { error } = await supabase.from('organization_integrations').update(organization).eq('id', id);
+
+	if (error) {
+		console.error(error);
+		return;
+	}
+
+	revalidateTag('organizations');
+	revalidateTag('proposals');
+};
