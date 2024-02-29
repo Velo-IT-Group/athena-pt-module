@@ -67,3 +67,17 @@ export const updateTask = async (id: string, task: TaskUpdate) => {
 
 	revalidateTag('proposals');
 };
+
+export const updateOrganization = async (id: string, organization: OrganizationUpdate) => {
+	'use server';
+	const supabase = createClient();
+	const { error } = await supabase.from('organizations').update(organization).eq('id', id);
+
+	if (error) {
+		console.error(error);
+		return;
+	}
+
+	revalidateTag('organizations');
+	revalidateTag('proposals');
+};
