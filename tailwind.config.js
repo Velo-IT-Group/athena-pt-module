@@ -51,10 +51,14 @@ module.exports = {
 			},
 			height: {
 				header: 'calc(100vh - 107px)',
+				'w-padding': 'calc(100vh - 64px)',
+			},
+			width: {
+				'w-padding': 'calc(100vw - 64px)',
 			},
 			minHeight: {
 				header: 'calc(100vh - 107px)',
-				halfScreen: '50vh',
+				'half-screen': '50vh',
 			},
 			borderRadius: {
 				lg: 'var(--radius)',
