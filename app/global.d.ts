@@ -4,6 +4,8 @@ import { Tables } from '@/types/supabase';
 declare global {
 	type Database = DB;
 	type Organization = DB['public']['Tables']['organizations']['Row'];
+	type OrganizationUpdate = DB['public']['Tables']['organizations']['Update'];
+	type OrganizationInsert = DB['public']['Tables']['organizations']['Insert'];
 	type Phase = DB['public']['Tables']['phases']['Row'];
 	type PhaseInsert = DB['public']['Tables']['phases']['Insert'];
 	type PhaseUpdate = DB['public']['Tables']['phases']['Update'];
