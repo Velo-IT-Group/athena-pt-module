@@ -158,6 +158,22 @@ export const getProducts = unstable_cache(
 	{ tags: ['products'] }
 );
 
+export const getMembers = unstable_cache(
+	async () => {
+		const supabase = createClient();
+		const { data, error } = await supabase.from('organizations').select('profiles(*)').single();
+
+		if (!data || error) {
+			console.error('ERROR IN GETTING ORGANIZATION QUERY', error);
+			return;
+		}
+
+		return data.profiles;
+	},
+	['members'],
+	{ tags: ['members'] }
+);
+
 export const getProposal = unstable_cache(
 	async (id: string) => {
 		'use server';
