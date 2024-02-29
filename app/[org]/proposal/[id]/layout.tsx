@@ -59,7 +59,7 @@ const ProposalIdLayout = async ({ params, children }: Props) => {
 					<ProposalDropdownMenu id={id} />
 				</HoverCard>
 			</Navbar>
-			<div className='min-h-header bg-muted/75'>{children}</div>
+			<div className='min-h-header bg-muted/50'>{children}</div>
 		</>
 	);
 };
