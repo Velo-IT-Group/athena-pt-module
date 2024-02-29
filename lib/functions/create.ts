@@ -5,6 +5,7 @@ import { createClient } from '@/utils/supabase/server';
 import { revalidateTag } from 'next/cache';
 import { headers } from 'next/headers';
 import { redirect } from 'next/navigation';
+import { getTemplate } from './read';
 
 export const newTemplate = async (proposal: string, template: ProjectTemplate, order: number) => {
 	await Promise.all(
@@ -46,19 +47,27 @@ export const createTasks = async (tasks: Array<TaskInsert>): Promise<Array<Task>
 	return data ?? error;
 };
 
-export const createProposal = async (proposal: ProposalInsert): Promise<Proposal | undefined> => {
-	'use server';
+export const createProposal = async (proposal: ProposalInsert) => {
 	const supabase = createClient();
-	const { data, error } = await supabase.from('proposals').insert(proposal).select('*').single();
+	const { data, error } = await supabase.from('proposals').insert(proposal).select('id, organization(slug)').single();
 
 	if (!data || error) {
 		console.error(error);
 		return;
 	}
 
+	if (proposal.templates_used && proposal.templates_used.length) {
+		const templates = await Promise.all(proposal.templates_used.map((template) => getTemplate(template)));
+		console.log('TEMPLATES', templates);
+		if (templates && templates.length) {
+			await Promise.all(templates.map((template) => newTemplate(data.id, template!, 0)));
+		}
+	}
+
 	revalidateTag('proposals');
 
-	return data;
+	// @ts-ignore
+	redirect(`/${data.organization.slug}/proposal/${data.id}`);
 };
 
 export const createPhase = async (phase: PhaseInsert, tickets: Array<ProjectTemplateTicket>) => {
