@@ -7,20 +7,23 @@ export type Database = {
 				Row: {
 					auth_type: Database['public']['Enums']['auth_type'] | null;
 					id: string;
-					name: string;
 					logo: string | null;
+					name: string;
+					type: Database['public']['Enums']['integration_type'] | null;
 				};
 				Insert: {
 					auth_type?: Database['public']['Enums']['auth_type'] | null;
 					id?: string;
-					name: string;
 					logo?: string | null;
+					name: string;
+					type?: Database['public']['Enums']['integration_type'] | null;
 				};
 				Update: {
 					auth_type?: Database['public']['Enums']['auth_type'] | null;
 					id?: string;
-					name?: string;
 					logo?: string | null;
+					name?: string;
+					type?: Database['public']['Enums']['integration_type'] | null;
 				};
 				Relationships: [];
 			};
@@ -29,19 +32,16 @@ export type Database = {
 					client_id: string | null;
 					integration: string;
 					organization: string;
-					type: Database['public']['Enums']['integration_type'] | null;
 				};
 				Insert: {
 					client_id?: string | null;
 					integration: string;
 					organization: string;
-					type?: Database['public']['Enums']['integration_type'] | null;
 				};
 				Update: {
 					client_id?: string | null;
 					integration?: string;
 					organization?: string;
-					type?: Database['public']['Enums']['integration_type'] | null;
 				};
 				Relationships: [
 					{
@@ -67,6 +67,7 @@ export type Database = {
 					labor_rate: number;
 					name: string;
 					slug: string | null;
+					visibility_settings: Json;
 				};
 				Insert: {
 					default_template?: number | null;
@@ -74,6 +75,7 @@ export type Database = {
 					labor_rate: number;
 					name: string;
 					slug?: string | null;
+					visibility_settings?: Json;
 				};
 				Update: {
 					default_template?: number | null;
@@ -81,6 +83,7 @@ export type Database = {
 					labor_rate?: number;
 					name?: string;
 					slug?: string | null;
+					visibility_settings?: Json;
 				};
 				Relationships: [];
 			};
@@ -91,6 +94,7 @@ export type Database = {
 					id: string;
 					order: number;
 					proposal: string | null;
+					visible: boolean | null;
 				};
 				Insert: {
 					description: string;
@@ -98,6 +102,7 @@ export type Database = {
 					id?: string;
 					order?: number;
 					proposal?: string | null;
+					visible?: boolean | null;
 				};
 				Update: {
 					description?: string;
@@ -105,6 +110,7 @@ export type Database = {
 					id?: string;
 					order?: number;
 					proposal?: string | null;
+					visible?: boolean | null;
 				};
 				Relationships: [
 					{
@@ -116,11 +122,43 @@ export type Database = {
 					}
 				];
 			};
+			pricing: {
+				Row: {
+					amount: number;
+					description: string | null;
+					id: number;
+					is_default: boolean;
+					organization: string | null;
+				};
+				Insert: {
+					amount: number;
+					description?: string | null;
+					id?: number;
+					is_default?: boolean;
+					organization?: string | null;
+				};
+				Update: {
+					amount?: number;
+					description?: string | null;
+					id?: number;
+					is_default?: boolean;
+					organization?: string | null;
+				};
+				Relationships: [
+					{
+						foreignKeyName: 'public_pricing_organization_fkey';
+						columns: ['organization'];
+						isOneToOne: false;
+						referencedRelation: 'organizations';
+						referencedColumns: ['id'];
+					}
+				];
+			};
 			products: {
 				Row: {
 					catalog_item_id: number | null;
 					cost: number | null;
-					extended_price: number;
+					extended_price: number | null;
 					id: string;
 					is_phase_item: boolean | null;
 					is_recurring: boolean | null;
@@ -128,7 +166,8 @@ export type Database = {
 					manufacturing_part_number: string | null;
 					name: string;
 					notes: string | null;
-					price: number | null;
+					parent: string | null;
+					price: number;
 					proposal: string;
 					quantity: number;
 					suggested_price: number | null;
@@ -138,7 +177,7 @@ export type Database = {
 				Insert: {
 					catalog_item_id?: number | null;
 					cost?: number | null;
-					extended_price: number;
+					extended_price?: number | null;
 					id?: string;
 					is_phase_item?: boolean | null;
 					is_recurring?: boolean | null;
@@ -146,7 +185,8 @@ export type Database = {
 					manufacturing_part_number?: string | null;
 					name?: string;
 					notes?: string | null;
-					price?: number | null;
+					parent?: string | null;
+					price?: number;
 					proposal: string;
 					quantity?: number;
 					suggested_price?: number | null;
@@ -156,7 +196,7 @@ export type Database = {
 				Update: {
 					catalog_item_id?: number | null;
 					cost?: number | null;
-					extended_price?: number;
+					extended_price?: number | null;
 					id?: string;
 					is_phase_item?: boolean | null;
 					is_recurring?: boolean | null;
@@ -164,7 +204,8 @@ export type Database = {
 					manufacturing_part_number?: string | null;
 					name?: string;
 					notes?: string | null;
-					price?: number | null;
+					parent?: string | null;
+					price?: number;
 					proposal?: string;
 					quantity?: number;
 					suggested_price?: number | null;
@@ -172,6 +213,13 @@ export type Database = {
 					vendor_part_number?: string | null;
 				};
 				Relationships: [
+					{
+						foreignKeyName: 'public_products_parent_fkey';
+						columns: ['parent'];
+						isOneToOne: false;
+						referencedRelation: 'products';
+						referencedColumns: ['id'];
+					},
 					{
 						foreignKeyName: 'public_products_proposal_fkey';
 						columns: ['proposal'];
@@ -299,6 +347,7 @@ export type Database = {
 					priority: number;
 					summary: string;
 					ticket: string;
+					visibile: boolean;
 				};
 				Insert: {
 					created_at?: string;
@@ -307,6 +356,7 @@ export type Database = {
 					priority: number;
 					summary: string;
 					ticket: string;
+					visibile?: boolean;
 				};
 				Update: {
 					created_at?: string;
@@ -315,6 +365,7 @@ export type Database = {
 					priority?: number;
 					summary?: string;
 					ticket?: string;
+					visibile?: boolean;
 				};
 				Relationships: [
 					{
@@ -334,6 +385,7 @@ export type Database = {
 					order: number;
 					phase: string;
 					summary: string;
+					visible: boolean;
 				};
 				Insert: {
 					budget_hours?: number;
@@ -342,6 +394,7 @@ export type Database = {
 					order?: number;
 					phase: string;
 					summary: string;
+					visible?: boolean;
 				};
 				Update: {
 					budget_hours?: number;
@@ -350,6 +403,7 @@ export type Database = {
 					order?: number;
 					phase?: string;
 					summary?: string;
+					visible?: boolean;
 				};
 				Relationships: [
 					{
@@ -361,11 +415,74 @@ export type Database = {
 					}
 				];
 			};
+			workplan_pricing: {
+				Row: {
+					phase: string | null;
+					price: number;
+					proposal: string;
+					ticket: string | null;
+				};
+				Insert: {
+					phase?: string | null;
+					price: number;
+					proposal: string;
+					ticket?: string | null;
+				};
+				Update: {
+					phase?: string | null;
+					price?: number;
+					proposal?: string;
+					ticket?: string | null;
+				};
+				Relationships: [
+					{
+						foreignKeyName: 'public_workplan_pricing_phase_fkey';
+						columns: ['phase'];
+						isOneToOne: false;
+						referencedRelation: 'phases';
+						referencedColumns: ['id'];
+					},
+					{
+						foreignKeyName: 'public_workplan_pricing_price_fkey';
+						columns: ['price'];
+						isOneToOne: false;
+						referencedRelation: 'pricing';
+						referencedColumns: ['id'];
+					},
+					{
+						foreignKeyName: 'public_workplan_pricing_proposal_fkey';
+						columns: ['proposal'];
+						isOneToOne: false;
+						referencedRelation: 'proposals';
+						referencedColumns: ['id'];
+					},
+					{
+						foreignKeyName: 'public_workplan_pricing_ticket_fkey';
+						columns: ['ticket'];
+						isOneToOne: false;
+						referencedRelation: 'tickets';
+						referencedColumns: ['id'];
+					}
+				];
+			};
 		};
 		Views: {
 			[_ in never]: never;
 		};
 		Functions: {
+			get_organization_from_phase: {
+				Args: {
+					phase_id: string;
+				};
+				Returns: {
+					id: string;
+					name: string;
+					labor_rate: number;
+					slug: string;
+					default_template: number;
+					visibility_settings: Json;
+				}[];
+			};
 			is_organization_member: {
 				Args: {
 					organization_id: string;
@@ -394,7 +511,7 @@ export type Database = {
 		};
 		Enums: {
 			auth_type: 'OAuth2';
-			integration_type: 'reseller';
+			integration_type: 'reseller' | 'distribution';
 		};
 		CompositeTypes: {
 			[_ in never]: never;

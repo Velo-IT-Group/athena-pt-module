@@ -61,6 +61,7 @@ const ProposalBuilder = ({ id, phases, templates }: Props) => {
 		id: uuid(),
 		proposal: id,
 		tickets: [],
+		visible: true,
 	};
 
 	const handleTemplateDrop = (templateIndex: number, destinationIndex: number) => {

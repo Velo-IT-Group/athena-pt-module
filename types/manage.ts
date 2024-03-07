@@ -103,7 +103,8 @@ export type CatalogItem = {
 	inactiveFlag: boolean;
 	subcategory: Subcategory;
 	type: Type;
-	productClass: string;
+	productClass: 'Agreement' | 'Bundle' | 'Inventory' | 'NonInventory' | 'Service';
+	bundledItems?: CatalogItem[] | undefined;
 	serializedFlag: boolean;
 	serializedCostFlag: boolean;
 	phaseProductFlag: boolean;
@@ -137,6 +138,21 @@ export type CatalogItem = {
 	calculatedPrice: number;
 	calculatedCost: number;
 	billableOption: string;
+};
+
+export type CatalogComponent = {
+	id: number;
+	sequenceNumber: number;
+	quantity: number;
+	catalogItem: CatalogItem;
+	hidePriceFlag: boolean;
+	hideItemIdentifierFlag: boolean;
+	hideDescriptionFlag: boolean;
+	hideQuantityFlag: boolean;
+	hideExtendedPriceFlag: boolean;
+	parentCatalogItem: { id: number };
+	price: number;
+	cost: number;
 };
 
 export interface ServiceTicket {

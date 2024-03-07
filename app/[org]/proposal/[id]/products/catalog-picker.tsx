@@ -1,40 +1,50 @@
 'use client';
 import { Button } from '@/components/ui/button';
-import {
-	Dialog,
-	DialogClose,
-	DialogContent,
-	DialogDescription,
-	DialogFooter,
-	DialogHeader,
-	DialogTitle,
-	DialogTrigger,
-} from '@/components/ui/dialog';
+import { DialogClose, DialogContent, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import React from 'react';
 import { catalogColumns } from './columns';
 import { CatalogItem } from '@/types/manage';
 import {
 	ColumnFiltersState,
+	ExpandedState,
+	PaginationState,
 	SortingState,
 	VisibilityState,
 	getCoreRowModel,
+	getExpandedRowModel,
 	getFilteredRowModel,
-	getPaginationRowModel,
 	getSortedRowModel,
 	useReactTable,
 } from '@tanstack/react-table';
 import { DataTable } from '@/components/ui/data-table';
-import { MagnifyingGlassIcon, PlusCircledIcon } from '@radix-ui/react-icons';
-import { Input } from '@/components/ui/input';
+import { Cross2Icon } from '@radix-ui/react-icons';
 import SubmitButton from '@/components/SubmitButton';
 import { createProducts } from '@/lib/functions/create';
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
+import { productFromCatalogItem } from '@/utils/helpers';
+import { getCurrencyString } from '@/utils/money';
+import { useRouter } from 'next/navigation';
+import Search from './search';
 
-const CatalogPicker = ({ proposal, catalogItems }: { proposal: string; catalogItems: CatalogItem[] }) => {
+type Props = {
+	proposal: string;
+	catalogItems: CatalogItem[];
+	params: { org: string; id: string };
+	page: number;
+	count: number;
+};
+
+const CatalogPicker = ({ proposal, catalogItems, params, page, count }: Props) => {
 	const [sorting, setSorting] = React.useState<SortingState>([]);
+	const [expanded, setExpanded] = React.useState<ExpandedState>({});
 	const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([]);
 	const [columnVisibility, setColumnVisibility] = React.useState<VisibilityState>({});
 	const [rowSelection, setRowSelection] = React.useState({});
-	const [open, setOpen] = React.useState(false);
+	const [pagination, setPagination] = React.useState<PaginationState>({
+		pageIndex: page,
+		pageSize: 10,
+	});
+	const router = useRouter();
 
 	const table = useReactTable<CatalogItem>({
 		data: catalogItems,
@@ -42,129 +52,117 @@ const CatalogPicker = ({ proposal, catalogItems }: { proposal: string; catalogIt
 		onSortingChange: setSorting,
 		onColumnFiltersChange: setColumnFilters,
 		getCoreRowModel: getCoreRowModel(),
-		getPaginationRowModel: getPaginationRowModel(),
+		onExpandedChange: setExpanded,
 		getSortedRowModel: getSortedRowModel(),
 		getFilteredRowModel: getFilteredRowModel(),
+		getExpandedRowModel: getExpandedRowModel(),
+		pageCount: count,
 		onColumnVisibilityChange: setColumnVisibility,
 		onRowSelectionChange: setRowSelection,
-		meta: {
-			updateData: (rowIndex: number, columnId: string, value: any) => {
-				// Skip page index reset until after next rerender
-				// skipAutoResetPageIndex();
-				// setData((old) =>
-				// 	old.map((row, index) => {
-				// 		if (index === rowIndex) {
-				// 			return {
-				// 				...old[rowIndex]!,
-				// 				[columnId]: value,
-				// 			};
-				// 		}
-				// 		return row;
-				// 	})
-				// );
-			},
-		},
+		enableExpanding: true,
+		getSubRows: (row) => row.bundledItems,
+		onPaginationChange: setPagination,
+		manualPagination: true,
 		state: {
 			sorting,
 			columnFilters,
 			columnVisibility,
 			rowSelection,
+			expanded,
+			pagination,
 		},
+		debugTable: true,
 	});
 
 	return (
-		<Dialog open={open}>
-			<DialogTrigger asChild>
-				<Button onClick={() => setOpen(!open)}>
-					<PlusCircledIcon className='h-4 w-4 mr-2' /> Add Product
-				</Button>
-			</DialogTrigger>
-			<DialogContent className='max-w-none w-w-padding h-w-padding'>
-				<form
-					className='flex flex-col space-y-3'
-					action={async () => {
-						const products: ProductInsert[] = table.getFilteredSelectedRowModel().rows.map((row) => {
-							const { id, cost, phaseProductFlag, recurringFlag, taxableFlag, manufacturerPartNumber, description, notes, price, vendor, vendorSku } =
-								row.original;
-							return {
-								catalog_item_id: id,
-								cost,
-								extended_price: price,
-								is_phase_item: phaseProductFlag,
-								is_recurring: recurringFlag,
-								is_taxable: taxableFlag,
-								manufacturing_part_number: manufacturerPartNumber,
-								name: description,
-								notes,
-								price,
-								proposal,
-								quantity: 1,
-								suggested_price: price,
-								vendor_name: vendor?.name,
-								vendor_part_number: vendorSku,
-							};
-						});
-						await createProducts(products);
-						setOpen(false);
-					}}
-				>
-					<DialogHeader>
-						<DialogTitle>Are you absolutely sure?</DialogTitle>
-						<DialogDescription>
-							This action cannot be undone. This will permanently delete your account and remove your data from our servers.
-						</DialogDescription>
-					</DialogHeader>
-					<div className='flex-1 grid grid-cols-4 gap-4'>
-						<div className='col-span-3'>
-							<div className='flex items-center py-4'>
-								<div
-									className='flex h-9 items-center w-full rounded-md border border-input bg-background px-3 py-1 text-sm shadow-sm transition-colors file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50'
-									cmdk-input-wrapper=''
-								>
-									<MagnifyingGlassIcon className='mr-2 h-4 w-4 shrink-0 opacity-50' />
-									<Input
-										placeholder='Filter products...'
-										value={(table.getColumn('description')?.getFilterValue() as string) ?? ''}
-										onChange={(event) => table.getColumn('description')?.setFilterValue(event.target.value)}
-										className='border-0 shadow-none focus-visible:ring-0'
-									/>
-								</div>
-							</div>
-							<DataTable table={table} />
-							<div className='flex items-center justify-end space-x-2 py-4'>
-								<Button variant='outline' size='sm' onClick={() => table.previousPage()} disabled={!table.getCanPreviousPage()}>
-									Previous
-								</Button>
-								<Button variant='outline' size='sm' onClick={() => table.nextPage()} disabled={!table.getCanNextPage()}>
-									Next
-								</Button>
-							</div>
-						</div>
+		<DialogContent className='max-w-none w-w-padding h-w-padding flex flex-col space-y-3'>
+			<DialogClose
+				onClick={() => {
+					router.back();
+				}}
+				className='className="absolute z-50 right-4 top-4 rounded-sm opacity-70 ring-offset-background transition-opacity hover:opacity-100 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:pointer-events-none data-[state=open]:bg-accent data-[state=open]:text-muted-foreground'
+			>
+				<Cross2Icon className='h-4 w-4' />
+			</DialogClose>
 
-						<div className='flex flex-col h-full border rounded-lg'>
-							<div className='h-10 px-2 flex items-center justify-between border-b'>
-								<p className='text-sm text-muted-foreground'>{table.getFilteredSelectedRowModel().rows.length} added</p>
-								<Button variant='link' size='sm'>
-									Clear
-								</Button>
-							</div>
-							<div className='flex-1'>
-								{table.getFilteredSelectedRowModel().rows.map((row) => {
-									const { id, description } = row.original;
-									return <div key={id}>{description}</div>;
-								})}
-							</div>
-						</div>
+			<DialogHeader>
+				<DialogTitle>Add Products</DialogTitle>
+			</DialogHeader>
+
+			<div className='flex-1 grid grid-cols-4 gap-4 flex-grow min-h-0'>
+				<div className='col-span-3 space-y-4'>
+					<div className='flex items-center'>
+						<Search params={params} />
 					</div>
 
-					<DialogFooter>
-						<DialogClose>
-							<SubmitButton>Add Items</SubmitButton>
-						</DialogClose>
-					</DialogFooter>
-				</form>
-			</DialogContent>
-		</Dialog>
+					<DataTable table={table} />
+
+					<div className='flex items-center justify-end space-x-2 py-4'>
+						<Button variant='outline' size='sm' type='button' onClick={() => table.previousPage()} disabled={!table.getCanPreviousPage()}>
+							Previous
+						</Button>
+						<Button variant='outline' size='sm' type='button' onClick={() => table.nextPage()} disabled={!table.getCanNextPage()}>
+							Next
+						</Button>
+					</div>
+				</div>
+
+				<Card className='flex-1 flex flex-col overflow-hidden'>
+					<CardHeader className='flex-row justify-between items-center border-b'>
+						<p className='text-sm text-muted-foreground'>{table.getFilteredSelectedRowModel().rows.length} added</p>
+						<Button type='button' onClick={() => table.resetRowSelection()} variant='link' size='sm'>
+							Clear
+						</Button>
+					</CardHeader>
+					<CardContent className='flex-1 space-y-2 p-2 overflow-auto'>
+						{table.getFilteredSelectedRowModel().rows.map((row) => {
+							const { id, description, identifier, vendorSku } = row.original;
+							return (
+								<Card key={id}>
+									<CardHeader>
+										<CardTitle>{description}</CardTitle>
+										<CardDescription>
+											{identifier}
+											{vendorSku ? `• ${vendorSku}` : ''}
+										</CardDescription>
+									</CardHeader>
+								</Card>
+							);
+						})}
+					</CardContent>
+					<CardFooter>
+						<p>
+							Subtotal:
+							<span className='font-medium font-mono'>
+								{getCurrencyString(
+									table.getFilteredSelectedRowModel().rows.reduce((accumulator, { original }) => accumulator + (original.price ?? 0), 0)
+								)}
+							</span>
+						</p>
+					</CardFooter>
+				</Card>
+			</div>
+
+			<DialogFooter>
+				<SubmitButton
+					type='submit'
+					formAction={async () => {
+						// const bundledProducts =
+						const bundledProducts = table.getFilteredSelectedRowModel().rows.filter((row) => row.original.bundledItems?.length);
+						const products: ProductInsert[] = table.getFilteredSelectedRowModel().rows.map((item) => productFromCatalogItem(item.original, proposal));
+						await createProducts(products);
+					}}
+					onClick={async () => {
+						const bundledProducts = table.getFilteredSelectedRowModel().rows.filter((row) => row.original.bundledItems?.length);
+						const products: ProductInsert[] = table.getFilteredSelectedRowModel().rows.map((item) => productFromCatalogItem(item.original, proposal));
+						await createProducts(products);
+						router.back();
+					}}
+				>
+					Add Items
+				</SubmitButton>
+			</DialogFooter>
+		</DialogContent>
 	);
 };
 

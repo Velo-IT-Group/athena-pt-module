@@ -29,7 +29,7 @@ export default function RootLayout({ children }: RootLayoutProps) {
 			<head />
 			<body className='min-h-full relative max-w-full'>
 				<ThemeProvider attribute='class' defaultTheme='system' enableSystem disableTransitionOnChange>
-					{children}
+					<div>{children}</div>
 					<Toaster />
 					<SpeedInsights />
 				</ThemeProvider>

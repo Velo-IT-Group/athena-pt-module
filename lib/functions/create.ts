@@ -1,12 +1,18 @@
 'use server';
-import { ProjectPhase, ProjectTemplate, ProjectTemplateTask, ProjectTemplateTicket } from '@/types/manage';
+import { CatalogComponent, ProjectPhase, ProjectTemplate, ProjectTemplateTask, ProjectTemplateTicket } from '@/types/manage';
 import { PostgrestError } from '@supabase/supabase-js';
 import { createClient } from '@/utils/supabase/server';
 import { revalidateTag } from 'next/cache';
 import { headers } from 'next/headers';
 import { redirect } from 'next/navigation';
-import { getTemplate } from './read';
+import { getCatalogItems, getTemplate } from './read';
 
+/**
+ * Creates Phases, Tickets and Tasks In Supabase.
+ * @param {string} proposal - The id of the proposal to add the template to.
+ * @param {ProjectTemplate} template - The CW Manage object that will be used to create the phases, tickets and tasks.
+ * @param {number} order - The index of the item the first template phase will be added after.
+ */
 export const newTemplate = async (proposal: string, template: ProjectTemplate, order: number) => {
 	await Promise.all(
 		template?.workplan?.phases.map((phase: ProjectPhase, index: number) =>
@@ -24,29 +30,42 @@ export const newTemplate = async (proposal: string, template: ProjectTemplate, o
 	revalidateTag('proposals');
 };
 
+/**
+ * Creates Ticket in Supabase.
+ * @param {TaskInsert} task - The object that will be used to create the task.
+ */
 export const createTask = async (task: TaskInsert) => {
 	const supabase = createClient();
 	const { error } = await supabase.from('tasks').insert(task);
 	console.log('CREATE TASK FUNCTION', task);
 
 	if (error) {
-		console.error(error);
-		return;
+		throw Error('Error creating task.', { cause: error });
 	}
 
 	revalidateTag('proposals');
 };
 
-export const createTasks = async (tasks: Array<TaskInsert>): Promise<Array<Task> | PostgrestError> => {
+/**
+ * Creates Tasks in Supabase.
+ * @param {TaskInsert[]} tasks - The object that will be used to create the task.
+ */
+export const createTasks = async (tasks: TaskInsert[]) => {
 	'use server';
 	const supabase = createClient();
-	const { data, error } = await supabase.from('tasks').insert(tasks).select();
+	const { error } = await supabase.from('tasks').insert(tasks);
+
+	if (error) {
+		throw Error('Error creating tasks.', { cause: error });
+	}
 
 	revalidateTag('proposals');
-
-	return data ?? error;
 };
 
+/**
+ * Creates Tasks in Supabase.
+ * @param {ProposalInsert} proposal - The object that will be used to create the task.
+ */
 export const createProposal = async (proposal: ProposalInsert) => {
 	const supabase = createClient();
 	const { data, error } = await supabase.from('proposals').insert(proposal).select('id, organization(slug)').single();
@@ -124,7 +143,7 @@ export const createTicket = async (ticket: TicketInset, tasks: Array<ProjectTemp
 export const createProduct = async (product: ProductInsert) => {
 	const supabase = createClient();
 
-	const { error } = await supabase.from('products').insert(product);
+	const { data, error } = await supabase.from('products').insert(product).select('id').single();
 
 	if (error) {
 		console.error(error);
@@ -133,23 +152,25 @@ export const createProduct = async (product: ProductInsert) => {
 
 	revalidateTag('products');
 	revalidateTag('proposals');
+
+	return data;
 };
 
-export const createProducts = async (product: ProductInsert[]) => {
+export const createProducts = async (product: ProductInsert[], bundledItems?: CatalogComponent[]) => {
 	const supabase = createClient();
 
 	const { error } = await supabase.from('products').insert(product);
 
 	if (error) {
 		console.error(error);
-		return;
+		throw Error(`Error creating products`, { cause: error });
 	}
 
 	revalidateTag('products');
 	revalidateTag('proposals');
 };
 
-export const createOrganizationIntegration = async (organization: OrganizationIntegration) => {
+export const createOrganizationIntegration = async (organization: OrganizationIntegrationInsert) => {
 	'use server';
 	const supabase = createClient();
 	const { error } = await supabase.from('organization_integrations').insert(organization);

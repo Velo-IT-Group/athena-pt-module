@@ -25,7 +25,7 @@ const IntegrationCard = ({
 	integration,
 	organization,
 }: {
-	integrations: OrganizationIntegration[];
+	integrations: OrganizationIntegrationUpdate[];
 	integration: Integration;
 	organization: string;
 }) => {

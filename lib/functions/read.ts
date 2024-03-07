@@ -1,6 +1,6 @@
 'use server';
 import axios, { AxiosRequestConfig, AxiosResponse } from 'axios';
-import type { CatalogItem, ProjectTemplate, ProjectWorkPlan, ServiceTicket } from '@/types/manage';
+import type { CatalogComponent, CatalogItem, ProjectTemplate, ProjectWorkPlan, ServiceTicket } from '@/types/manage';
 import { QueryData } from '@supabase/supabase-js';
 import { createClient } from '@/utils/supabase/server';
 import { baseConfig } from '@/lib/utils';
@@ -9,14 +9,12 @@ import { redirect } from 'next/navigation';
 
 export const getPhases = unstable_cache(
 	async (id: string): Promise<Array<Phase & { tickets: Array<Ticket & { tasks: Task[] }> }> | undefined> => {
-		'use server';
 		const supabase = createClient();
 
 		const { data, error } = await supabase.from('phases').select('*, tickets(*, tasks(*))').eq('proposal', id).order('order');
 
 		if (!data || error) {
-			console.error(error);
-			return;
+			throw Error('Error in getting phases', { cause: error });
 		}
 
 		return data;
@@ -26,17 +24,13 @@ export const getPhases = unstable_cache(
 );
 
 export const getUser = async () => {
-	'use server';
 	const supabase = createClient();
 
-	try {
-		const {
-			data: { user },
-		} = await supabase.auth.getUser();
-		return user;
-	} catch (error) {
-		console.error(error);
-	}
+	const {
+		data: { user },
+	} = await supabase.auth.getUser();
+
+	return user;
 };
 
 export const getWorkplan = async (id: number): Promise<ProjectWorkPlan | undefined> => {
@@ -100,56 +94,96 @@ export const getTickets = unstable_cache(
 );
 
 export const getCatalogItems = unstable_cache(
-	async () => {
-		'use server';
+	async (searchText?: string, page?: number) => {
 		let config: AxiosRequestConfig = {
 			...baseConfig,
 			url: '/procurement/catalog',
 			params: {
-				conditions: 'inactiveFlag = false',
-				pageSize: 1000,
+				conditions: `inactiveFlag = false ${searchText ? `and description contains '${searchText}'` : ''}`,
+				pageSize: 10,
+				page: page ?? 1,
 				orderBy: 'description',
-				fields: 'id,identifier,description,price,cost',
 			},
 		};
 
 		try {
 			const response: AxiosResponse<CatalogItem[], Error> = await axios.request(config);
-			return response.data;
+
+			config = {
+				...baseConfig,
+				url: '/procurement/catalog/count',
+				params: {
+					conditions: `inactiveFlag = false ${searchText ? `and description contains '${searchText}'` : ''}`,
+					pageSize: 10,
+					page: page ?? 1,
+				},
+			};
+
+			const countResponse: AxiosResponse<{ count: number }, Error> = await axios.request(config);
+			const bundles = response.data.filter((item) => item.productClass === 'Bundle');
+			const [bItems] = await Promise.all(bundles.map((b) => getCatalogItemComponents(b.id)));
+
+			const mappedData = response.data.map((item) => {
+				return {
+					...item,
+					bundledItems: bItems?.filter((bItem) => bItem && bItem.parentCatalogItem.id === item.id),
+				};
+			});
+
+			console.log(mappedData, countResponse.data.count, searchText);
+
+			return { catalogItems: mappedData as CatalogItem[], count: countResponse.data.count };
 		} catch (error) {
 			console.error(error);
-			return;
+			return { catalogItems: [], count: 0 };
 		}
-		var myHeaders = new Headers();
-		myHeaders.append('clientId', '9762e3fa-abbd-4179-895e-ca7b0e015ab2');
-		myHeaders.append('Authorization', 'Basic dmVsbytYMzJMQjRYeDVHVzVNRk56Olhjd3Jmd0dwQ09EaFNwdkQ=');
-
-		var requestOptions = {
-			method: 'GET',
-			headers: myHeaders,
-		};
-
-		const response = await fetch(
-			'https://manage.velomethod.com/v4_6_release/apis/3.0/procurement/catalog?conditions=inactiveFlag = false&fields=id,identifier,description,price,cost',
-			requestOptions
-		);
-
-		return await response.json();
 	},
 	['catalog'],
 	{ tags: ['catalog'] }
 );
 
+export const getCatalogItemComponents = async (id: number) => {
+	let config: AxiosRequestConfig = {
+		...baseConfig,
+		url: `/procurement/catalog/${id}/components`,
+	};
+
+	try {
+		const response: AxiosResponse<CatalogComponent[], Error> = await axios.request(config);
+
+		config = {
+			...baseConfig,
+			url: '/procurement/catalog',
+			params: {
+				conditions: `id in (${response.data.map((c) => c.id).toString()})`,
+			},
+		};
+
+		const catalogItems: AxiosResponse<CatalogItem[], Error> = await axios.request(config);
+
+		const mappedCatalogItems = response.data.map((c) => {
+			return {
+				...c,
+				catalogItem: catalogItems.data.find((i) => i.id === c.id),
+			};
+		});
+
+		console.log('mappedCatalogItems', mappedCatalogItems);
+		return mappedCatalogItems;
+	} catch (error) {
+		console.error(error);
+		return;
+	}
+};
+
 export const getProducts = unstable_cache(
 	async (id: string) => {
-		'use server';
 		const supabase = createClient();
 
-		const { data: products, error } = await supabase.from('products').select('*').eq('proposal', id);
+		const { data: products, error } = await supabase.from('products').select('*').eq('proposal', id).order('name');
 
 		if (!products || error) {
-			console.error('ERROR IN GET PRODUCTS QUERY', error);
-			return;
+			throw Error('Error in getting products', { cause: error });
 		}
 
 		return products;
@@ -164,8 +198,7 @@ export const getMembers = unstable_cache(
 		const { data, error } = await supabase.from('organizations').select('profiles(*)').single();
 
 		if (!data || error) {
-			console.error('ERROR IN GETTING ORGANIZATION QUERY', error);
-			return;
+			throw Error('Error in getting members', { cause: error });
 		}
 
 		return data.profiles;
@@ -176,7 +209,6 @@ export const getMembers = unstable_cache(
 
 export const getProposal = unstable_cache(
 	async (id: string) => {
-		'use server';
 		const supabase = createClient();
 
 		const proposalWithPhasesQuery = supabase
@@ -191,8 +223,7 @@ export const getProposal = unstable_cache(
 		const { data: proposal, error } = await proposalWithPhasesQuery;
 
 		if (!proposal || error) {
-			console.error('ERROR IN GET PROPOSAL QUERY', error);
-			return;
+			throw Error('Error in getting proposal', { cause: error });
 		}
 
 		return proposal as ProposalWithPhases;
@@ -205,11 +236,10 @@ export const getOrganization = unstable_cache(
 	async () => {
 		'use server';
 		const supabase = createClient();
-		const { data, error } = await supabase.from('organizations').select('*, organization_integrations(*)').single();
+		const { data, error } = await supabase.from('organizations').select('*, organization_integrations(*, integration(*))').single();
 
 		if (!data || error) {
-			console.error('ERROR IN GETTING ORGANIZATION QUERY', error);
-			return;
+			throw Error('Error in getting organization', { cause: error });
 		}
 
 		return data;
@@ -225,8 +255,7 @@ export const getIntegrations = unstable_cache(async () => {
 	const { data, error } = await supabase.from('integrations').select().order('name', { ascending: true });
 
 	if (!data || error) {
-		console.error(error);
-		return;
+		throw Error('Error in getting integrations', { cause: error });
 	}
 
 	return data;
@@ -234,7 +263,6 @@ export const getIntegrations = unstable_cache(async () => {
 
 export const getProposals = unstable_cache(
 	async () => {
-		'use server';
 		const supabase = createClient();
 
 		const proposalsQuery = supabase.from('proposals').select('*, phases(*, tickets(*, tasks(*)))').order('updated_at', { ascending: false });
@@ -244,8 +272,7 @@ export const getProposals = unstable_cache(
 		const { data: proposals, error } = await proposalsQuery;
 
 		if (!proposals || error) {
-			console.error(error);
-			return;
+			throw Error('Error in getting proposals', { cause: error });
 		}
 
 		// console.log(proposals);
@@ -328,7 +355,8 @@ export const signIn = async (formData: FormData) => {
 
 	if (error) {
 		console.error(error);
-		return redirect('/login?message=Could not authenticate user');
+		// redirect('/login?message=Could not authenticate user');
+		throw Error('Error signing in', { cause: error });
 	}
 
 	return redirect('/velo-it-group');

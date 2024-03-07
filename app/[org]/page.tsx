@@ -1,6 +1,6 @@
 import React from 'react';
 import type { Metadata, ResolvingMetadata } from 'next';
-import { getOrganization, getProposals, getUser } from '@/lib/functions/read';
+import { getOrganization, getProposals } from '@/lib/functions/read';
 import { Button } from '@/components/ui/button';
 import { CalendarIcon, DotsHorizontalIcon, MagnifyingGlassIcon, PlusIcon } from '@radix-ui/react-icons';
 import Link from 'next/link';
@@ -28,9 +28,9 @@ export async function generateMetadata({ params, searchParams }: Props, parent: 
 }
 
 const OverviewPage = async ({ params }: Props) => {
-	const user = await getUser();
 	const proposals = await getProposals();
-	if (!proposals || !user) {
+
+	if (!proposals) {
 		notFound();
 	}
 

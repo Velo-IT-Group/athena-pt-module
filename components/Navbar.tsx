@@ -6,6 +6,7 @@ import { getOrganization, getUser } from '@/lib/functions/read';
 import NavigationTabs from './NavigationTabs';
 import UserNav from './UserNav';
 import { Button } from './ui/button';
+import { createClient } from '@/utils/supabase/server';
 
 export type Tab = {
 	name: string;
@@ -20,17 +21,12 @@ type Props = {
 };
 
 const Navbar = async ({ title, children, org, tabs }: Props) => {
+	const supabase = createClient();
 	const organization = await getOrganization();
-	const user = await getUser();
-	const myHeaders = new Headers();
-	myHeaders.append('Authorization', `Bearer ${process.env.NEXT_PUBLIC_MS_AUTH_TOKEN}`);
-	const requestOptions = {
-		method: 'GET',
-		headers: myHeaders,
-	};
-	const result = await fetch('https://graph.microsoft.com/v1.0/me/photo', requestOptions);
-	const photo = await result.json();
-	console.log(photo);
+
+	const {
+		data: { user },
+	} = await supabase.auth.getUser();
 
 	return (
 		<>
@@ -65,7 +61,7 @@ const Navbar = async ({ title, children, org, tabs }: Props) => {
 									<BellIcon className='h-4 w-4' />
 								</Button>
 
-								<UserNav user={user} url={photo} />
+								<UserNav user={user} />
 							</>
 						)}
 					</div>

@@ -42,6 +42,7 @@ const TasksList = ({ tasks, ticketId }: { tasks: Task[]; ticketId: string }) => 
 						notes: '',
 						priority: 1,
 						summary: data.get('summary') as string,
+						visibile: true,
 					};
 
 					formRef.current?.reset();

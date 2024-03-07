@@ -37,9 +37,9 @@ export function DataTable<TData>({ table }: DataTablePaginationProps<TData>) {
 						))
 					) : (
 						<TableRow>
-							{/* <TableCell colSpan={table.length} className='h-24 text-center'>
+							<TableCell colSpan={table.getRowModel().rows?.length} className='h-24 text-center'>
 								No results.
-							</TableCell> */}
+							</TableCell>
 						</TableRow>
 					)}
 				</TableBody>

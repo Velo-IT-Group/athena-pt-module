@@ -2,8 +2,12 @@
 import { createClient } from '@/utils/supabase/server';
 import { revalidateTag } from 'next/cache';
 
+/**
+ * Updates Product In Supabase.
+ * @param {string} id - The id of the product.
+ * @param {ProductUpdate} product - The product you're wanting to update.
+ */
 export const updateProduct = async (id: string, product: ProductUpdate) => {
-	'use server';
 	const supabase = createClient();
 	const { error } = await supabase.from('products').update(product).eq('id', id);
 	console.log('running func');
@@ -16,8 +20,12 @@ export const updateProduct = async (id: string, product: ProductUpdate) => {
 	revalidateTag('products');
 };
 
+/**
+ * Updates Proposal In Supabase.
+ * @param {string} id - The id of the proposal you're wanting to update.
+ * @param {ProposalUpdate} proposal - The proposal you're wanting to update.
+ */
 export const updateProposal = async (id: string, proposal: ProposalUpdate) => {
-	'use server';
 	const supabase = createClient();
 	const { error } = await supabase.from('proposals').update(proposal).eq('id', id);
 
@@ -29,8 +37,12 @@ export const updateProposal = async (id: string, proposal: ProposalUpdate) => {
 	revalidateTag('proposals');
 };
 
+/**
+ * Updates Ticket In Supabase.
+ * @param {string} id - The id of the ticket you're wanting to update.
+ * @param {TicketUpdate} ticket - The ticket you're wanting to update.
+ */
 export const updateTicket = async (id: string, ticket: TicketUpdate) => {
-	'use server';
 	const supabase = createClient();
 	const { error } = await supabase.from('tickets').update(ticket).eq('id', id);
 
@@ -42,8 +54,12 @@ export const updateTicket = async (id: string, ticket: TicketUpdate) => {
 	revalidateTag('proposals');
 };
 
+/**
+ * Updates Phase In Supabase.
+ * @param {string} id - The id of the phase you're wanting to update.
+ * @param {PhaseUpdate} phase - The phase you're wanting to update.
+ */
 export const updatePhase = async (id: string, phase: PhaseUpdate) => {
-	'use server';
 	const supabase = createClient();
 	const { error } = await supabase.from('phases').update(phase).eq('id', id);
 
@@ -55,8 +71,12 @@ export const updatePhase = async (id: string, phase: PhaseUpdate) => {
 	revalidateTag('proposals');
 };
 
+/**
+ * Updates Task In Supabase.
+ * @param {string} id - The id of the task you're wanting to update.
+ * @param {TaskUpdate} task - The task you're wanting to update.
+ */
 export const updateTask = async (id: string, task: TaskUpdate) => {
-	'use server';
 	const supabase = createClient();
 	const { error } = await supabase.from('tasks').update(task).eq('id', id);
 
@@ -68,8 +88,12 @@ export const updateTask = async (id: string, task: TaskUpdate) => {
 	revalidateTag('proposals');
 };
 
+/**
+ * Updates Organization In Supabase.
+ * @param {string} id - The id of the organization you're wanting to update.
+ * @param {OrganizationUpdate} organization - The organization you're wanting to update.
+ */
 export const updateOrganization = async (id: string, organization: OrganizationUpdate) => {
-	'use server';
 	const supabase = createClient();
 	const { error } = await supabase.from('organizations').update(organization).eq('id', id);
 
@@ -82,10 +106,14 @@ export const updateOrganization = async (id: string, organization: OrganizationU
 	revalidateTag('proposals');
 };
 
-export const updateOrganizationIntegration = async (id: string, organization: OrganizationIntegration) => {
-	'use server';
+/**
+ * Updates Organization's Integration In Supabase.
+ * @param {string} id - The id of the organization's integration you're wanting to update.
+ * @param {OrganizationIntegrationUpdate} orgIntegration - The organization's integration you're wanting to update.
+ */
+export const updateOrganizationIntegration = async (id: string, orgIntegration: OrganizationIntegrationUpdate) => {
 	const supabase = createClient();
-	const { error } = await supabase.from('organization_integrations').update(organization).eq('id', id);
+	const { error } = await supabase.from('organization_integrations').update(orgIntegration).eq('id', id);
 
 	if (error) {
 		console.error(error);

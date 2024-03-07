@@ -8,6 +8,9 @@ import { Button } from '../ui/button';
 import { Input } from '../ui/input';
 import { updateProduct } from '@/lib/functions/update';
 import { Switch } from '../ui/switch';
+import { HoverCard, HoverCardContent, HoverCardTrigger } from '../ui/hover-card';
+import { InfoCircledIcon } from '@radix-ui/react-icons';
+import IntegrationPricingCard from '../IntegrationPricingCard';
 
 function capitalizeFirstLetter(string: string) {
 	return string.charAt(0).toUpperCase() + string.slice(1);
@@ -35,17 +38,18 @@ const productFormSchema = z.object({
 const ProductForm = ({ product }: { product: Product }) => {
 	const form = useForm<z.infer<typeof productFormSchema>>({
 		resolver: zodResolver(productFormSchema),
-		defaultValues: product,
+		defaultValues: { ...product, extended_price: product.extended_price ?? undefined },
 	});
 
 	// 2. Define a submit handler.
 	async function onSubmit(values: z.infer<typeof productFormSchema>) {
 		// formData.set
 		console.log(values);
-		await updateProduct(product.id ?? '', values);
+		//@ts-ignore
+		delete values['extended_price'];
+		await updateProduct(product.id ?? '', { ...values, price: values.price ?? undefined });
 		// Do something with the form values.
 		// ✅ This will be type-safe and validated.
-		console.log(values);
 	}
 
 	const zodKeys = (schema: ZodTypeAny, parentKey: string = ''): string[] => {
@@ -75,6 +79,7 @@ const ProductForm = ({ product }: { product: Product }) => {
 	return (
 		<SheetContent className='max-w-none sm:max-w-none w-[800px] space-y-4 flex flex-col'>
 			<SheetHeader>
+				<SheetDescription>{product.manufacturing_part_number}</SheetDescription>
 				<SheetTitle>{product.name}</SheetTitle>
 			</SheetHeader>
 			<Form {...form}>
@@ -99,12 +104,29 @@ const ProductForm = ({ product }: { product: Product }) => {
 						name='price'
 						render={({ field }) => (
 							<FormItem className='relative'>
-								<FormLabel>Price</FormLabel>
+								<FormLabel>
+									Price{' '}
+									<HoverCard>
+										<HoverCardTrigger>
+											<InfoCircledIcon className='w-4 h-4 text-muted-foreground inline-block' />
+											<IntegrationPricingCard description='Testing' id='' vendorSku='' setPrice={field.onChange} />
+										</HoverCardTrigger>
+									</HoverCard>
+								</FormLabel>
 								<FormControl className='relative'>
 									<div className='relative'>
 										<p className='absolute flex items-center my-auto left-3 h-9 text-sm select-none'>$</p>
-										{/* @ts-ignore */}
-										<Input type='number' className='pl-6' placeholder='Product name' {...field} />
+
+										<Input
+											type='number'
+											min='0.01'
+											step='0.01'
+											// @ts-ignore
+											value={field?.value ?? undefined}
+											className='pl-6'
+											placeholder='Product name'
+											{...field}
+										/>
 									</div>
 								</FormControl>
 								<FormMessage />
@@ -158,8 +180,7 @@ const ProductForm = ({ product }: { product: Product }) => {
 								<FormItem>
 									<FormLabel>Is Phase Item?</FormLabel>
 									<FormControl>
-										{/* @ts-ignore */}
-										<Switch className='block' {...field} />
+										<Switch checked={field.value === true} onCheckedChange={field.onChange} className='block' />
 									</FormControl>
 									<FormMessage />
 								</FormItem>
@@ -173,8 +194,7 @@ const ProductForm = ({ product }: { product: Product }) => {
 								<FormItem>
 									<FormLabel>Is Recurring?</FormLabel>
 									<FormControl>
-										{/* @ts-ignore */}
-										<Switch className='block' {...field} />
+										<Switch checked={field.value === true} onCheckedChange={field.onChange} className='block' />
 									</FormControl>
 									<FormMessage />
 								</FormItem>
@@ -188,8 +208,7 @@ const ProductForm = ({ product }: { product: Product }) => {
 								<FormItem>
 									<FormLabel>Is Taxable?</FormLabel>
 									<FormControl>
-										{/* @ts-ignore */}
-										<Switch className='block' {...field} />
+										<Switch checked={field.value === true} onCheckedChange={field.onChange} className='block' />
 									</FormControl>
 									<FormMessage />
 								</FormItem>

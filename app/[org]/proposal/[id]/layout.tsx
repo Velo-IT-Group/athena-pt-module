@@ -1,11 +1,12 @@
 import React from 'react';
 import Navbar, { Tab } from '@/components/Navbar';
-import { getProposal } from '@/lib/functions/read';
+import { getProducts, getProposal } from '@/lib/functions/read';
 import { getCurrencyString } from '@/utils/money';
 import { HoverCard, HoverCardContent, HoverCardTrigger } from '@/components/ui/hover-card';
 import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
 import ProposalDropdownMenu from '@/components/ProposalDropdownMenu';
+import { notFound } from 'next/navigation';
 
 type Props = {
 	params: { org: string; id: string };
@@ -14,9 +15,10 @@ type Props = {
 
 const ProposalIdLayout = async ({ params, children }: Props) => {
 	const { id, org } = params;
-	const proposal = await getProposal(id);
 
-	if (!id) return <div></div>;
+	const proposal = await getProposal(id);
+	const products = await getProducts(id);
+	if (!proposal) return notFound();
 
 	const tabs: Tab[] = [
 		{ name: 'Overview', href: `/${org}/proposal/${id}` },
@@ -50,8 +52,14 @@ const ProposalIdLayout = async ({ params, children }: Props) => {
 									<p className='col-span-2 h-8 text-sm'>{getCurrencyString(proposal?.total_product_price ?? 0)}</p>
 								</div>
 								<div className='grid grid-cols-3 items-center gap-4'>
-									<Label>Width</Label>
-									<p className='col-span-2 h-8 text-sm'>{getCurrencyString(proposal?.total_labor_price ?? 0)}</p>
+									<Label>Recurring</Label>
+									<p className='col-span-2 h-8 text-sm'>
+										{getCurrencyString(
+											products
+												?.filter((product) => product.is_recurring)
+												.reduce((accumulator, currentValue) => accumulator + (currentValue?.extended_price ?? 0), 0) ?? 0
+										)}
+									</p>
 								</div>
 							</div>
 						</div>
