@@ -45,15 +45,15 @@ export const createNestedPhaseFromTemplate = (workplan: ProjectWorkPlan, proposa
 };
 
 export const productFromCatalogItem = (item: CatalogItem, proposal: string, parent?: string) => {
-	const { id, cost, phaseProductFlag, recurringFlag, taxableFlag, manufacturerPartNumber, description, notes, price, vendor, vendorSku } = item;
-	return {
+	const { id, identifier, cost, phaseProductFlag, recurringFlag, taxableFlag, manufacturerPartNumber, description, notes, price, vendor, vendorSku } =
+		item;
+	const product = {
 		catalog_item_id: id,
 		cost,
-		extended_price: price,
 		is_phase_item: phaseProductFlag,
 		is_recurring: recurringFlag,
 		is_taxable: taxableFlag,
-		manufacturing_part_number: manufacturerPartNumber,
+		manufacturing_part_number: manufacturerPartNumber ?? identifier,
 		name: description,
 		notes,
 		price,
@@ -63,4 +63,8 @@ export const productFromCatalogItem = (item: CatalogItem, proposal: string, pare
 		vendor_name: vendor?.name,
 		vendor_part_number: vendorSku,
 	};
+
+	console.log(product);
+
+	return product;
 };
