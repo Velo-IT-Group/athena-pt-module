@@ -9,8 +9,10 @@ import { Input } from '../ui/input';
 import { updateProduct } from '@/lib/functions/update';
 import { Switch } from '../ui/switch';
 import { HoverCard, HoverCardContent, HoverCardTrigger } from '../ui/hover-card';
-import { InfoCircledIcon } from '@radix-ui/react-icons';
+import { CaretSortIcon, InfoCircledIcon } from '@radix-ui/react-icons';
 import IntegrationPricingCard from '../IntegrationPricingCard';
+import { getCurrencyString } from '@/utils/money';
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '../ui/collapsible';
 
 function capitalizeFirstLetter(string: string) {
 	return string.charAt(0).toUpperCase() + string.slice(1);
@@ -77,151 +79,235 @@ const ProductForm = ({ product }: { product: Product }) => {
 	};
 
 	return (
-		<SheetContent className='max-w-none sm:max-w-none w-[800px] space-y-4 flex flex-col'>
+		<SheetContent className='max-w-none sm:max-w-none w-[700px] space-y-4 flex-1 flex flex-col overflow-hidden'>
 			<SheetHeader>
-				<SheetDescription>{product.manufacturing_part_number}</SheetDescription>
-				<SheetTitle>{product.name}</SheetTitle>
+				<SheetTitle>Edit Product</SheetTitle>
+				<SheetDescription>{getCurrencyString(product.extended_price ?? 0)}</SheetDescription>
 			</SheetHeader>
 			<Form {...form}>
-				<form onSubmit={form.handleSubmit(onSubmit)} className='space-y-8 flex-1'>
-					<FormField
-						control={form.control}
-						name='name'
-						render={({ field }) => (
-							<FormItem>
-								<FormLabel>Name</FormLabel>
-								<FormControl>
-									{/* @ts-ignore */}
-									<Input placeholder='Product name' {...field} />
-								</FormControl>
-								<FormMessage />
-							</FormItem>
-						)}
-					/>
+				<form onSubmit={form.handleSubmit(onSubmit)} className='space-y-8 h-full flex flex-col flex-1 overflow-auto'>
+					<Collapsible defaultOpen>
+						<section>
+							<div className='flex items-center justify-between space-x-4 pr-4'>
+								<h4 className='font-medium'>Content</h4>
+								<CollapsibleTrigger asChild>
+									<Button variant='ghost' size='sm'>
+										<CaretSortIcon className='h-4 w-4' />
+										<span className='sr-only'>Toggle</span>
+									</Button>
+								</CollapsibleTrigger>
+							</div>
+							<CollapsibleContent className='space-y-4'>
+								<FormField
+									control={form.control}
+									name='name'
+									render={({ field }) => (
+										<FormItem>
+											<FormLabel>Name</FormLabel>
+											<FormControl>
+												{/* @ts-ignore */}
+												<Input placeholder='Product name' {...field} />
+											</FormControl>
+											<FormMessage />
+										</FormItem>
+									)}
+								/>
 
-					<FormField
-						control={form.control}
-						name='price'
-						render={({ field }) => (
-							<FormItem className='relative'>
-								<FormLabel>
-									Price{' '}
-									<HoverCard>
-										<HoverCardTrigger>
-											<InfoCircledIcon className='w-4 h-4 text-muted-foreground inline-block' />
-											<IntegrationPricingCard description='Testing' id='' vendorSku='' setPrice={field.onChange} />
-										</HoverCardTrigger>
-									</HoverCard>
-								</FormLabel>
-								<FormControl className='relative'>
-									<div className='relative'>
-										<p className='absolute flex items-center my-auto left-3 h-9 text-sm select-none'>$</p>
+								<FormField
+									control={form.control}
+									name='manufacturing_part_number'
+									render={({ field }) => (
+										<FormItem>
+											<FormLabel>Manufacturing Part Number</FormLabel>
+											<FormControl>
+												{/* @ts-ignore */}
+												<Input placeholder='#12345' {...field} />
+											</FormControl>
+											<FormMessage />
+										</FormItem>
+									)}
+								/>
 
-										<Input
-											type='number'
-											min='0.01'
-											step='0.01'
-											// @ts-ignore
-											value={field?.value ?? undefined}
-											className='pl-6'
-											placeholder='Product name'
-											{...field}
-										/>
-									</div>
-								</FormControl>
-								<FormMessage />
-							</FormItem>
-						)}
-					/>
+								<FormField
+									control={form.control}
+									name='vendor_part_number'
+									render={({ field }) => (
+										<FormItem>
+											<FormLabel>Vendor Part Number</FormLabel>
+											<FormControl>
+												{/* @ts-ignore */}
+												<Input placeholder='#12345' {...field} />
+											</FormControl>
+											<FormMessage />
+										</FormItem>
+									)}
+								/>
+							</CollapsibleContent>
+						</section>
+					</Collapsible>
 
-					<FormField
-						control={form.control}
-						name='cost'
-						render={({ field }) => (
-							<FormItem>
-								<FormLabel>Cost</FormLabel>
-								<FormControl>
-									<div className='relative'>
-										<p className='absolute flex items-center my-auto left-3 h-9 text-sm select-none'>$</p>
-										{/* @ts-ignore */}
-										<Input type='number' className='pl-6' placeholder='Product name' {...field} />
-									</div>
-								</FormControl>
-								<FormMessage />
-							</FormItem>
-						)}
-					/>
+					<Collapsible defaultOpen>
+						<section>
+							<div className='flex items-center justify-between space-x-4 pr-4'>
+								<h4 className='font-medium'>Details</h4>
+								<CollapsibleTrigger asChild>
+									<Button variant='ghost' size='sm'>
+										<CaretSortIcon className='h-4 w-4' />
+										<span className='sr-only'>Toggle</span>
+									</Button>
+								</CollapsibleTrigger>
+							</div>
+							<CollapsibleContent className='grid grid-cols-4 gap-4'>
+								<FormField
+									control={form.control}
+									name='quantity'
+									render={({ field }) => (
+										<FormItem>
+											<FormLabel>Quantity</FormLabel>
+											<FormControl>
+												<Input type='number' className='pl-6' placeholder='Product name' {...field} />
+											</FormControl>
+											<FormMessage />
+										</FormItem>
+									)}
+								/>
 
-					<FormField
-						control={form.control}
-						name='extended_price'
-						render={({ field }) => (
-							<FormItem>
-								<FormLabel>Price</FormLabel>
-								<FormControl>
-									<FormControl>
-										<div className='relative'>
-											<p className='absolute flex items-center my-auto left-3 h-9 text-sm select-none opacity-50'>$</p>
-											{/* @ts-ignore */}
-											<Input readOnly disabled type='number' className='pl-6' placeholder='Product name' {...field} />
-										</div>
-									</FormControl>
-								</FormControl>
-								<FormMessage />
-							</FormItem>
-						)}
-					/>
+								<FormField
+									control={form.control}
+									name='price'
+									render={({ field }) => (
+										<FormItem className='relative'>
+											<FormLabel>
+												Price{' '}
+												<HoverCard>
+													<HoverCardTrigger>
+														<InfoCircledIcon className='w-4 h-4 text-muted-foreground inline-block' />
+														<IntegrationPricingCard description='Testing' id='' vendorSku='' setPrice={field.onChange} />
+													</HoverCardTrigger>
+												</HoverCard>
+											</FormLabel>
+											<FormControl className='relative'>
+												<div className='relative'>
+													<p className='absolute flex items-center my-auto left-3 h-9 text-sm select-none'>$</p>
 
-					<div className='grid grid-cols-3 gap-4'>
-						<FormField
-							control={form.control}
-							name='is_phase_item'
-							render={({ field }) => (
-								<FormItem>
-									<FormLabel>Is Phase Item?</FormLabel>
-									<FormControl>
-										<Switch checked={field.value === true} onCheckedChange={field.onChange} className='block' />
-									</FormControl>
-									<FormMessage />
-								</FormItem>
-							)}
-						/>
+													<Input
+														type='number'
+														min='0.01'
+														step='0.01'
+														// @ts-ignore
+														value={field?.value ?? undefined}
+														className='pl-6'
+														placeholder='Product name'
+														{...field}
+													/>
+												</div>
+											</FormControl>
+											<FormMessage />
+										</FormItem>
+									)}
+								/>
 
-						<FormField
-							control={form.control}
-							name='is_recurring'
-							render={({ field }) => (
-								<FormItem>
-									<FormLabel>Is Recurring?</FormLabel>
-									<FormControl>
-										<Switch checked={field.value === true} onCheckedChange={field.onChange} className='block' />
-									</FormControl>
-									<FormMessage />
-								</FormItem>
-							)}
-						/>
+								<FormField
+									control={form.control}
+									name='cost'
+									render={({ field }) => (
+										<FormItem>
+											<FormLabel>Cost</FormLabel>
+											<FormControl>
+												<div className='relative'>
+													<p className='absolute flex items-center my-auto left-3 h-9 text-sm select-none'>$</p>
+													{/* @ts-ignore */}
+													<Input type='number' className='pl-6' placeholder='Product name' {...field} />
+												</div>
+											</FormControl>
+											<FormMessage />
+										</FormItem>
+									)}
+								/>
 
-						<FormField
-							control={form.control}
-							name='is_taxable'
-							render={({ field }) => (
-								<FormItem>
-									<FormLabel>Is Taxable?</FormLabel>
-									<FormControl>
-										<Switch checked={field.value === true} onCheckedChange={field.onChange} className='block' />
-									</FormControl>
-									<FormMessage />
-								</FormItem>
-							)}
-						/>
-					</div>
-					<SheetFooter>
-						<SheetClose asChild>
-							<Button type='submit'>Save changes</Button>
-						</SheetClose>
-					</SheetFooter>
+								<FormField
+									control={form.control}
+									name='is_phase_item'
+									render={({ field }) => (
+										<FormItem>
+											<FormLabel>Is Phase Item?</FormLabel>
+											<FormControl>
+												<Switch checked={field.value === true} onCheckedChange={field.onChange} className='block' />
+											</FormControl>
+											<FormMessage />
+										</FormItem>
+									)}
+								/>
+
+								<FormField
+									control={form.control}
+									name='cost'
+									render={({ field }) => (
+										<FormItem>
+											<FormLabel>Cost</FormLabel>
+											<FormControl>
+												<div className='relative'>
+													<p className='absolute flex items-center my-auto left-3 h-9 text-sm select-none'>$</p>
+													{/* @ts-ignore */}
+													<Input type='number' className='pl-6' placeholder='Product name' {...field} />
+												</div>
+											</FormControl>
+											<FormMessage />
+										</FormItem>
+									)}
+								/>
+
+								<FormField
+									control={form.control}
+									name='is_phase_item'
+									render={({ field }) => (
+										<FormItem>
+											<FormLabel>Is Phase Item?</FormLabel>
+											<FormControl>
+												<Switch checked={field.value === true} onCheckedChange={field.onChange} className='block' />
+											</FormControl>
+											<FormMessage />
+										</FormItem>
+									)}
+								/>
+
+								<FormField
+									control={form.control}
+									name='is_recurring'
+									render={({ field }) => (
+										<FormItem>
+											<FormLabel>Is Recurring?</FormLabel>
+											<FormControl>
+												<Switch checked={field.value === true} onCheckedChange={field.onChange} className='block' />
+											</FormControl>
+											<FormMessage />
+										</FormItem>
+									)}
+								/>
+
+								<FormField
+									control={form.control}
+									name='is_taxable'
+									render={({ field }) => (
+										<FormItem>
+											<FormLabel>Is Taxable?</FormLabel>
+											<FormControl>
+												<Switch checked={field.value === true} onCheckedChange={field.onChange} className='block' />
+											</FormControl>
+											<FormMessage />
+										</FormItem>
+									)}
+								/>
+							</CollapsibleContent>
+						</section>
+					</Collapsible>
 				</form>
 			</Form>
+			<SheetFooter>
+				<SheetClose asChild>
+					<Button type='submit'>Save changes</Button>
+				</SheetClose>
+			</SheetFooter>
 		</SheetContent>
 	);
 };
