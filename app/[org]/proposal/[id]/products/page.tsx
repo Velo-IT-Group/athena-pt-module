@@ -4,12 +4,15 @@ import ProductsList from './products-list';
 import { Button } from '@/components/ui/button';
 import { PlusCircledIcon } from '@radix-ui/react-icons';
 import Link from 'next/link';
+import { layoutTester } from '@/lib/layoutTester';
 
 type Props = {
 	params: { org: string; id: string };
+	searchParams: any;
 };
 
-const ProposalProductPage = async ({ params }: Props) => {
+const ProposalProductPage = async ({ params, searchParams }: Props) => {
+	await layoutTester(searchParams);
 	const products = await getProducts(params.id);
 
 	if (!products) {

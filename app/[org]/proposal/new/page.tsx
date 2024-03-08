@@ -19,10 +19,15 @@ const NewProposalPage = async () => {
 				action={async (data: FormData) => {
 					'use server';
 					const name = data.get('name') as string;
-					const templates_used = data.getAll('templates_used') as unknown as number[];
+					const templates_used = parseInt(data.get('templates_used') as string) as unknown as number;
 					const service_ticket = data.get('service_ticket') as unknown as number;
-					// @ts-ignore
-					await createProposal({ name, templates_used: [...templates_used, organization?.default_template], service_ticket });
+
+					await createProposal({
+						name,
+						// @ts-ignore
+						templates_used: templates_used ? [templates_used, organization?.default_template] : [organization?.default_template],
+						service_ticket,
+					});
 				}}
 			>
 				<CardHeader>

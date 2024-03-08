@@ -8,11 +8,11 @@ type Props = {
 };
 
 export default async function Page({ params, searchParams }: Props) {
-	const query = typeof searchParams.query === 'string' ? String(searchParams.query) : undefined;
+	const searchText = typeof searchParams.search === 'string' ? String(searchParams.search) : undefined;
 	const page = typeof searchParams.page === 'string' ? Number(searchParams.page) : 1;
-	const { catalogItems, count } = await getCatalogItems(query, page);
+	const { catalogItems, count } = await getCatalogItems(searchText, page);
 
-	console.log(catalogItems, count);
+	// console.log(catalogItems, count);
 
 	return (
 		<Dialog open>

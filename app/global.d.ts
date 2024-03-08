@@ -10,6 +10,7 @@ declare global {
 	type OrganizationIntegrationInsert = DB['public']['Tables']['organization_integrations']['Insert'];
 	type OrganizationIntegrationUpdate = DB['public']['Tables']['organization_integrations']['Update'];
 	type OrganizationIntegration = DB['public']['Tables']['organization_integrations']['Row'];
+	type Member = DB['public']['Tables']['profiles']['Row'];
 	type Phase = DB['public']['Tables']['phases']['Row'];
 	type PhaseInsert = DB['public']['Tables']['phases']['Insert'];
 	type PhaseUpdate = DB['public']['Tables']['phases']['Update'];

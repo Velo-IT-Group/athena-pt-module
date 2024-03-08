@@ -1,19 +1,24 @@
 import React from 'react';
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
 import { getMembers } from '@/lib/functions/read';
-import { Select, SelectContent, SelectGroup, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Button } from '@/components/ui/button';
 import OrganizationLayout from '../../organization-layout';
 import OrganizationSettingsLayout from '../organization-settings-layout';
-import { DotsHorizontalIcon, Link2Icon, PlusCircledIcon } from '@radix-ui/react-icons';
-import { Table, TableBody, TableCell, TableRow } from '@/components/ui/table';
+import { ArrowTopRightIcon, PlusIcon } from '@radix-ui/react-icons';
 import { notFound } from 'next/navigation';
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
-import { Avatar, AvatarFallback } from '@/components/ui/avatar';
-import { Separator } from '@/components/ui/separator';
+import MembersList from './members-list';
+import {
+	Dialog,
+	DialogClose,
+	DialogContent,
+	DialogDescription,
+	DialogFooter,
+	DialogHeader,
+	DialogTitle,
+	DialogTrigger,
+} from '@/components/ui/dialog';
+import Link from 'next/link';
+import { Input } from '@/components/ui/input';
+import RoleSelector from './role-selector';
 
 const roles = ['admin', 'member', 'owner'];
 
@@ -25,10 +30,51 @@ const OrganizationSettingsMembersPage = async ({ params }: { params: { org: stri
 	return (
 		<OrganizationLayout org={params.org}>
 			<OrganizationSettingsLayout org={params.org}>
-				<h2 className='text-2xl font-semibold'>Members</h2>
-				<p className='text-muted-foreground text-sm'>Manage and invite Team Members</p>
+				<p className='text-muted-foreground text-sm'>Manage members access</p>
+				<div className='flex items-center gap-4'>
+					<h2 className='text-2xl font-semibold'>Members</h2>
+					<p className='text-muted-foreground ml-auto'>
+						{members.length} {members.length > 1 ? 'members' : 'member'}
+					</p>
+					<Dialog>
+						<DialogTrigger asChild>
+							<Button>
+								<PlusIcon className='mr-2' /> Add Member
+							</Button>
+						</DialogTrigger>
+						<DialogContent>
+							<DialogHeader>
+								<DialogTitle>Change team member role</DialogTitle>
+								<DialogDescription>Changing user&apos;s role changes their API token access.</DialogDescription>
+							</DialogHeader>
+							<div className='flex gap-2 items-center'>
+								<Input placeholder='Email address' />
+								<RoleSelector role='Member' />
+							</div>
+							<p>
+								Learn more about{' '}
+								<Link href='/' className='flex-col text-primary font-light hover:underline'>
+									Team Member Roles <ArrowTopRightIcon className='inline-block' />
+								</Link>
+							</p>
+							<DialogFooter className='flex items-center w-full justify-between'>
+								<DialogClose asChild>
+									<Button variant='secondary' type='button'>
+										Cancel
+									</Button>
+								</DialogClose>
+								<DialogClose asChild>
+									<Button type='submit'>Confirm</Button>
+								</DialogClose>
+							</DialogFooter>
+						</DialogContent>
+					</Dialog>
+				</div>
 
-				<Card>
+				<MembersList data={members} />
+				{/* <MembersList data={members} /> */}
+
+				{/* <Card>
 					<CardHeader className='flex-row justify-between items-center'>
 						<CardDescription>Invite new members by email address</CardDescription>
 						<Button size='sm' variant='secondary' disabled>
@@ -137,7 +183,7 @@ const OrganizationSettingsMembersPage = async ({ params }: { params: { org: stri
 							</CardFooter>
 						</Card>
 					</TabsContent>
-				</Tabs>
+				</Tabs> */}
 			</OrganizationSettingsLayout>
 		</OrganizationLayout>
 	);

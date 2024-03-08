@@ -1,9 +1,8 @@
 'use client';
 import React from 'react';
-import { productColumns } from './columns';
+import { columns } from './columns';
 
 import {
-	ColumnDef,
 	ColumnFiltersState,
 	SortingState,
 	VisibilityState,
@@ -15,6 +14,7 @@ import {
 } from '@tanstack/react-table';
 import { DataTable } from '@/components/ui/data-table';
 import { updateProduct } from '@/lib/functions/update';
+import { ProductsListToolbar } from './products-list-toolbar';
 
 // const defaultColumn: Partial<ColumnDef<Product>> = {
 // 	cell: ({ getValue, row: { index }, column: { id }, table }) => {
@@ -60,14 +60,13 @@ const ProductsList = ({ data }: { data: Product[] }) => {
 	const rerender = React.useReducer(() => ({}), {})[1];
 	const [autoResetPageIndex, skipAutoResetPageIndex] = useSkipper();
 
-	const columns = React.useMemo<ColumnDef<Product>[]>(() => [...productColumns], []);
+	// const columns = React.useMemo<ColumnDef<Product>[]>(() => [...productColumns], []);
 
 	// Give our default column cell renderer editing superpowers!
 
 	const table = useReactTable<Product>({
 		data,
 		columns,
-		// defaultColumn,
 		onSortingChange: setSorting,
 		onColumnFiltersChange: setColumnFilters,
 		getCoreRowModel: getCoreRowModel(),
@@ -89,7 +88,12 @@ const ProductsList = ({ data }: { data: Product[] }) => {
 		debugTable: true,
 	});
 
-	return <DataTable table={table} />;
+	return (
+		<div className='space-y-4'>
+			<ProductsListToolbar table={table} />
+			<DataTable table={table} />
+		</div>
+	);
 };
 
 export default ProductsList;
