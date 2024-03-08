@@ -24,7 +24,7 @@ const OrganizationLayout = ({ org, children }: { org: string; children: React.Re
 	return (
 		<>
 			<Navbar org={org} tabs={orgDashboardTabs} />
-			<div className='min-h-header bg-muted/50'>{children}</div>
+			<div className='min-h-header light:bg-muted/50'>{children}</div>
 		</>
 	);
 };
