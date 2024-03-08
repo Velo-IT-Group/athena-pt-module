@@ -355,8 +355,8 @@ export const signIn = async (formData: FormData) => {
 
 	if (error) {
 		console.error(error);
-		// redirect('/login?message=Could not authenticate user');
-		throw Error('Error signing in', { cause: error });
+		redirect(`/login?message=${error}`);
+		// throw Error('Error signing in', { cause: error });
 	}
 
 	return redirect('/velo-it-group');
