@@ -8,7 +8,7 @@ const OrganizationLoadingPage = () => {
 	return (
 		<>
 			<Navbar org='' tabs={[]} />
-			<div className='min-h-header bg-muted/50'>
+			<div className='min-h-header light:bg-muted/50'>
 				<div className='container py-8 space-y-8'>
 					<div className='grid grid-cols-3 gap-4'>
 						{blankArray.map((_, index) => (
