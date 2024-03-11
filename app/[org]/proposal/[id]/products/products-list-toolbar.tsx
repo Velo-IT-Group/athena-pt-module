@@ -9,6 +9,7 @@ import { DataTableViewOptions } from './data-table-view-options';
 import { DataTableFacetedFilter } from './products-filter';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
+import { categories } from './data/data';
 
 interface ProductsListToolbarProps<TData> {
 	table: Table<TData>;
@@ -21,13 +22,13 @@ export function ProductsListToolbar<TData>({ table }: ProductsListToolbarProps<T
 		<div className='flex items-center justify-between'>
 			<div className='flex flex-1 items-center space-x-2'>
 				<Input
-					placeholder='Filter tasks...'
-					value={(table.getColumn('name')?.getFilterValue() as string) ?? ''}
-					onChange={(event) => table.getColumn('name')?.setFilterValue(event.target.value)}
+					placeholder='Filter products...'
+					value={(table.getColumn('description')?.getFilterValue() as string) ?? ''}
+					onChange={(event) => table.getColumn('description')?.setFilterValue(event.target.value)}
 					className='h-8 w-[150px] lg:w-[250px]'
 				/>
-				<DataTableFacetedFilter column={table.getColumn('status')} title='Status' options={[]} />
-				<DataTableFacetedFilter column={table.getColumn('status')} title='Priority' options={[]} />
+				<DataTableFacetedFilter column={table.getColumn('category')} title='Category' options={categories} />
+				<DataTableFacetedFilter column={table.getColumn('subcategory')} title='Priority' options={[]} />
 				{/* {table.getColumn('status') && <DataTableFacetedFilter column={table.getColumn('status')} title='Status' options={statuses} />}
 				{table.getColumn('priority') && <DataTableFacetedFilter column={table.getColumn('priority')} title='Priority' options={priorities} />} */}
 				{isFiltered && (

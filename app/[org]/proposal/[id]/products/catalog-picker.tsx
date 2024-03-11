@@ -19,9 +19,9 @@ import {
 import { DataTable } from '@/components/ui/data-table';
 import { Cross2Icon } from '@radix-ui/react-icons';
 import SubmitButton from '@/components/SubmitButton';
-import { createProducts } from '@/lib/functions/create';
+import { createProduct } from '@/lib/functions/create';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
-import { productFromCatalogItem } from '@/utils/helpers';
+import { convertToSnakeCase } from '@/utils/helpers';
 import { getCurrencyString } from '@/utils/money';
 import { useRouter } from 'next/navigation';
 import Search from './search';
@@ -63,6 +63,7 @@ const CatalogPicker = ({ proposal, catalogItems, params, page, count }: Props) =
 		getSubRows: (row) => row.bundledItems,
 		onPaginationChange: setPagination,
 		manualPagination: true,
+		getRowId: (row) => row.id.toString(),
 		state: {
 			sorting,
 			columnFilters,
@@ -115,7 +116,7 @@ const CatalogPicker = ({ proposal, catalogItems, params, page, count }: Props) =
 						</Button>
 					</CardHeader>
 					<CardContent className='flex-1 space-y-2 p-2 overflow-auto'>
-						{table.getFilteredSelectedRowModel().rows.map((row) => {
+						{table.getGroupedSelectedRowModel().rows.map((row) => {
 							const { id, description, identifier, vendorSku } = row.original;
 							return (
 								<Card key={id}>
@@ -146,16 +147,23 @@ const CatalogPicker = ({ proposal, catalogItems, params, page, count }: Props) =
 			<DialogFooter>
 				<SubmitButton
 					type='submit'
-					formAction={async () => {
-						// const bundledProducts =
-						const bundledProducts = table.getFilteredSelectedRowModel().rows.filter((row) => row.original.bundledItems?.length);
-						const products: ProductInsert[] = table.getFilteredSelectedRowModel().rows.map((item) => productFromCatalogItem(item.original, proposal));
-						await createProducts(products);
-					}}
 					onClick={async () => {
-						const bundledProducts = table.getFilteredSelectedRowModel().rows.filter((row) => row.original.bundledItems?.length);
-						const products: ProductInsert[] = table.getFilteredSelectedRowModel().rows.map((item) => productFromCatalogItem(item.original, proposal));
-						await createProducts(products);
+						const products: { product: any; bundledItems?: any[] }[] = table.getGroupedSelectedRowModel().rows.map((item) => {
+							const bundledItems = item.original?.bundledItems;
+							delete item.original.bundledItems;
+							return {
+								// @ts-ignore
+								product: { ...convertToSnakeCase(item.original), proposal },
+								bundledItems: bundledItems?.map((p) => {
+									// @ts-ignore
+									delete p['_info'];
+									// @ts-ignore
+									return { ...convertToSnakeCase(p), proposal };
+								}),
+							};
+						});
+						console.log('bundledProducts', products);
+						await Promise.all(products.map((product) => createProduct(product.product, product?.bundledItems)));
 						router.back();
 					}}
 				>

@@ -7,6 +7,12 @@ import { baseConfig } from '@/lib/utils';
 import { unstable_cache } from 'next/cache';
 import { redirect } from 'next/navigation';
 
+const catalogItemFields =
+	'calculatedCostFlag,calculatedPriceFlag,calculatedPrice,manufacturerPartNumber,calculatedCost,category,cost,customerDescription,parentCatalogItem,description,dropShipFlag,id,identifier,inactiveFlag,manufacturer,phaseProductFlag,price,productClass,proposal,recurringBillCycle,recurringCost,recurringCycleType,recurringFlag,recurringOneTimeFlag,recurringRevenue,serializedCostFlag,serializedFlag,specialOrderFlag,subcategory,taxableFlag,type,uniqueId,unitOfMeasure,vendor';
+
+const catalogComponentFields =
+	'catalogItem,cost,hideDescriptionFlag,hideExtendedPriceFlag,hideItemIdentifierFlag,hidePriceFlag,hideQuantityFlag,id,parentCatalogItem,price,quantity,sequenceNumber';
+
 export const getPhases = unstable_cache(
 	async (id: string): Promise<Array<Phase & { tickets: Array<Ticket & { tasks: Task[] }> }> | undefined> => {
 		const supabase = createClient();
@@ -103,6 +109,7 @@ export const getCatalogItems = unstable_cache(
 				pageSize: 10,
 				page: page ?? 1,
 				orderBy: 'description',
+				fields: catalogItemFields,
 			},
 		};
 
@@ -130,8 +137,6 @@ export const getCatalogItems = unstable_cache(
 				};
 			});
 
-			console.log(mappedData, countResponse.data.count, searchText);
-
 			return { catalogItems: mappedData as CatalogItem[], count: countResponse.data.count };
 		} catch (error) {
 			console.error(error);
@@ -146,6 +151,9 @@ export const getCatalogItemComponents = async (id: number) => {
 	let config: AxiosRequestConfig = {
 		...baseConfig,
 		url: `/procurement/catalog/${id}/components`,
+		params: {
+			fields: catalogComponentFields,
+		},
 	};
 
 	try {
@@ -156,6 +164,7 @@ export const getCatalogItemComponents = async (id: number) => {
 			url: '/procurement/catalog',
 			params: {
 				conditions: `id in (${response.data.map((c) => c.id).toString()})`,
+				fields: catalogItemFields,
 			},
 		};
 
@@ -163,12 +172,11 @@ export const getCatalogItemComponents = async (id: number) => {
 
 		const mappedCatalogItems = response.data.map((c) => {
 			return {
+				...catalogItems.data.find((i) => i?.id === c?.id),
 				...c,
-				catalogItem: catalogItems.data.find((i) => i.id === c.id),
 			};
 		});
 
-		console.log('mappedCatalogItems', mappedCatalogItems);
 		return mappedCatalogItems;
 	} catch (error) {
 		console.error(error);
@@ -180,7 +188,13 @@ export const getProducts = unstable_cache(
 	async (id: string) => {
 		const supabase = createClient();
 
-		const { data: products, error } = await supabase.from('products').select('*').eq('proposal', id).order('name');
+		const { data: products, error } = await supabase
+			.from('products')
+			.select('*, products(*)')
+			.eq('proposal', id)
+			.is('parent', null)
+			.order('description')
+			.returns<NestedProduct[]>();
 
 		if (!products || error) {
 			throw Error('Error in getting products', { cause: error });

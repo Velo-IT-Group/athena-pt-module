@@ -140,14 +140,22 @@ export const createTicket = async (ticket: TicketInset, tasks: Array<ProjectTemp
 	return data;
 };
 
-export const createProduct = async (product: ProductInsert) => {
+export const createProduct = async (product: ProductInsert, bundledItems?: ProductInsert[]) => {
 	const supabase = createClient();
 
-	const { data, error } = await supabase.from('products').insert(product).select('id').single();
+	const { data, error } = await supabase.from('products').insert(product).select('unique_id').single();
 
 	if (error) {
 		console.error(error);
 		return;
+	}
+
+	if (bundledItems && bundledItems.length) {
+		await createProducts(
+			bundledItems.map((item) => {
+				return { ...item, parent: data.unique_id };
+			})
+		);
 	}
 
 	revalidateTag('products');

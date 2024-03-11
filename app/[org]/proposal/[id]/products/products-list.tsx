@@ -4,9 +4,13 @@ import { columns } from './columns';
 
 import {
 	ColumnFiltersState,
+	ExpandedState,
 	SortingState,
 	VisibilityState,
 	getCoreRowModel,
+	getExpandedRowModel,
+	getFacetedRowModel,
+	getFacetedUniqueValues,
 	getFilteredRowModel,
 	getPaginationRowModel,
 	getSortedRowModel,
@@ -52,30 +56,32 @@ function useSkipper() {
 	return [shouldSkip, skip] as const;
 }
 
-const ProductsList = ({ data }: { data: Product[] }) => {
+const ProductsList = ({ data }: { data: NestedProduct[] }) => {
 	const [sorting, setSorting] = React.useState<SortingState>([]);
+	const [expanded, setExpanded] = React.useState<ExpandedState>({});
 	const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([]);
 	const [columnVisibility, setColumnVisibility] = React.useState<VisibilityState>({});
 	const [rowSelection, setRowSelection] = React.useState({});
 	const rerender = React.useReducer(() => ({}), {})[1];
 	const [autoResetPageIndex, skipAutoResetPageIndex] = useSkipper();
 
-	// const columns = React.useMemo<ColumnDef<Product>[]>(() => [...productColumns], []);
-
-	// Give our default column cell renderer editing superpowers!
-
-	const table = useReactTable<Product>({
+	const table = useReactTable<NestedProduct>({
 		data,
 		columns,
+		enableRowSelection: true,
+		onRowSelectionChange: setRowSelection,
 		onSortingChange: setSorting,
 		onColumnFiltersChange: setColumnFilters,
+		onColumnVisibilityChange: setColumnVisibility,
 		getCoreRowModel: getCoreRowModel(),
+		getFilteredRowModel: getFilteredRowModel(),
 		getPaginationRowModel: getPaginationRowModel(),
 		getSortedRowModel: getSortedRowModel(),
-		getFilteredRowModel: getFilteredRowModel(),
-		onColumnVisibilityChange: setColumnVisibility,
-		onRowSelectionChange: setRowSelection,
+		getFacetedRowModel: getFacetedRowModel(),
+		getFacetedUniqueValues: getFacetedUniqueValues(),
+		getExpandedRowModel: getExpandedRowModel(),
 		autoResetPageIndex,
+		getSubRows: (row) => row.products,
 		meta: {
 			updateProduct,
 		},
@@ -83,6 +89,7 @@ const ProductsList = ({ data }: { data: Product[] }) => {
 			sorting,
 			columnFilters,
 			columnVisibility,
+			expanded,
 			rowSelection,
 		},
 		debugTable: true,

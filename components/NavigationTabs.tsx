@@ -6,7 +6,7 @@ import React from 'react';
 import { Button } from './ui/button';
 import { Tab } from './Navbar';
 
-const NavigationTabs = ({ tabs }: { tabs: Tab[] }) => {
+const NavigationTabs = ({ tabs, children }: { tabs: Tab[]; children?: React.ReactNode }) => {
 	const pathname = usePathname();
 
 	return (
@@ -27,6 +27,7 @@ const NavigationTabs = ({ tabs }: { tabs: Tab[] }) => {
 						</Button>
 					</Link>
 				))}
+				{children}
 			</div>
 		</div>
 	);

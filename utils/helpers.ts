@@ -44,27 +44,74 @@ export const createNestedPhaseFromTemplate = (workplan: ProjectWorkPlan, proposa
 	);
 };
 
-export const productFromCatalogItem = (item: CatalogItem, proposal: string, parent?: string) => {
-	const { id, identifier, cost, phaseProductFlag, recurringFlag, taxableFlag, manufacturerPartNumber, description, notes, price, vendor, vendorSku } =
-		item;
-	const product = {
-		catalog_item_id: id,
-		cost,
-		is_phase_item: phaseProductFlag,
-		is_recurring: recurringFlag,
-		is_taxable: taxableFlag,
-		manufacturing_part_number: manufacturerPartNumber ?? identifier,
-		name: description,
-		notes,
-		price,
-		proposal,
-		quantity: 1,
-		suggested_price: price,
-		vendor_name: vendor?.name,
-		vendor_part_number: vendorSku,
-	};
+type CamelCaseObject = {
+	[key: string]: any;
+};
 
-	console.log(product);
+type SnakeCaseObject<T> = {
+	[K in keyof T as Uncapitalize<string & K>]: T[K] extends object ? SnakeCaseObject<T[K]> : T[K];
+};
 
-	return product;
+export function flattenObject<T extends CamelCaseObject>(obj: T): SnakeCaseObject<T> {
+	type FlattenResult<T> = T extends { name: infer U } ? U : SnakeCaseObject<T>;
+
+	const flatObject: Partial<FlattenResult<T>> = {};
+
+	for (const [key, value] of Object.entries(obj)) {
+		if (typeof value === 'object' && value && value.name) {
+			// @ts-ignore
+			flatObject[key as keyof T] = value.name as FlattenResult<T>;
+		} else if (typeof value === 'object' && value && value.id) {
+			// @ts-ignore
+			flatObject[key as keyof T] = value.id as FlattenResult<T>;
+		} else {
+			// @ts-ignore
+			flatObject[key as keyof T] = value;
+		}
+	}
+
+	return flatObject as unknown as SnakeCaseObject<T>;
+}
+
+export function convertToSnakeCase<T extends CamelCaseObject>(input: T, flatten: true): SnakeCaseObject<T>;
+export function convertToSnakeCase(input: string): string;
+export function convertToSnakeCase(input: any, flatten: boolean = true): any {
+	if (typeof input === 'string') {
+		return input.replace(/([a-z])([A-Z])/g, '$1_$2').toLowerCase();
+	}
+
+	const snakeObject: Partial<SnakeCaseObject<typeof input>> = {};
+
+	for (const [key, value] of Object.entries(input)) {
+		const snakeKey = key.replace(/([A-Z])/g, '_$1').toLowerCase() as keyof SnakeCaseObject<typeof input>;
+		snakeObject[snakeKey] = value;
+	}
+
+	if (flatten) {
+		return flattenObject(snakeObject);
+	}
+
+	return snakeObject as SnakeCaseObject<typeof input>;
+}
+
+export const convertToCamelCase = (item: string | object, flatten: boolean = true) => {
+	if (typeof item === 'string') {
+		return item.toLowerCase().replace(/([-_][a-z])/g, (group) => group.toUpperCase().replace('-', '').replace('_', ''));
+	}
+
+	const snakeObject: Record<string, any> = {};
+
+	for (const [key, value] of Object.entries(item)) {
+		const snakeKey = key.toLowerCase().replace(/([-_][a-z])/g, (group) => group.toUpperCase().replace('-', '').replace('_', ''));
+		snakeObject[snakeKey] = value;
+	}
+
+	// if (flatten) {
+	// 	const flattenedObject = flattenObject(snakeObject);
+	// 	return flattenedObject;
+	// }
+
+	console.log(snakeObject);
+
+	return snakeObject;
 };
