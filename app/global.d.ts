@@ -15,7 +15,7 @@ declare global {
 	type PhaseInsert = DB['public']['Tables']['phases']['Insert'];
 	type PhaseUpdate = DB['public']['Tables']['phases']['Update'];
 	type Product = DB['public']['Tables']['products']['Row'];
-	type NestedProduct = Product & { products: Product[] };
+	type NestedProduct = Product & { products?: Product[] };
 	type ProductInsert = DB['public']['Tables']['products']['Insert'];
 	type ProductUpdate = DB['public']['Tables']['products']['Update'];
 	type Profile = DB['public']['Tables']['profiles']['Row'];

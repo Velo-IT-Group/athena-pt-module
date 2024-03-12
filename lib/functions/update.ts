@@ -9,7 +9,7 @@ import { revalidateTag } from 'next/cache';
  */
 export const updateProduct = async (id: string, product: ProductUpdate) => {
 	const supabase = createClient();
-	const { error } = await supabase.from('products').update(product).eq('id', id);
+	const { error } = await supabase.from('products').update(product).eq('unique_id', id);
 	console.log('running func');
 	if (error) {
 		console.error(error);

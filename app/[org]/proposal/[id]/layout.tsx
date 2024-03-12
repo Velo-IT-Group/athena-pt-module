@@ -42,7 +42,9 @@ const ProposalIdLayout = async ({ params, children }: Props) => {
 				<HoverCard>
 					<HoverCardTrigger asChild>
 						<Button variant='link' className='text-sm font-medium'>
-							<span className='text-muted-foreground'>Total: </span> {getCurrencyString(totalPrice)}
+							<span>
+								Total: <span className='text-muted-foreground'>{getCurrencyString(totalPrice)}</span>
+							</span>
 						</Button>
 					</HoverCardTrigger>
 					<HoverCardContent className='w-80'>
@@ -79,7 +81,7 @@ const ProposalIdLayout = async ({ params, children }: Props) => {
 			{/* <span className='text-muted-foreground text-xs animate-in fade-in truncate pb-2 capitalize'>
 				Last updated {relativeDate(new Date(proposal.updated_at))}
 			</span> */}
-			<div className='min-h-header light:bg-muted/50'>{children}</div>
+			<div className='min-h-header light:bg-muted/50 flex flex-col'>{children}</div>
 		</>
 	);
 };

@@ -16,9 +16,9 @@ const Search = ({ params }: Props) => {
 
 	useEffect(() => {
 		if (!query) {
-			router.push(`/${params.org}/proposal/${params.id}/products/select`);
+			router.push(`/${params.org}/proposal/${params.id}/products`);
 		} else {
-			router.push(`/${params.org}/proposal/${params.id}/products/select?search=${query}`);
+			router.push(`/${params.org}/proposal/${params.id}/products?search=${query}`);
 		}
 	}, [query, router, params.id, params.org]);
 

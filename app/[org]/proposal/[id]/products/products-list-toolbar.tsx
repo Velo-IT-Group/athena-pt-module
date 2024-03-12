@@ -9,14 +9,25 @@ import { DataTableViewOptions } from './data-table-view-options';
 import { DataTableFacetedFilter } from './products-filter';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
-import { categories } from './data/data';
+import { getCategories, getSubCategories } from '@/lib/functions/read';
+import { useEffect, useState } from 'react';
+import { Category, Subcategory } from '@/types/manage';
 
 interface ProductsListToolbarProps<TData> {
 	table: Table<TData>;
 }
 
 export function ProductsListToolbar<TData>({ table }: ProductsListToolbarProps<TData>) {
+	const [categories, setCategories] = useState<Category[]>([]);
+	const [subCategories, setSubCategories] = useState<Subcategory[]>([]);
 	const isFiltered = table.getState().columnFilters.length > 0;
+
+	useEffect(() => {
+		Promise.all([getCategories(), getSubCategories()]).then(([categoriesData, subCategoriesData]) => {
+			setCategories(categoriesData);
+			setSubCategories(subCategoriesData);
+		});
+	}, []);
 
 	return (
 		<div className='flex items-center justify-between'>
@@ -28,9 +39,7 @@ export function ProductsListToolbar<TData>({ table }: ProductsListToolbarProps<T
 					className='h-8 w-[150px] lg:w-[250px]'
 				/>
 				<DataTableFacetedFilter column={table.getColumn('category')} title='Category' options={categories} />
-				<DataTableFacetedFilter column={table.getColumn('subcategory')} title='Priority' options={[]} />
-				{/* {table.getColumn('status') && <DataTableFacetedFilter column={table.getColumn('status')} title='Status' options={statuses} />}
-				{table.getColumn('priority') && <DataTableFacetedFilter column={table.getColumn('priority')} title='Priority' options={priorities} />} */}
+				<DataTableFacetedFilter column={table.getColumn('subcategory')} title='Sub Categories' options={subCategories} />
 				{isFiltered && (
 					<Button variant='ghost' onClick={() => table.resetColumnFilters()} className='h-8 px-2 lg:px-3'>
 						Reset
@@ -38,7 +47,6 @@ export function ProductsListToolbar<TData>({ table }: ProductsListToolbarProps<T
 					</Button>
 				)}
 			</div>
-			<DataTableViewOptions table={table} />
 		</div>
 	);
 }

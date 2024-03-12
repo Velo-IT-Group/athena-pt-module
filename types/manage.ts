@@ -13,6 +13,26 @@ export type ProjectType = {
 	inactiveFlag?: boolean;
 };
 
+export type TicketNote = {
+	id: number;
+	ticketId: number;
+	text: string;
+	detailDescriptionFlag: boolean;
+	internalAnalysisFlag: boolean;
+	resolutionFlag: boolean;
+	issueFlag: boolean;
+	member: {
+		id: number;
+		identifier: string;
+		name: string;
+	};
+	dateCreated: string;
+	createdBy: string;
+	internalFlag: boolean;
+	externalFlag: boolean;
+	sentimentScore: number;
+};
+
 export type ProjectPhase = {
 	id: number;
 	templateId: number;
@@ -426,6 +446,11 @@ export interface ServiceTicket {
 	resolutionHours?: number;
 	resolvedBy?: string;
 	minutesWaiting?: number;
+}
+
+export interface ReferenceType {
+	id: number;
+	name: string;
 }
 
 export interface Subcategory {

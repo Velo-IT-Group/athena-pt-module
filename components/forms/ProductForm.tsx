@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { z } from 'zod';
 import { reduce, isEqual } from 'lodash';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -19,6 +19,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '.
 import Link from 'next/link';
 import { Separator } from '../ui/separator';
 import { Textarea } from '../ui/textarea';
+import { Category, ReferenceType, Subcategory } from '@/types/manage';
+import { getBillingCycles, getCategories, getSubCategories } from '@/lib/functions/read';
 
 function capitalizeFirstLetter(string: string) {
 	return string.charAt(0).toUpperCase() + string.slice(1);
@@ -53,7 +55,7 @@ const productFormSchema = z.object<ProductUpdate>({
 	product_class: z.nullable(z.string()),
 	proposal: z.nullable(z.string()),
 	quantity: z.nullable(z.number()),
-	recurring_bill_cycle: z.nullable(z.string()),
+	recurring_bill_cycle: z.nullable(z.number()),
 	recurring_cost: z.nullable(z.number()),
 	recurring_cycle_type: z.nullable(z.string()),
 	recurring_flag: z.nullable(z.boolean()),
@@ -71,29 +73,50 @@ const productFormSchema = z.object<ProductUpdate>({
 	vendor: z.nullable(z.string()),
 });
 
+function getObjectDiff(obj1: object, obj2: object) {
+	let diff = Object.keys(obj2).reduce((diff, key) => {
+		if (obj1[key] === obj2[key]) return diff;
+		return {
+			...diff,
+			[key]: obj2[key],
+		};
+	}, {});
+
+	return diff;
+}
+
 const ProductForm = ({ product }: { product: Product }) => {
+	const [billingCycles, setBillingCycles] = useState<ReferenceType[]>([]);
 	const form = useForm<z.infer<typeof productFormSchema>>({
 		resolver: zodResolver(productFormSchema),
 		defaultValues: product,
 	});
 
+	useEffect(() => {
+		getBillingCycles().then((data) => setBillingCycles(data));
+	}, []);
+
 	// 2. Define a submit handler.
 	async function onSubmit(values: z.infer<typeof productFormSchema>) {
-		console.log(values);
+		console.log(isEqual(values, form.formState.defaultValues));
+		console.log(values, product);
 		const updatedProduct = reduce(
 			product,
-			function (result, value, key) {
+			(result, value, key) => {
 				// @ts-ignore
 				return isEqual(value, values[key]) ? result : result.concat(key);
 			},
 			[]
 		);
 
+		updatedProduct.forEach((p) => console.log(product[p]));
+
 		//@ts-ignore
-		delete values['extended_price'];
+		// delete values['extended_price'];
 		// @ts-ignore
 		await updateProduct(product.unique_id ?? '', values);
 	}
+	console.log(product);
 
 	return (
 		<SheetContent className='max-w-none sm:max-w-none w-[700px] space-y-4 flex-1 flex flex-col overflow-hidden'>
@@ -176,254 +199,265 @@ const ProductForm = ({ product }: { product: Product }) => {
 									</Button>
 								</CollapsibleTrigger>
 							</div>
-							<CollapsibleContent className='grid grid-cols-3 gap-4 mt-4'>
-								<FormField
-									control={form.control}
-									name='quantity'
-									render={() => (
-										<FormItem>
-											<FormLabel>Quantity</FormLabel>
-											<FormControl>
-												<Input type='number' placeholder='1' {...form.register('quantity', { valueAsNumber: true })} />
-											</FormControl>
-											<FormMessage />
-										</FormItem>
-									)}
-								/>
-
-								<FormField
-									control={form.control}
-									name='price'
-									render={({ field }) => (
-										<FormItem className='relative'>
-											<FormLabel>
-												Price{' '}
-												<HoverCard>
-													<HoverCardTrigger>
-														<InfoCircledIcon className='w-4 h-4 text-muted-foreground inline-block' />
-														<IntegrationPricingCard description='Testing' id='' vendorSku='' setPrice={field.onChange} />
-													</HoverCardTrigger>
-												</HoverCard>
-											</FormLabel>
-											<FormControl className='relative'>
-												<div className='relative'>
-													<p className='absolute flex items-center my-auto left-3 h-9 text-sm select-none'>$</p>
-
-													<Input
-														type='number'
-														min='0.01'
-														step='0.01'
-														{...form.register('price', { valueAsNumber: true })}
-														className='pl-6'
-														placeholder='0.00'
-													/>
-												</div>
-											</FormControl>
-											<FormMessage />
-										</FormItem>
-									)}
-								/>
-
-								<FormField
-									control={form.control}
-									name='recurring_cost'
-									render={() => (
-										<FormItem>
-											<FormLabel>Recurring Amount</FormLabel>
-											<FormControl>
-												<div className='relative'>
-													<p className='absolute flex items-center my-auto left-3 h-9 text-sm select-none'>$</p>
-													<Input
-														type='number'
-														min='0.01'
-														step='0.01'
-														placeholder='0.00'
-														{...form.register('recurring_cost', { valueAsNumber: true })}
-														className='pl-6'
-													/>
-												</div>
-											</FormControl>
-											<FormMessage />
-										</FormItem>
-									)}
-								/>
-
-								<FormField
-									control={form.control}
-									name='recurring_cycle_type'
-									render={({ field }) => (
-										<FormItem>
-											<FormLabel>Recurring Type</FormLabel>
-											<Select onValueChange={field.onChange} defaultValue={field.value ?? null}>
+							<CollapsibleContent>
+								<div className='grid grid-cols-3 gap-4'>
+									<FormField
+										control={form.control}
+										name='quantity'
+										render={() => (
+											<FormItem>
+												<FormLabel>Quantity</FormLabel>
 												<FormControl>
-													<SelectTrigger>
-														<SelectValue placeholder='Select a recurring type' />
-													</SelectTrigger>
+													<Input type='number' placeholder='1' {...form.register('quantity', { valueAsNumber: true })} />
 												</FormControl>
-												<SelectContent>
-													<SelectItem value='m@example.com'>m@example.com</SelectItem>
-													<SelectItem value='m@google.com'>m@google.com</SelectItem>
-													<SelectItem value='m@support.com'>m@support.com</SelectItem>
-												</SelectContent>
-											</Select>
-											<FormMessage />
-										</FormItem>
-									)}
-								/>
+												<FormMessage />
+											</FormItem>
+										)}
+									/>
 
-								<FormField
-									control={form.control}
-									name='cost'
-									render={() => (
-										<FormItem>
-											<FormLabel>Cost</FormLabel>
-											<FormControl>
-												<div className='relative'>
-													<p className='absolute flex items-center my-auto left-3 h-9 text-sm select-none'>$</p>
-													<Input type='number' className='pl-6' placeholder='Product name' {...form.register('cost', { valueAsNumber: true })} />
-												</div>
-											</FormControl>
-											<FormMessage />
-										</FormItem>
-									)}
-								/>
+									<FormField
+										control={form.control}
+										name='price'
+										render={({ field }) => (
+											<FormItem className='relative'>
+												<FormLabel>
+													Price
+													<HoverCard>
+														<HoverCardTrigger>
+															<InfoCircledIcon className='w-4 h-4 text-muted-foreground inline-block' />
+															<IntegrationPricingCard description='Testing' id='' vendorSku='' setPrice={field.onChange} />
+														</HoverCardTrigger>
+													</HoverCard>
+												</FormLabel>
+												<FormControl className='relative'>
+													<div className='relative'>
+														<p className='absolute flex items-center my-auto left-3 h-9 text-sm select-none'>$</p>
 
-								<FormField
-									control={form.control}
-									name='recurring_cost'
-									render={() => (
-										<FormItem>
-											<FormLabel>Recurring Cost</FormLabel>
-											<FormControl>
-												<div className='relative'>
-													<p className='absolute flex items-center my-auto left-3 h-9 text-sm select-none'>$</p>
-													<Input
-														type='number'
-														min='0.01'
-														step='0.01'
-														placeholder='0.00'
-														{...form.register('recurring_cost', { valueAsNumber: true })}
-														className='pl-6'
-													/>
-												</div>
-											</FormControl>
-											<FormMessage />
-										</FormItem>
-									)}
-								/>
+														<Input
+															type='number'
+															min='0.01'
+															step='0.01'
+															{...form.register('price', { valueAsNumber: true })}
+															className='pl-6'
+															placeholder='0.00'
+														/>
+													</div>
+												</FormControl>
+												<FormMessage />
+											</FormItem>
+										)}
+									/>
 
-								<FormField
-									control={form.control}
-									name='recurring_cycle_type'
-									render={({ field }) => (
-										<FormItem>
-											<FormLabel>Recurring Option</FormLabel>
-											<Select onValueChange={field.onChange} defaultValue={field.value ?? null}>
+									<FormField
+										control={form.control}
+										name='recurring_cost'
+										render={() => (
+											<FormItem>
+												<FormLabel>Recurring Amount</FormLabel>
 												<FormControl>
-													<SelectTrigger>
-														<SelectValue placeholder='Select a recurring type' />
-													</SelectTrigger>
+													<div className='relative'>
+														<p className='absolute flex items-center my-auto left-3 h-9 text-sm select-none'>$</p>
+														<Input
+															type='number'
+															min='0.01'
+															step='0.01'
+															placeholder='0.00'
+															{...form.register('recurring_cost', { valueAsNumber: true })}
+															className='pl-6'
+														/>
+													</div>
 												</FormControl>
-												<SelectContent>
-													<SelectItem value='m@example.com'>m@example.com</SelectItem>
-													<SelectItem value='m@google.com'>m@google.com</SelectItem>
-													<SelectItem value='m@support.com'>m@support.com</SelectItem>
-												</SelectContent>
-											</Select>
-											<FormMessage />
-										</FormItem>
-									)}
-								/>
+												<FormMessage />
+											</FormItem>
+										)}
+									/>
 
-								<FormField
-									control={form.control}
-									name='recurring_cost'
-									render={() => (
-										<FormItem>
-											<FormLabel>Suggested Price</FormLabel>
-											<FormControl>
-												<div className='relative'>
-													<p className='absolute flex items-center my-auto left-3 h-9 text-sm select-none'>$</p>
-													<Input
-														type='number'
-														min='0.01'
-														step='0.01'
-														placeholder='0.00'
-														{...form.register('recurring_cost', { valueAsNumber: true })}
-														className='pl-6'
-													/>
-												</div>
-											</FormControl>
-											<FormMessage />
-										</FormItem>
-									)}
-								/>
+									<FormField
+										control={form.control}
+										name='recurring_cycle_type'
+										render={({ field }) => (
+											<FormItem>
+												<FormLabel>Recurring Type</FormLabel>
+												<Select onValueChange={field.onChange} defaultValue={field.value ?? null}>
+													<FormControl>
+														<SelectTrigger>
+															<SelectValue placeholder='Select a recurring type' />
+														</SelectTrigger>
+													</FormControl>
+													<SelectContent>
+														<SelectItem value='m@example.com'>m@example.com</SelectItem>
+														<SelectItem value='m@google.com'>m@google.com</SelectItem>
+														<SelectItem value='m@support.com'>m@support.com</SelectItem>
+													</SelectContent>
+												</Select>
+												<FormMessage />
+											</FormItem>
+										)}
+									/>
 
-								<FormField
-									control={form.control}
-									name='recurring_cost'
-									render={() => (
-										<FormItem>
-											<FormLabel>Recurring Suggested Price</FormLabel>
-											<FormControl>
-												<div className='relative'>
-													<p className='absolute flex items-center my-auto left-3 h-9 text-sm select-none'>$</p>
-													<Input
-														type='number'
-														min='0.01'
-														step='0.01'
-														placeholder='0.00'
-														{...form.register('recurring_cost', { valueAsNumber: true })}
-														className='pl-6'
-													/>
-												</div>
-											</FormControl>
-											<FormMessage />
-										</FormItem>
-									)}
-								/>
+									<FormField
+										control={form.control}
+										name='cost'
+										render={() => (
+											<FormItem>
+												<FormLabel>Cost</FormLabel>
+												<FormControl>
+													<div className='relative'>
+														<p className='absolute flex items-center my-auto left-3 h-9 text-sm select-none'>$</p>
+														<Input
+															type='number'
+															min='0.01'
+															step='0.01'
+															className='pl-6'
+															placeholder='Product name'
+															{...form.register('cost', { valueAsNumber: true })}
+														/>
+													</div>
+												</FormControl>
+												<FormMessage />
+											</FormItem>
+										)}
+									/>
 
-								<FormField
-									control={form.control}
-									name='is_phase_item'
-									render={({ field }) => (
-										<FormItem>
-											<FormLabel>Is Phase Item?</FormLabel>
-											<FormControl>
-												<Switch checked={field.value === true} onCheckedChange={field.onChange} className='block' />
-											</FormControl>
-											<FormMessage />
-										</FormItem>
-									)}
-								/>
+									<FormField
+										control={form.control}
+										name='recurring_cost'
+										render={() => (
+											<FormItem>
+												<FormLabel>Recurring Cost</FormLabel>
+												<FormControl>
+													<div className='relative'>
+														<p className='absolute flex items-center my-auto left-3 h-9 text-sm select-none'>$</p>
+														<Input
+															type='number'
+															min='0.01'
+															step='0.01'
+															placeholder='0.00'
+															{...form.register('recurring_cost', { valueAsNumber: true })}
+															className='pl-6'
+														/>
+													</div>
+												</FormControl>
+												<FormMessage />
+											</FormItem>
+										)}
+									/>
 
-								<FormField
-									control={form.control}
-									name='is_taxable'
-									render={({ field }) => (
-										<FormItem>
-											<FormLabel>Is Taxable?</FormLabel>
-											<FormControl>
-												<Switch checked={field.value === true} onCheckedChange={field.onChange} className='block' />
-											</FormControl>
-											<FormMessage />
-										</FormItem>
-									)}
-								/>
+									<FormField
+										control={form.control}
+										name='recurring_bill_cycle'
+										render={({ field }) => (
+											<FormItem>
+												<FormLabel>Recurring Option</FormLabel>
+												<Select onValueChange={field.onChange} defaultValue={String(field.value)}>
+													<FormControl>
+														<SelectTrigger>
+															<SelectValue placeholder='Select a recurring type' />
+														</SelectTrigger>
+													</FormControl>
+													<SelectContent>
+														{billingCycles.map((cycle) => (
+															<SelectItem key={cycle.id} value={cycle.id.toString()}>
+																{cycle.name}
+															</SelectItem>
+														))}
+													</SelectContent>
+												</Select>
+												<FormMessage />
+											</FormItem>
+										)}
+									/>
 
-								<FormField
-									control={form.control}
-									name='is_recurring'
-									render={({ field }) => (
-										<FormItem>
-											<FormLabel>Is Recurring?</FormLabel>
-											<FormControl>
-												<Switch checked={field.value === true} onCheckedChange={field.onChange} className='block' />
-											</FormControl>
-											<FormMessage />
-										</FormItem>
-									)}
-								/>
+									<FormField
+										control={form.control}
+										name='recurring_cost'
+										render={() => (
+											<FormItem>
+												<FormLabel>Suggested Price</FormLabel>
+												<FormControl>
+													<div className='relative'>
+														<p className='absolute flex items-center my-auto left-3 h-9 text-sm select-none'>$</p>
+														<Input
+															type='number'
+															min='0.01'
+															step='0.01'
+															placeholder='0.00'
+															{...form.register('recurring_cost', { valueAsNumber: true })}
+															className='pl-6'
+														/>
+													</div>
+												</FormControl>
+												<FormMessage />
+											</FormItem>
+										)}
+									/>
+
+									<FormField
+										control={form.control}
+										name='recurring_cost'
+										render={() => (
+											<FormItem>
+												<FormLabel>Recurring Suggested Price</FormLabel>
+												<FormControl>
+													<div className='relative'>
+														<p className='absolute flex items-center my-auto left-3 h-9 text-sm select-none'>$</p>
+														<Input
+															type='number'
+															min='0.01'
+															step='0.01'
+															placeholder='0.00'
+															{...form.register('recurring_cost', { valueAsNumber: true })}
+															className='pl-6'
+														/>
+													</div>
+												</FormControl>
+												<FormMessage />
+											</FormItem>
+										)}
+									/>
+
+									<FormField
+										control={form.control}
+										name='phase_product_flag'
+										render={({ field }) => (
+											<FormItem>
+												<FormLabel>Is Phase Item?</FormLabel>
+												<FormControl>
+													<Switch checked={field.value === true} onCheckedChange={field.onChange} className='block' />
+												</FormControl>
+												<FormMessage />
+											</FormItem>
+										)}
+									/>
+
+									<FormField
+										control={form.control}
+										name='taxable_flag'
+										render={({ field }) => (
+											<FormItem>
+												<FormLabel>Is Taxable?</FormLabel>
+												<FormControl>
+													<Switch checked={field.value === true} onCheckedChange={field.onChange} className='block' />
+												</FormControl>
+												<FormMessage />
+											</FormItem>
+										)}
+									/>
+
+									<FormField
+										control={form.control}
+										name='recurring_flag'
+										render={({ field }) => (
+											<FormItem>
+												<FormLabel>Is Recurring?</FormLabel>
+												<FormControl>
+													<Switch checked={field.value === true} onCheckedChange={field.onChange} className='block' />
+												</FormControl>
+												<FormMessage />
+											</FormItem>
+										)}
+									/>
+								</div>
 							</CollapsibleContent>
 						</section>
 					</Collapsible>
@@ -446,13 +480,12 @@ const ProductForm = ({ product }: { product: Product }) => {
 							</CollapsibleContent>
 						</section>
 					</Collapsible>
+					<SheetFooter>
+						<Button type='submit'>Save changes</Button>
+						<SheetClose asChild></SheetClose>
+					</SheetFooter>
 				</form>
 			</Form>
-			<SheetFooter>
-				<SheetClose asChild>
-					<Button type='submit'>Save changes</Button>
-				</SheetClose>
-			</SheetFooter>
 		</SheetContent>
 	);
 };

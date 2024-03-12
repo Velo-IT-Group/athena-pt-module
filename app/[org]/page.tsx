@@ -38,7 +38,7 @@ const OverviewPage = async ({ params }: Props) => {
 
 	return (
 		<OrganizationLayout org={params.org}>
-			<div className='container py-8 space-y-8'>
+			<div className='grow px-6 py-4 w-full space-y-4 flex flex-col'>
 				<form method='GET' className='flex gap-4 items-center w-full'>
 					<div
 						className='flex h-9 items-center w-full rounded-md border border-input bg-background px-3 py-1 text-sm shadow-sm transition-colors file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50'
@@ -64,7 +64,7 @@ const OverviewPage = async ({ params }: Props) => {
 					</Button>
 				</form>
 
-				<div className='grid grid-cols-3 gap-4'>
+				<div className='grid gap-4' style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(350px, 1fr))' }}>
 					{proposals.map((proposal) => (
 						<Card key={proposal.id} className='flex flex-col justify-stretch h-full'>
 							<CardHeader className='flex-row items-start justify-between -space-y-2'>

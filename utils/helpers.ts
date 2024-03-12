@@ -58,12 +58,12 @@ export function flattenObject<T extends CamelCaseObject>(obj: T): SnakeCaseObjec
 	const flatObject: Partial<FlattenResult<T>> = {};
 
 	for (const [key, value] of Object.entries(obj)) {
-		if (typeof value === 'object' && value && value.name) {
-			// @ts-ignore
-			flatObject[key as keyof T] = value.name as FlattenResult<T>;
-		} else if (typeof value === 'object' && value && value.id) {
+		if (typeof value === 'object' && value && value.id) {
 			// @ts-ignore
 			flatObject[key as keyof T] = value.id as FlattenResult<T>;
+		} else if (typeof value === 'object' && value && value.name) {
+			// @ts-ignore
+			flatObject[key as keyof T] = value.name as FlattenResult<T>;
 		} else {
 			// @ts-ignore
 			flatObject[key as keyof T] = value;

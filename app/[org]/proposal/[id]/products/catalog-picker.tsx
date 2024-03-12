@@ -77,14 +77,14 @@ const CatalogPicker = ({ proposal, catalogItems, params, page, count }: Props) =
 
 	return (
 		<DialogContent className='max-w-none w-w-padding h-w-padding flex flex-col space-y-3'>
-			<DialogClose
+			{/* <DialogClose
 				onClick={() => {
 					router.back();
 				}}
 				className='className="absolute z-50 right-4 top-4 rounded-sm opacity-70 ring-offset-background transition-opacity hover:opacity-100 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:pointer-events-none data-[state=open]:bg-accent data-[state=open]:text-muted-foreground'
 			>
 				<Cross2Icon className='h-4 w-4' />
-			</DialogClose>
+			</DialogClose> */}
 
 			<DialogHeader>
 				<DialogTitle>Add Products</DialogTitle>
@@ -164,7 +164,7 @@ const CatalogPicker = ({ proposal, catalogItems, params, page, count }: Props) =
 						});
 						console.log('bundledProducts', products);
 						await Promise.all(products.map((product) => createProduct(product.product, product?.bundledItems)));
-						router.back();
+						// router.back();
 					}}
 				>
 					Add Items

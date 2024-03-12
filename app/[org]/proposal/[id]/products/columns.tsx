@@ -44,8 +44,6 @@ export const columns: ColumnDef<Product>[] = [
 			/>
 		),
 		cell: ({ row }) => <Checkbox checked={row.getIsSelected()} onCheckedChange={(value) => row.toggleSelected(!!value)} aria-label='Select row' />,
-		enableSorting: false,
-		enableHiding: false,
 	},
 	{
 		accessorKey: 'manufacturer_part_number',
@@ -55,7 +53,7 @@ export const columns: ColumnDef<Product>[] = [
 		cell: ({ row, table }) => {
 			return (
 				<div className='flex items-center'>
-					{row.getCanExpand() ? (
+					{row.getCanExpand() && (
 						<>
 							<Button
 								variant='ghost'
@@ -69,38 +67,17 @@ export const columns: ColumnDef<Product>[] = [
 								{row.getIsExpanded() ? <ChevronDownIcon className='w-4 h-4' /> : <ChevronRightIcon className='w-4 h-4' />}
 							</Button>
 						</>
-					) : (
-						<div className='w-10 h-8'></div>
 					)}
 
-					<span>{row.getValue('manufacturer_part_number')}</span>
-
-					{/* <div className='flex space-x-2' style={{ paddingLeft: `${row.depth * 2}rem` }}> */}
-					{/* <Input
-							onBlur={async (e) => {
-								if (e.currentTarget.value !== manufacturer_part_number) {
-									table.options.meta?.updateProduct(unique_id, { manufacturer_part_number: e.currentTarget.value });
-								}
-							}}
-							className='border border-transparent hover:border-border hover:cursor-default rounded-lg shadow-none px-2 -mx-2 py-2 -my-2 w-48'
-							defaultValue={row.getValue('manufacturer_part_number') ?? ''}
-						/> */}
-					{/* {row.original.product_class === 'Bundle' && <Badge variant='outline'>Bundle</Badge>} */}
-					{/* @ts-ignore */}
-					{/* <span className='max-w-[500px] truncate font-medium decoration-dashed underline decoration-muted-foreground '>
-							{row.getValue('description')}
-						</span> */}
-					{/* </div> */}
+					<span>{row.getValue('manufacturer_part_number') ?? row.original.identifier}</span>
 				</div>
 			);
 		},
-		enableSorting: false,
-		enableHiding: false,
 	},
 	{
 		accessorKey: 'description',
 		header: ({ column }) => {
-			return <DataTableColumnHeader column={column} title='Name' />;
+			return <DataTableColumnHeader column={column} title='Description' />;
 		},
 		cell: ({ row }) => {
 			return (
@@ -120,8 +97,6 @@ export const columns: ColumnDef<Product>[] = [
 				</div>
 			);
 		},
-		enableSorting: false,
-		enableHiding: false,
 	},
 	{
 		accessorKey: 'category',
@@ -222,7 +197,7 @@ export const columns: ColumnDef<Product>[] = [
 							</AlertDialogHeader>
 							<AlertDialogFooter>
 								<AlertDialogCancel>Cancel</AlertDialogCancel>
-								<form action={async () => await deleteProduct(product.id)}>
+								<form action={async () => await deleteProduct(product.unique_id)}>
 									<AlertDialogAction type='submit'>Continue</AlertDialogAction>
 								</form>
 							</AlertDialogFooter>

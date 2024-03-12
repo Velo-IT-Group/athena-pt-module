@@ -14,6 +14,7 @@ import Link from 'next/link';
 import { handleProductDelete } from '@/app/actions';
 import { Dialog, DialogClose, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from './ui/dialog';
 import { InternalReviewSelector } from './InternalReviewSelector';
+import ExternalReview from '@/app/[org]/proposal/[id]/external-review';
 
 type Props = {
 	id: string;
@@ -61,7 +62,7 @@ const ProposalDropdownMenu = ({ id, members }: Props) => {
 					<DialogDescription>Select members from your organization that you&apos;d like to review.</DialogDescription>
 				</DialogHeader>
 				{external ? (
-					<></>
+					<ExternalReview members={members} />
 				) : (
 					<>
 						<form action={async () => {}} className='space-y-4'>

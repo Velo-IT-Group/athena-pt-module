@@ -83,7 +83,7 @@ const ProposalReviewPage = async ({ params }: Props) => {
 				<div className='grid grid-cols-5 gap-24 py-12 container'>
 					<div className='col-span-2'>
 						<div className='space-y-4'>
-							<h1 className='text-lg font-semibold'>Quote breakdown</h1>
+							<h1 className='text-lg font-semibold'>Proposal breakdown</h1>
 							<p className='text-sm text-muted-foreground'>
 								Based on your proposal, you can see what you&apos;ll be able to expect as your monthly expense.
 							</p>
@@ -103,49 +103,18 @@ const ProposalReviewPage = async ({ params }: Props) => {
 										</CardHeader>
 										<CardContent className='space-y-2'>
 											{products?.map((hardwareItem) => (
-												<HoverCard key={hardwareItem.id}>
-													<HoverCardTrigger asChild>
-														<div className={`flex items-center justify-between`}>
-															<p className='text-sm text-muted-foreground hover:underline line-clamp-1'>{hardwareItem.name}</p>
-															<p className='text-sm text-muted-foreground text-right'>
-																<span className='font-medium'>{getCurrencyString(hardwareItem.price!)}</span>
-															</p>
-														</div>
-													</HoverCardTrigger>
-													<HoverCardContent className='w-80 flex flex-1 flex-col'>
-														<h4>Discussion</h4>
-														<ScrollArea className='space-y-4 h-80'>
-															{discussion.map((message) => (
-																<div key={message.id} className='flex justify-between space-x-4 border-b p-4 last:border-b-0'>
-																	<Avatar>
-																		<AvatarImage src='https://github.com/vercel.png' />
-																		<AvatarFallback>VC</AvatarFallback>
-																	</Avatar>
-																	<div className='space-y-1'>
-																		<h4 className='text-sm font-semibold'>@nextjs</h4>
-																		<p className='text-sm'>The React Framework – created and maintained by @vercel.</p>
-																		<div className='flex items-center pt-2'>
-																			<CalendarIcon className='mr-2 h-4 w-4 opacity-70' />{' '}
-																			<span className='text-xs text-muted-foreground'>Joined December 2021</span>
-																		</div>
-																	</div>
-																</div>
-															))}
-														</ScrollArea>
-														<form className='flex w-full max-w-sm items-center space-x-2'>
-															<Input id='message' name='message' placeholder='Send message...' />
-															<Button type='submit' variant='outline' size='sm'>
-																<PaperPlaneIcon className='w-4 h-4' />
-															</Button>
-														</form>
-													</HoverCardContent>
-												</HoverCard>
+												<div key={hardwareItem.id} className={`flex items-center justify-between`}>
+													<p className='text-sm text-muted-foreground hover:underline line-clamp-1'>{hardwareItem.description}</p>
+													<p className='text-sm text-muted-foreground text-right'>
+														<span className='font-medium'>{getCurrencyString(hardwareItem.price!)}</span>
+													</p>
+												</div>
 											))}
 										</CardContent>
-
+										<Separator className='mb-6' />
 										<CardFooter>
 											<div className='flex items-center justify-between w-full'>
-												<p className='text-sm text-muted-foreground'>Hardware Subtotal</p>
+												<p className='text-sm text-muted-foreground font-bold'>Hardware Subtotal</p>
 												<p className='text-sm text-muted-foreground text-right'>
 													<span className='font-medium'>{getCurrencyString(proposal.total_product_price!)}</span>
 												</p>

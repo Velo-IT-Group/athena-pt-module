@@ -18,7 +18,7 @@ export const deleteProposal = async (id: string) => {
 export const deleteProduct = async (id: string) => {
 	'use server';
 	const supabase = createClient();
-	const { error } = await supabase.from('products').delete().eq('id', id);
+	const { error } = await supabase.from('products').delete().eq('unique_id', id);
 
 	if (error) {
 		console.error(error);

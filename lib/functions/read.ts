@@ -1,6 +1,16 @@
 'use server';
 import axios, { AxiosRequestConfig, AxiosResponse } from 'axios';
-import type { CatalogComponent, CatalogItem, ProjectTemplate, ProjectWorkPlan, ServiceTicket } from '@/types/manage';
+import type {
+	CatalogComponent,
+	CatalogItem,
+	Category,
+	ProjectTemplate,
+	ProjectWorkPlan,
+	ReferenceType,
+	ServiceTicket,
+	Subcategory,
+	TicketNote,
+} from '@/types/manage';
 import { QueryData } from '@supabase/supabase-js';
 import { createClient } from '@/utils/supabase/server';
 import { baseConfig } from '@/lib/utils';
@@ -55,6 +65,25 @@ export const getWorkplan = async (id: number): Promise<ProjectWorkPlan | undefin
 };
 
 export const getTicket = async (id: number): Promise<ServiceTicket | undefined> => {
+	'use server';
+	var myHeaders = new Headers();
+	myHeaders.append('clientId', '9762e3fa-abbd-4179-895e-ca7b0e015ab2');
+	myHeaders.append('Authorization', 'Basic dmVsbytYMzJMQjRYeDVHVzVNRk56Olhjd3Jmd0dwQ09EaFNwdkQ=');
+
+	var requestOptions: RequestInit = {
+		method: 'GET',
+		headers: myHeaders,
+		next: {
+			tags: ['tickets'],
+		},
+	};
+
+	const response = await fetch(`https://manage.velomethod.com/v4_6_release/apis/3.0/service/tickets/${id}`, requestOptions);
+
+	return await response.json();
+};
+
+export const getCompany = async (id: number): Promise<ServiceTicket | undefined> => {
 	'use server';
 	var myHeaders = new Headers();
 	myHeaders.append('clientId', '9762e3fa-abbd-4179-895e-ca7b0e015ab2');
@@ -181,6 +210,95 @@ export const getCatalogItemComponents = async (id: number) => {
 	} catch (error) {
 		console.error(error);
 		return;
+	}
+};
+
+export const getCategories = unstable_cache(
+	async () => {
+		let config: AxiosRequestConfig = {
+			...baseConfig,
+			url: '/procurement/categories',
+			params: {
+				pageSize: 1000,
+			},
+		};
+
+		try {
+			const response: AxiosResponse<Category[], Error> = await axios.request(config);
+
+			return response.data;
+		} catch (error) {
+			console.error(error);
+			return [];
+		}
+	},
+	['categories'],
+	{ tags: ['categories'] }
+);
+
+export const getBillingCycles = unstable_cache(
+	async () => {
+		let config: AxiosRequestConfig = {
+			...baseConfig,
+			url: '/finance/billingCycles',
+			params: {
+				pageSize: 1000,
+			},
+		};
+
+		try {
+			const response: AxiosResponse<ReferenceType[], Error> = await axios.request(config);
+
+			return response.data;
+		} catch (error) {
+			console.error(error);
+			return [];
+		}
+	},
+	['billingCycles'],
+	{ tags: ['billingCycles'] }
+);
+
+export const getSubCategories = unstable_cache(
+	async () => {
+		let config: AxiosRequestConfig = {
+			...baseConfig,
+			url: '/procurement/subcategories',
+			params: {
+				pageSize: 1000,
+			},
+		};
+
+		try {
+			const response: AxiosResponse<Subcategory[], Error> = await axios.request(config);
+
+			return response.data;
+		} catch (error) {
+			console.error(error);
+			return [];
+		}
+	},
+	['subcategories'],
+	{ tags: ['subcategories'] }
+);
+
+export const getTicketNotes = async (id: number) => {
+	let config: AxiosRequestConfig = {
+		...baseConfig,
+		url: `/service/tickets/${id}/allNotes`,
+		params: {
+			pageSize: 250,
+			orderBy: '_info/sortByDate desc',
+		},
+	};
+
+	try {
+		const response: AxiosResponse<TicketNote[], Error> = await axios.request(config);
+
+		return response.data;
+	} catch (error) {
+		console.error(error);
+		return [];
 	}
 };
 
