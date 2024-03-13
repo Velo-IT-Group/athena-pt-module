@@ -393,11 +393,32 @@ export const getIntegrations = unstable_cache(async () => {
 	return data;
 });
 
+export const getActivity = async () => {
+	const supabase = createClient();
+
+	const { data, error } = await supabase.from('activity_log').select().order('event_timestamp', { ascending: true });
+
+	if (!data || error) {
+		throw Error('Error in getting integrations', { cause: error });
+	}
+
+	return data;
+};
+
 export const getProposals = unstable_cache(
-	async () => {
+	async (order?: keyof Proposal, searchText?: string) => {
 		const supabase = createClient();
 
-		const proposalsQuery = supabase.from('proposals').select('*, phases(*, tickets(*, tasks(*)))').order('updated_at', { ascending: false });
+		const proposalsQuery = searchText
+			? supabase
+					.from('proposals')
+					.select('*, phases(*, tickets(*, tasks(*)))')
+					.order(order ?? 'updated_at', { ascending: false })
+					.like('name', searchText)
+			: supabase
+					.from('proposals')
+					.select('*, phases(*, tickets(*, tasks(*)))')
+					.order(order ?? 'updated_at', { ascending: false });
 
 		type Proposals = QueryData<typeof proposalsQuery>;
 
@@ -406,8 +427,6 @@ export const getProposals = unstable_cache(
 		if (!proposals || error) {
 			throw Error('Error in getting proposals', { cause: error });
 		}
-
-		// console.log(proposals);
 
 		return proposals as Proposals;
 	},
