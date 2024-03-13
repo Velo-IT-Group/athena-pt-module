@@ -57,9 +57,9 @@ const Navbar = async ({ title, children, org, tabs }: Props) => {
 						{children}
 						{user && (
 							<>
-								<Button variant='outline' size='icon'>
+								{/* <Button variant='outline' size='icon'>
 									<BellIcon className='h-4 w-4' />
-								</Button>
+								</Button> */}
 
 								<UserNav user={user} />
 							</>
