@@ -1,15 +1,12 @@
 import React from 'react';
 import Navbar, { Tab } from '../../components/Navbar';
+import { Badge } from '@/components/ui/badge';
 
 const OrganizationLayout = ({ org, children }: { org: string; children: React.ReactNode }) => {
 	const orgDashboardTabs: Tab[] = [
 		{
 			name: 'Overview',
 			href: `/${org}`,
-		},
-		{
-			name: 'Integrations',
-			href: `/${org}/integrations`,
 		},
 		{
 			name: 'Activity',
