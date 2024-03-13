@@ -8,6 +8,10 @@ const OrganizationLayout = ({ org, children }: { org: string; children: React.Re
 			name: 'Overview',
 			href: `/${org}`,
 		},
+		// {
+		// 	name: 'Integrations',
+		// 	href: `/${org}/integrations`,
+		// },
 		{
 			name: 'Activity',
 			href: `/${org}/activities`,
