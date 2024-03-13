@@ -15,7 +15,7 @@ export function DataTable<TData>({ table, hideHeader = false }: DataTablePaginat
 		<div className='rounded-md border'>
 			<Table>
 				{!hideHeader && (
-					<TableHeader className='bg-secondary'>
+					<TableHeader className='bg-accent'>
 						{table.getHeaderGroups().map((headerGroup) => (
 							<TableRow key={headerGroup.id}>
 								{headerGroup.headers.map((header) => {
