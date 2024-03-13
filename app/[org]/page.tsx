@@ -8,11 +8,15 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { relativeDate } from '@/utils/date';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { Input } from '@/components/ui/input';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Label } from '@/components/ui/label';
 import { getCurrencyString } from '@/utils/money';
 import { notFound } from 'next/navigation';
 import OrganizationLayout from './organization-layout';
+import { cookies } from 'next/headers';
+import SortSelector from './sort-selector';
+import Search from '@/components/Search';
+
+export const HOME_SORT_COOKIE = 'homeSort';
 
 type Props = {
 	params: { org: string };
@@ -27,8 +31,11 @@ export async function generateMetadata({ params, searchParams }: Props, parent: 
 	};
 }
 
-const OverviewPage = async ({ params }: Props) => {
-	const proposals = await getProposals();
+const OverviewPage = async ({ params, searchParams }: Props) => {
+	const cookieStore = cookies();
+	const searchText = typeof searchParams.search === 'string' ? String(searchParams.search) : undefined;
+	const homeSort = cookieStore.get(HOME_SORT_COOKIE);
+	const proposals = await getProposals(homeSort?.value as keyof Proposal, searchText);
 
 	if (!proposals) {
 		notFound();
@@ -40,23 +47,8 @@ const OverviewPage = async ({ params }: Props) => {
 		<OrganizationLayout org={params.org}>
 			<div className='grow px-6 py-4 w-full space-y-4 flex flex-col'>
 				<form method='GET' className='flex gap-4 items-center w-full'>
-					<div
-						className='flex h-9 items-center w-full rounded-md border border-input bg-background px-3 py-1 text-sm shadow-sm transition-colors file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50'
-						cmdk-input-wrapper=''
-					>
-						<MagnifyingGlassIcon className='mr-2 h-4 w-4 shrink-0 opacity-50' />
-						<Input placeholder='Search quotes' className='border-0 shadow-none focus-visible:ring-0' />
-					</div>
-
-					<Select>
-						<SelectTrigger className='w-48 bg-background'>
-							<SelectValue placeholder='Sort by' />
-						</SelectTrigger>
-						<SelectContent>
-							<SelectItem value='activity'>Sort by activity</SelectItem>
-							<SelectItem value='name'>Sort by name</SelectItem>
-						</SelectContent>
-					</Select>
+					<Search baseUrl={`/${params.org}`} placeholder='Search quotes' />
+					<SortSelector defaultValue={homeSort?.value} />
 					<Button asChild>
 						<Link href={`/${params.org}/proposal/new`}>
 							<PlusIcon className='w-4 h-4 mr-2' /> Add New
