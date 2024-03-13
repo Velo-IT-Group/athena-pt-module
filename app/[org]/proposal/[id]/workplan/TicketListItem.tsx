@@ -25,6 +25,7 @@ import { deleteTicket } from '@/lib/functions/delete';
 import { Draggable, Droppable } from 'react-beautiful-dnd';
 import { createTask } from '@/lib/functions/create';
 import TaskListItem from './TaskListItem';
+import { toast } from 'sonner';
 
 type Props = {
 	ticket: NestedTicket;
@@ -83,6 +84,9 @@ const TicketListItem = ({ ticket, tasks, order, pending, ticketMutation }: Props
 								if (e.currentTarget.value !== ticket.summary) {
 									// @ts-ignore
 									await updateTicket(ticket.id, { summary: e.currentTarget.value });
+									toast('Ticket has been updated.', {
+										description: Intl.DateTimeFormat('en-US', { dateStyle: 'medium' }).format(new Date()),
+									});
 								}
 							}}
 							className='flex-grow border border-transparent hover:border-border hover:cursor-default shadow-none px-2 flex-1 w-auto'
@@ -100,6 +104,9 @@ const TicketListItem = ({ ticket, tasks, order, pending, ticketMutation }: Props
 
 										// @ts-ignore
 										await updateTicket(ticket.id, { budget_hours: e.currentTarget.valueAsNumber });
+										toast('Ticket has been updated.', {
+											description: Intl.DateTimeFormat('en-US', { dateStyle: 'medium' }).format(new Date()),
+										});
 									});
 								}
 							}}
@@ -145,6 +152,9 @@ const TicketListItem = ({ ticket, tasks, order, pending, ticketMutation }: Props
 											startTransition(async () => {
 												ticketMutation({ deletedTicket: ticket.id, pending: true });
 												await deleteTicket(ticket.id);
+												toast('Ticket has been deleted.', {
+													description: Intl.DateTimeFormat('en-US', { dateStyle: 'medium' }).format(new Date()),
+												});
 											});
 										}}
 										className='text-red-600'
@@ -170,7 +180,7 @@ const TicketListItem = ({ ticket, tasks, order, pending, ticketMutation }: Props
 						))}
 						<form
 							action={() => {
-								const newTask = { ...taskStub, summary: 'New Ticket' };
+								const newTask = { ...taskStub, summary: 'New Task' };
 
 								startTransition(async () => {
 									taskMutation({ newTask: { ...newTask, id: uuid() } as Task, pending: true });

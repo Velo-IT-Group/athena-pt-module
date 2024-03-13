@@ -13,6 +13,7 @@ import TicketListItem from './TicketListItem';
 import { PhaseState, TicketState } from '@/types/optimisticTypes';
 import { createTicket } from '@/lib/functions/create';
 import { deletePhase } from '@/lib/functions/delete';
+import { toast } from 'sonner';
 
 type Props = {
 	phase: Phase;
@@ -80,13 +81,16 @@ const PhaseListItem = ({ phase, tickets, order, pending, phaseMutation }: Props)
 
 	return (
 		<Collapsible className='border rounded-xl overflow-hidden'>
-			<div className='flex flex-row items-center gap-4 p-4 w-full bg-muted/50'>
+			<div className='flex flex-row items-center gap-4 p-4 w-full bg-muted/25'>
 				<Input
 					readOnly={pending}
 					onBlur={async (e) => {
 						if (e.currentTarget.value !== phase.description) {
 							console.log('updating phase');
 							await updatePhase(phase.id, { description: e.currentTarget.value });
+							toast('Phase has been updated.', {
+								description: Intl.DateTimeFormat('en-US', { dateStyle: 'medium' }).format(new Date()),
+							});
 						}
 					}}
 					className='border border-transparent hover:border-border hover:cursor-default rounded-lg shadow-none px-2 -mx-2 py-2 -my-2 min-w-60'
@@ -105,9 +109,10 @@ const PhaseListItem = ({ phase, tickets, order, pending, phaseMutation }: Props)
 					</DropdownMenuTrigger>
 					<DropdownMenuContent>
 						<DropdownMenuItem
-							onClick={async () => {
+							onClick={() => {
 								startTransition(async () => {
 									phaseMutation({ deletedPhase: phase.id, pending: true });
+									console.log('running delete function');
 									await deletePhase(phase.id);
 								});
 							}}
