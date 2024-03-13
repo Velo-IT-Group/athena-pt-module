@@ -1,6 +1,8 @@
 export type ProductState = {
-	newProduct?: Product;
-	updatedProduct?: Product;
+	newProduct?: NestedProduct;
+	newProducts?: NestedProduct[];
+	updatedProduct?: NestedProduct;
+	updatedProducts?: NestedProduct[];
 	deletedProduct?: string;
 	pending: boolean;
 };
