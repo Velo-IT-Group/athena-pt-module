@@ -1,6 +1,8 @@
 'use server';
+import { HOME_SORT_COOKIE } from '@/app/[org]/page';
 import { createClient } from '@/utils/supabase/server';
 import { revalidateTag } from 'next/cache';
+import { cookies } from 'next/headers';
 
 /**
  * Updates Product In Supabase.
@@ -121,5 +123,12 @@ export const updateOrganizationIntegration = async (id: string, orgIntegration: 
 	}
 
 	revalidateTag('organizations');
+	revalidateTag('proposals');
+};
+
+export const updateHomeSortCookie = (sort: string) => {
+	console.log('updating home cookie', sort);
+	const cookieStore = cookies();
+	cookieStore.set(HOME_SORT_COOKIE, sort);
 	revalidateTag('proposals');
 };
