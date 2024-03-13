@@ -1,21 +1,32 @@
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
+import { Dialog, DialogContent, DialogTrigger } from '@/components/ui/dialog';
 import { Label } from '@/components/ui/label';
 import { Separator } from '@/components/ui/separator';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { getProducts, getProposal, getTicket, getTicketNotes } from '@/lib/functions/read';
 import { relativeDate } from '@/utils/date';
 import { getCurrencyString } from '@/utils/money';
-import { ChatBubbleIcon, DotsHorizontalIcon, EnvelopeClosedIcon, GlobeIcon } from '@radix-ui/react-icons';
+import {
+	CalendarIcon,
+	ChatBubbleIcon,
+	DotsHorizontalIcon,
+	EnvelopeClosedIcon,
+	FileTextIcon,
+	GlobeIcon,
+	StopwatchIcon,
+	TextIcon,
+} from '@radix-ui/react-icons';
 import React from 'react';
+import ProductList from './product-list';
+import DatePicker from '@/components/DatePicker';
+import { Textarea } from '@/components/ui/textarea';
+import { Switch } from '@/components/ui/switch';
+import { HoverCard, HoverCardContent, HoverCardTrigger } from '@/components/ui/hover-card';
 
 type Props = {
 	params: { id: string };
 };
-
-function replaceWithBr(text: string) {
-	return text.replace(/\n/g, '<br />');
-}
 
 const ProposalPage = async ({ params }: Props) => {
 	const proposal = await getProposal(params.id);
@@ -36,158 +47,96 @@ const ProposalPage = async ({ params }: Props) => {
 	const totalPrice = laborTotal + productTotal;
 
 	return (
-		<div>
-			<div className='col-span-3 grow px-6 py-4 w-full grid justify-start grid-cols-3 gap-4  h-full'>
-				<Card>
-					<CardHeader className='flex-row items-center justify-between space-y-0'>
-						<CardTitle>Company</CardTitle>
-						<Button variant='ghost' size='icon'>
-							<DotsHorizontalIcon />
-						</Button>
-					</CardHeader>
-					<CardContent className='grid gap-2'>
-						<div className='grid grid-cols-3 items-center gap-4'>
-							<Label className='text-base'>Customer</Label>
-							<p>{ticket?.company?.name}</p>
+		<div className='grid grid-cols-12 flex-1'>
+			<div className='py-16 pl-12 pr-16 w-full col-span-9 space-y-16'>
+				<section className='space-y-4 w-1/2'>
+					<h2 className='text-xl font-semibold'>Customer</h2>
+					<div className='space-y-1'>
+						<Separator />
+						<div className='flex justify-between items-center w-full'>
+							<div>
+								<div className='font-medium text-sm'>{ticket?.contactName}</div>
+								<div className='text-sm text-muted-foreground'>{ticket?.contactEmailAddress}</div>
+								<HoverCard>
+									<HoverCardTrigger asChild>
+										<Button variant='link' size='sm' className='px-0 font-normal h-auto leading-5'>
+											Edit customer address
+										</Button>
+									</HoverCardTrigger>
+									<HoverCardContent></HoverCardContent>
+								</HoverCard>
+							</div>
+							<Dialog>
+								<DialogTrigger asChild>
+									<Button variant='ghost' size='icon'>
+										<DotsHorizontalIcon />
+									</Button>
+								</DialogTrigger>
+							</Dialog>
 						</div>
+						<Separator />
+					</div>
+				</section>
 
-						<div className='grid grid-cols-3 items-center gap-4'>
-							<Label className='text-base'>Contact</Label>
-							<p>{ticket?.contact?.name}</p>
+				<section className='space-y-4'>
+					<h2 className='text-xl font-semibold flex items-center justify-between gap-2'>
+						Products{' '}
+						<div className='font-normal text-sm flex items-center text-muted-foreground'>
+							<Switch className='mr-2' /> Collect tax automatically
 						</div>
+					</h2>
+					<div className='space-y-1'>
+						<Separator />
+						<ProductList products={products} />
+						<Separator />
+					</div>
+				</section>
 
-						<div className='grid grid-cols-3 items-center gap-4'>
-							<Label className='text-base'>Phone</Label>
-							<p>{ticket?.contact?.phone}</p>
-						</div>
+				<section className='space-y-4 w-1/2'>
+					<h2 className='text-xl font-semibold'>Expiration date</h2>
+					<div className='space-y-1'>
+						<DatePicker />
+					</div>
+				</section>
 
-						<div className='grid grid-cols-3 items-center gap-4'>
-							<Label className='text-base'>Email</Label>
-							<p>{ticket?.contact?.email}</p>
-						</div>
+				<section className='space-y-4 w-1/2'>
+					<h2 className='text-xl font-semibold'>Memo</h2>
+					<div className='space-y-1'>
+						<Textarea placeholder='Thanks for your business!' />
+					</div>
+				</section>
+			</div>
 
-						<div className='grid grid-cols-3 items-center gap-4'>
-							<Label className='text-base'>Website</Label>
-							<p>{ticket?.company?.website}</p>
-						</div>
-					</CardContent>
-				</Card>
-
-				<Card>
-					<CardHeader>
-						<CardTitle>Financial</CardTitle>
-					</CardHeader>
-					<CardContent className='grid gap-2'>
-						<div className='grid grid-cols-3 items-center gap-4'>
-							<Label className='text-base'>Total</Label>
-							<p>{getCurrencyString(totalPrice)}</p>
-						</div>
-
-						<div className='grid grid-cols-3 items-center gap-4'>
-							<Label className='text-base'>Subtotal</Label>
-							<p>{getCurrencyString(totalPrice)}</p>
-						</div>
-
-						<div className='grid grid-cols-3 items-center gap-4'>
-							<Label className='text-base'>Cost</Label>
-							<p>{getCurrencyString(productCost)}</p>
-						</div>
-
-						<div className='grid grid-cols-3 items-center gap-4'>
-							<Label className='text-base'>Recurring</Label>
-							<p>{getCurrencyString(recurringTotal)}</p>
-						</div>
-
-						<div className='grid grid-cols-3 items-center gap-4'>
-							<Label className='text-base'>Subtotal</Label>
-							<p>{getCurrencyString(recurringTotal)}</p>
-						</div>
-
-						<div className='grid grid-cols-3 items-center gap-4'>
-							<Label className='text-base'>Cost</Label>
-							<p>{getCurrencyString(recurringCost)}</p>
-						</div>
-					</CardContent>
-					<CardFooter className='grid grid-cols-3 items-center gap-4 mt-auto'>
-						<Label>Gross Profit</Label>
-						<p>{getCurrencyString(totalPrice - productCost)}</p>
-					</CardFooter>
-				</Card>
-
-				<div className='bg-muted/50 h-full p-2 space-y-4'>
-					<h2 className='text-lg font-medium'>Conversation</h2>
-					<Tabs defaultValue='all'>
-						<TabsList>
-							<TabsTrigger value='all'>All</TabsTrigger>
-							<TabsTrigger value='discussion'>Discussion</TabsTrigger>
-							<TabsTrigger value='internal'>Internal</TabsTrigger>
-							<TabsTrigger value='resolution'>Resolution</TabsTrigger>
-						</TabsList>
-						<TabsContent value='discussion' className='space-y-4'>
-							{notes
-								.filter((note) => note.detailDescriptionFlag)
-								.map((note) => (
-									<div key={note.id} className='border rounded-md p-4'>
-										<div className='flex items-center justify-between'></div>
-										{/* <div dangerouslySetInnerHTML={{ __html: note.text }} /> */}
-										<div className='whitespace-pre-line'>{note.text}</div>{' '}
-									</div>
-								))}
-						</TabsContent>
-						<TabsContent value='internal' className='space-y-4'>
-							{notes
-								.filter((note) => note.internalFlag)
-								.map((note) => (
-									<div key={note.id} className='border rounded-md p-4'>
-										<div className='flex items-center justify-between'></div>
-										{/* <div dangerouslySetInnerHTML={{ __html: note.text }} /> */}
-										<div className='whitespace-pre-line'>{note.text}</div>
-									</div>
-								))}
-						</TabsContent>
-						<TabsContent value='resolution' className='space-y-4'>
-							{notes
-								.filter((note) => note.resolutionFlag)
-								.map((note) => (
-									<div key={note.id} className='grid grid-cols-[20px_1fr] gap-4'>
-										<div className='flex flex-col justify-center'>
-											<GlobeIcon />
-											<Separator dir='vertical' />
-										</div>
-										{/* <div dangerouslySetInnerHTML={{ __html: note.text }} /> */}
-										<div className='whitespace-pre-line'>{note.text}</div>
-									</div>
-								))}
-						</TabsContent>
-						<TabsContent value='all' className='space-y-4'>
-							{notes.map((note, index) => (
-								<div key={note.id} className='grid grid-cols-[24px_1fr] gap-4 items-start justify-stretch'>
-									<div className='justify-self-stretch flex flex-col items-center overflow-hidden gap-2 h-full'>
-										{note.noteType === 'TicketNote' && <EnvelopeClosedIcon className='flex-shrink-0' />}
-										{note.noteType === 'TimeEntryNote' && (
-											<div className='bg-primary rounded-full p-1 text-primary-foreground flex-shrink-0 w-6 h-6'>
-												<ChatBubbleIcon className='w-4 h-4' />
-											</div>
-										)}
-										<Separator orientation='vertical' className='' />
-									</div>
-									<Card>
-										<CardHeader className='flex-row space-y-0 items-center w-full justify-between'>
-											{note.noteType === 'TicketNote' && <CardDescription>Discussion</CardDescription>}
-											{note.noteType === 'TimeEntryNote' && <CardDescription>Internal Note</CardDescription>}
-											<CardDescription className='text-xs'>{relativeDate(new Date(note._info.sortByDate))}</CardDescription>
-										</CardHeader>
-										<CardContent>
-											<span className='whitespace-pre-line flex-wrap'>{note.text}</span>
-										</CardContent>
-									</Card>
-									{/* <div dangerouslySetInnerHTML={{ __html: note.text }} /> */}
-									{/* <div className='whitespace-pre-line'>{note.text}</div> */}
-								</div>
-							))}
-						</TabsContent>
-					</Tabs>
+			<div className='border-l py-16 pl-12 pr-16 w-full col-span-3 space-y-16 bg-muted/50'>
+				<div className='space-y-2'>
+					<h2 className='text-xl font-semibold'>Summary</h2>
+					<p className='text-muted-foreground text-xs uppercase'>Quote exprires {relativeDate(new Date())}</p>
 				</div>
+
+				<section className='flex items-start gap-4'>
+					<FileTextIcon className='text-primary w-4 h-4' />
+					<div className='space-y-3'>
+						<h2 className='text-xs'>TOTAL AMOUNT</h2>
+						<p className='text-muted-foreground font-medium text-sm uppercase'>{getCurrencyString(productTotal)}</p>
+						<p className='text-muted-foreground text-xs'>Bills when quote is accepted</p>
+					</div>
+				</section>
+
+				<section className='flex items-start gap-4'>
+					<StopwatchIcon className='text-muted-foreground w-4 h-4' />
+					<div className='space-y-3'>
+						<h2 className='text-xs'>LABOR HOURS</h2>
+						<p className='text-muted-foreground font-medium text-sm'>{proposal.hours_required} hrs</p>
+					</div>
+				</section>
+
+				<section className='flex items-start gap-4'>
+					<CalendarIcon className='text-primary w-4 h-4' />
+					<div className='space-y-3'>
+						<h2 className='text-xs'>COMPLETION DATE</h2>
+						<p className='text-muted-foreground font-medium text-sm'>{new Intl.DateTimeFormat('en-US', { dateStyle: 'short' }).format(new Date())}</p>
+					</div>
+				</section>
 			</div>
 		</div>
 	);
