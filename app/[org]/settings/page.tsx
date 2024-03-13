@@ -10,6 +10,7 @@ import { Select, SelectContent, SelectGroup, SelectItem, SelectTrigger, SelectVa
 import OrganizationLayout from '../organization-layout';
 import OrganizationSettingsLayout from './organization-settings-layout';
 import Image from 'next/image';
+import { Switch } from '@/components/ui/switch';
 
 type Props = {
 	params: { org: string };
@@ -77,7 +78,7 @@ const OrganizationSettingsPage = async ({ params }: Props) => {
 					</form>
 				</Card>
 
-				<Card>
+				{/* <Card>
 					<form
 						action={async (data: FormData) => {
 							'use server';
@@ -100,7 +101,7 @@ const OrganizationSettingsPage = async ({ params }: Props) => {
 							<p className='text-sm text-muted-foreground'>Please use 48 characters at maximum.</p>
 						</CardFooter>
 					</form>
-				</Card>
+				</Card> */}
 
 				<Card>
 					<form
@@ -122,6 +123,7 @@ const OrganizationSettingsPage = async ({ params }: Props) => {
 								<Label htmlFor='labor_rate'>Labor Rate</Label>
 								<Input name='labor_rate' defaultValue={getCurrencyString(organization.labor_rate)} />
 							</div>
+
 							<div className='grid w-full items-center gap-1.5'>
 								<Label htmlFor='default_template'>Project Template</Label>
 								{/* @ts-ignore */}
@@ -142,6 +144,58 @@ const OrganizationSettingsPage = async ({ params }: Props) => {
 									</SelectContent>
 								</Select>
 							</div>
+
+							<div className='grid w-full items-center gap-1.5'>
+								<Label htmlFor='default_template'>Show Details</Label>
+								{/* @ts-ignore */}
+								<div className='grid grid-cols-3 gap-1.5'>
+									<div className='flex items-center gap-1.5'>
+										<Switch
+											formAction={async (e) => {
+												'use server';
+												const obj = organization.visibility_settings as object;
+												await updateOrganization(organization.id, {
+													visibility_settings: { ...obj, phases: e.get('phases') ? true : false },
+												});
+											}}
+											name='phases'
+											type='submit'
+											defaultChecked={organization.visibility_settings?.phases}
+										/>
+										Phases
+									</div>
+									<div className='flex items-center gap-1.5'>
+										<Switch
+											formAction={async (e) => {
+												'use server';
+												const obj = organization.visibility_settings as object;
+												await updateOrganization(organization.id, {
+													visibility_settings: { ...obj, tickets: e.get('tickets') ? true : false },
+												});
+											}}
+											name='tickets'
+											type='submit'
+											defaultChecked={organization.visibility_settings?.tickets}
+										/>
+										Tickets
+									</div>
+									<div className='flex items-center gap-1.5'>
+										<Switch
+											formAction={async (e) => {
+												'use server';
+												const obj = organization.visibility_settings as object;
+												await updateOrganization(organization.id, {
+													visibility_settings: { ...obj, tasks: e.get('tasks') ? true : false },
+												});
+											}}
+											name='tasks'
+											type='submit'
+											defaultChecked={organization.visibility_settings?.tasks}
+										/>
+										Tasks
+									</div>
+								</div>
+							</div>
 						</CardContent>
 						<CardFooter className='bg-muted/50 py-3'>
 							<SubmitButton className='ml-auto'>Save</SubmitButton>
@@ -149,7 +203,7 @@ const OrganizationSettingsPage = async ({ params }: Props) => {
 					</form>
 				</Card>
 
-				<Card>
+				{/* <Card>
 					<form
 						action={async (data: FormData) => {
 							'use server';
@@ -177,7 +231,7 @@ const OrganizationSettingsPage = async ({ params }: Props) => {
 							<SubmitButton className='ml-auto'>Save</SubmitButton>
 						</CardFooter>
 					</form>
-				</Card>
+				</Card> */}
 			</OrganizationSettingsLayout>
 		</OrganizationLayout>
 	);
