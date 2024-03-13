@@ -6,21 +6,22 @@ import React, { useEffect, useState } from 'react';
 import { useDebounce } from 'use-debounce';
 
 type Props = {
-	params: { org: string; id: string };
+	baseUrl: string;
+	placeholder: string;
 };
 
-const Search = ({ params }: Props) => {
+const Search = ({ baseUrl, placeholder }: Props) => {
 	const router = useRouter();
 	const [text, setText] = useState('');
 	const [query] = useDebounce(text, 500);
 
 	useEffect(() => {
 		if (!query) {
-			router.push(`/${params.org}/proposal/${params.id}/products`);
+			router.push(`${baseUrl}`);
 		} else {
-			router.push(`/${params.org}/proposal/${params.id}/products?search=${query}`);
+			router.push(`${baseUrl}?search=${query}`);
 		}
-	}, [query, router, params.id, params.org]);
+	}, [query, router, baseUrl]);
 
 	return (
 		<div
@@ -29,7 +30,7 @@ const Search = ({ params }: Props) => {
 		>
 			<MagnifyingGlassIcon className='mr-2 h-4 w-4 shrink-0 opacity-50' />
 			<Input
-				placeholder='Filter products...'
+				placeholder={placeholder}
 				value={text}
 				onChange={(event) => setText(event.target.value)}
 				className='border-0 shadow-none focus-visible:ring-0'
