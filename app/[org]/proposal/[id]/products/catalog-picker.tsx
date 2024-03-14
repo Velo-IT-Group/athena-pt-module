@@ -86,7 +86,7 @@ const CatalogPicker = ({ proposal, catalogItems, params, page, count, mutate }: 
 			<div className='flex-1 grid grid-cols-4 gap-4 flex-grow min-h-0'>
 				<div className='col-span-3 space-y-4'>
 					<div className='flex items-center'>
-						<Search baseUrl={`/${params.org}/proposals/${params.id}/products`} placeholder='Search products' />
+						<Search baseUrl={`/${params.org}/proposal/${params.id}/products`} placeholder='Search products' />
 					</div>
 
 					<DataTable table={table} />
