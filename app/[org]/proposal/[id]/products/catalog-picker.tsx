@@ -1,7 +1,7 @@
 'use client';
 import { Button } from '@/components/ui/button';
 import { DialogClose, DialogContent, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import React from 'react';
+import React, { useTransition } from 'react';
 import { catalogColumns } from './columns';
 import { CatalogItem } from '@/types/manage';
 import {
@@ -24,7 +24,8 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { convertToSnakeCase } from '@/utils/helpers';
 import { getCurrencyString } from '@/utils/money';
 import { useRouter } from 'next/navigation';
-import Search from './search';
+import Search from '@/components/Search';
+import { ProductState } from '@/types/optimisticTypes';
 
 type Props = {
 	proposal: string;
@@ -32,9 +33,11 @@ type Props = {
 	params: { org: string; id: string };
 	page: number;
 	count: number;
+	mutate: (action: ProductState) => void;
 };
 
-const CatalogPicker = ({ proposal, catalogItems, params, page, count }: Props) => {
+const CatalogPicker = ({ proposal, catalogItems, params, page, count, mutate }: Props) => {
+	const [isPending, startTransition] = useTransition();
 	const [sorting, setSorting] = React.useState<SortingState>([]);
 	const [expanded, setExpanded] = React.useState<ExpandedState>({});
 	const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([]);
@@ -44,7 +47,6 @@ const CatalogPicker = ({ proposal, catalogItems, params, page, count }: Props) =
 		pageIndex: page,
 		pageSize: 10,
 	});
-	const router = useRouter();
 
 	const table = useReactTable<CatalogItem>({
 		data: catalogItems,
@@ -77,15 +79,6 @@ const CatalogPicker = ({ proposal, catalogItems, params, page, count }: Props) =
 
 	return (
 		<DialogContent className='max-w-none w-w-padding h-w-padding flex flex-col space-y-3'>
-			{/* <DialogClose
-				onClick={() => {
-					router.back();
-				}}
-				className='className="absolute z-50 right-4 top-4 rounded-sm opacity-70 ring-offset-background transition-opacity hover:opacity-100 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:pointer-events-none data-[state=open]:bg-accent data-[state=open]:text-muted-foreground'
-			>
-				<Cross2Icon className='h-4 w-4' />
-			</DialogClose> */}
-
 			<DialogHeader>
 				<DialogTitle>Add Products</DialogTitle>
 			</DialogHeader>
@@ -93,7 +86,7 @@ const CatalogPicker = ({ proposal, catalogItems, params, page, count }: Props) =
 			<div className='flex-1 grid grid-cols-4 gap-4 flex-grow min-h-0'>
 				<div className='col-span-3 space-y-4'>
 					<div className='flex items-center'>
-						<Search params={params} />
+						<Search baseUrl={`/${params.org}/proposals/${params.id}/products`} placeholder='Search products' />
 					</div>
 
 					<DataTable table={table} />
@@ -147,8 +140,8 @@ const CatalogPicker = ({ proposal, catalogItems, params, page, count }: Props) =
 			<DialogFooter>
 				<SubmitButton
 					type='submit'
-					onClick={async () => {
-						const products: { product: any; bundledItems?: any[] }[] = table.getGroupedSelectedRowModel().rows.map((item) => {
+					onClick={() => {
+						const createdProducts: { product: any; bundledItems?: any[] }[] = table.getGroupedSelectedRowModel().rows.map((item) => {
 							const bundledItems = item.original?.bundledItems;
 							delete item.original.bundledItems;
 							return {
@@ -162,9 +155,13 @@ const CatalogPicker = ({ proposal, catalogItems, params, page, count }: Props) =
 								}),
 							};
 						});
-						console.log('bundledProducts', products);
-						await Promise.all(products.map((product) => createProduct(product.product, product?.bundledItems)));
-						// router.back();
+
+						startTransition(async () => {
+							mutate({ newProducts: createdProducts.map((p) => p.product as NestedProduct), pending: true });
+							// mutate({ newProducts: createdProducts.product, pending: true });
+							// @ts-ignore
+							await Promise.all(createdProducts.map((product) => createProduct(product.product, product?.bundledItems)));
+						});
 					}}
 				>
 					Add Items

@@ -1,5 +1,5 @@
 'use client';
-import React from 'react';
+import React, { useOptimistic } from 'react';
 import { columns } from './columns';
 
 import {
@@ -20,6 +20,7 @@ import { DataTable } from '@/components/ui/data-table';
 import { updateProduct } from '@/lib/functions/update';
 import { ProductsListToolbar } from './products-list-toolbar';
 import { Button } from '@/components/ui/button';
+import { v4 as uuid } from 'uuid';
 import {
 	DropdownMenu,
 	DropdownMenuContent,
@@ -29,7 +30,11 @@ import {
 	DropdownMenuSeparator,
 	DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { ChevronDownIcon } from '@radix-ui/react-icons';
+import { ChevronDownIcon, PlusCircledIcon } from '@radix-ui/react-icons';
+import { ProductState } from '@/types/optimisticTypes';
+import { Dialog, DialogTrigger } from '@/components/ui/dialog';
+import CatalogPicker from './catalog-picker';
+import { CatalogItem } from '@/types/manage';
 
 function useSkipper() {
 	const shouldSkipRef = React.useRef(true);
@@ -47,7 +52,16 @@ function useSkipper() {
 	return [shouldSkip, skip] as const;
 }
 
-const ProductsList = ({ data }: { data: NestedProduct[] }) => {
+type Props = {
+	products: NestedProduct[];
+	proposal: string;
+	catalogItems: CatalogItem[];
+	count: number;
+	page: number;
+	params: { org: string; id: string };
+};
+
+const ProductsList = ({ products, proposal, catalogItems, count, page, params }: Props) => {
 	const [sorting, setSorting] = React.useState<SortingState>([]);
 	const [expanded, setExpanded] = React.useState<ExpandedState>({});
 	const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([]);
@@ -58,8 +72,83 @@ const ProductsList = ({ data }: { data: NestedProduct[] }) => {
 	const rerender = React.useReducer(() => ({}), {})[1];
 	const [autoResetPageIndex, skipAutoResetPageIndex] = useSkipper();
 
+	const [state, mutate] = useOptimistic({ products, pending: false }, function createReducer(state, newState: ProductState) {
+		if (newState.newProduct) {
+			return {
+				products: [...state.products, newState.newProduct] as NestedProduct[],
+				pending: newState.pending,
+			};
+		} else if (newState.newProducts) {
+			return {
+				products: newState.newProducts as NestedProduct[],
+				pending: newState.pending,
+			};
+		} else if (newState.updatedProduct) {
+			return {
+				products: [...state.products.filter((f) => f.id !== newState.updatedProduct!.id), newState.updatedProduct] as NestedProduct[],
+				pending: newState.pending,
+			};
+		} else if (newState.updatedProducts) {
+			return {
+				products: newState.updatedProducts,
+				pending: newState.pending,
+			};
+		} else {
+			return {
+				products: [...state.products.filter((f) => f.unique_id !== newState.deletedProduct)] as NestedProduct[],
+				pending: newState.pending,
+			};
+		}
+	});
+
+	const productStub: NestedProduct = {
+		calculated_cost: null,
+		calculated_cost_flag: null,
+		calculated_price: null,
+		calculated_price_flag: null,
+		catalog_item: null,
+		category: null,
+		cost: null,
+		customer_description: null,
+		description: null,
+		drop_ship_flag: null,
+		hide_description_flag: null,
+		hide_extended_price_flag: null,
+		hide_item_identifier_flag: null,
+		hide_price_flag: null,
+		hide_quantity_flag: null,
+		id: null,
+		identifier: null,
+		inactive_flag: null,
+		manufacturer: null,
+		manufacturer_part_number: null,
+		parent: null,
+		parent_catalog_item: null,
+		phase_product_flag: null,
+		price: null,
+		product_class: null,
+		proposal: null,
+		quantity: null,
+		recurring_bill_cycle: null,
+		recurring_cost: null,
+		recurring_cycle_type: null,
+		recurring_flag: null,
+		recurring_one_time_flag: null,
+		recurring_revenue: null,
+		sequence_number: null,
+		serialized_cost_flag: null,
+		serialized_flag: null,
+		special_order_flag: null,
+		subcategory: null,
+		taxable_flag: null,
+		type: null,
+		unique_id: uuid(),
+		unit_of_measure: null,
+		vendor: null,
+	};
+
 	const table = useReactTable<NestedProduct>({
-		data,
+		data: state.products,
 		columns,
 		enableRowSelection: true,
 		onRowSelectionChange: setRowSelection,
@@ -90,6 +179,22 @@ const ProductsList = ({ data }: { data: NestedProduct[] }) => {
 
 	return (
 		<>
+			<div className='w-full space-y-4'>
+				<div className='flex items-center justify-between'>
+					<div className='flex gap-4 items-center'>
+						<h1 className='text-2xl font-medium leading-none'>Products</h1>
+						<p className='text-muted-foreground text-xs'>1 of 1 packages</p>
+					</div>
+					<Dialog>
+						<DialogTrigger asChild>
+							<Button variant='secondary' size='sm'>
+								<PlusCircledIcon className='h-4 w-4 mr-2' /> Add Product
+							</Button>
+						</DialogTrigger>
+						<CatalogPicker proposal={proposal} catalogItems={catalogItems} count={count} page={page} params={params} mutate={mutate} />
+					</Dialog>
+				</div>
+			</div>
 			<div className='space-y-4 grow'>
 				<ProductsListToolbar table={table} />
 				<DataTable table={table} />
