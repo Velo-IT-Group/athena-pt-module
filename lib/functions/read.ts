@@ -18,7 +18,7 @@ import { unstable_cache } from 'next/cache';
 import { redirect } from 'next/navigation';
 
 const catalogItemFields =
-	'calculatedCostFlag,calculatedPriceFlag,calculatedPrice,manufacturerPartNumber,calculatedCost,category,cost,customerDescription,parentCatalogItem,description,dropShipFlag,id,identifier,inactiveFlag,manufacturer,phaseProductFlag,price,productClass,proposal,recurringBillCycle,recurringCost,recurringCycleType,recurringFlag,recurringOneTimeFlag,recurringRevenue,serializedCostFlag,serializedFlag,specialOrderFlag,subcategory,taxableFlag,type,uniqueId,unitOfMeasure,vendor';
+	'calculatedCostFlag,calculatedPriceFlag,calculatedPrice,manufacturerPartNumber,calculatedCost,category/name,cost,customerDescription,parentCatalogItem,description,dropShipFlag,id,identifier,inactiveFlag,manufacturer/name,phaseProductFlag,price,productClass,proposal,recurringBillCycle,recurringCost,recurringCycleType,recurringFlag,recurringOneTimeFlag,recurringRevenue,serializedCostFlag,serializedFlag,specialOrderFlag,subcategory/name,taxableFlag,type,uniqueId,unitOfMeasure/id,vendor/name';
 
 const catalogComponentFields =
 	'catalogItem,cost,hideDescriptionFlag,hideExtendedPriceFlag,hideItemIdentifierFlag,hidePriceFlag,hideQuantityFlag,id,parentCatalogItem,price,quantity,sequenceNumber';
@@ -157,7 +157,7 @@ export const getCatalogItems = unstable_cache(
 
 			const countResponse: AxiosResponse<{ count: number }, Error> = await axios.request(config);
 			const bundles = response.data.filter((item) => item.productClass === 'Bundle');
-			const [bItems] = await Promise.all(bundles.map((b) => getCatalogItemComponents(b.id)));
+			const bItems = (await Promise.all(bundles.map((b) => getCatalogItemComponents(b.id)))).flat();
 
 			const mappedData = response.data.map((item) => {
 				return {
@@ -187,6 +187,8 @@ export const getCatalogItemComponents = async (id: number) => {
 
 	try {
 		const response: AxiosResponse<CatalogComponent[], Error> = await axios.request(config);
+
+		if (!response.data.length) return;
 
 		config = {
 			...baseConfig,
