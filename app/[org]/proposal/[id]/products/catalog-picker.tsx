@@ -138,34 +138,36 @@ const CatalogPicker = ({ proposal, catalogItems, params, page, count, mutate }: 
 			</div>
 
 			<DialogFooter>
-				<SubmitButton
-					type='submit'
-					onClick={() => {
-						const createdProducts: { product: any; bundledItems?: any[] }[] = table.getGroupedSelectedRowModel().rows.map((item) => {
-							const bundledItems = item.original?.bundledItems;
-							delete item.original.bundledItems;
-							return {
-								// @ts-ignore
-								product: { ...convertToSnakeCase(item.original), proposal },
-								bundledItems: bundledItems?.map((p) => {
+				<DialogClose asChild>
+					<SubmitButton
+						type='submit'
+						onClick={() => {
+							const createdProducts: { product: any; bundledItems?: any[] }[] = table.getGroupedSelectedRowModel().rows.map((item) => {
+								const bundledItems = item.original?.bundledItems;
+								delete item.original.bundledItems;
+								return {
 									// @ts-ignore
-									delete p['_info'];
-									// @ts-ignore
-									return { ...convertToSnakeCase(p), proposal };
-								}),
-							};
-						});
+									product: { ...convertToSnakeCase(item.original), proposal },
+									bundledItems: bundledItems?.map((p) => {
+										// @ts-ignore
+										delete p['_info'];
+										// @ts-ignore
+										return { ...convertToSnakeCase(p), proposal };
+									}),
+								};
+							});
 
-						startTransition(async () => {
-							mutate({ newProducts: createdProducts.map((p) => p.product as NestedProduct), pending: true });
-							// mutate({ newProducts: createdProducts.product, pending: true });
-							// @ts-ignore
-							await Promise.all(createdProducts.map((product) => createProduct(product.product, product?.bundledItems)));
-						});
-					}}
-				>
-					Add Items
-				</SubmitButton>
+							startTransition(async () => {
+								mutate({ newProducts: createdProducts.map((p) => p.product as NestedProduct), pending: true });
+								// mutate({ newProducts: createdProducts.product, pending: true });
+								// @ts-ignore
+								await Promise.all(createdProducts.map((product) => createProduct(product.product, product?.bundledItems)));
+							});
+						}}
+					>
+						Add Items
+					</SubmitButton>
+				</DialogClose>
 			</DialogFooter>
 		</DialogContent>
 	);
