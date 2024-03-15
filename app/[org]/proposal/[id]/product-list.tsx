@@ -66,7 +66,7 @@ const ProductList = ({ products }: { products: Product[] }) => {
 							</Button>
 						</DropdownMenuTrigger>
 						<DropdownMenuContent align='end'>
-							<DropdownMenuItem className='text-red-500'>Remove product</DropdownMenuItem>
+							<DropdownMenuItem>Remove product</DropdownMenuItem>
 						</DropdownMenuContent>
 					</DropdownMenu>
 				);

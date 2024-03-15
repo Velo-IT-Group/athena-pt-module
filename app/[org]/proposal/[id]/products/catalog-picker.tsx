@@ -1,4 +1,5 @@
 'use client';
+
 import { Button } from '@/components/ui/button';
 import { DialogClose, DialogContent, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import React, { useTransition } from 'react';
@@ -17,13 +18,11 @@ import {
 	useReactTable,
 } from '@tanstack/react-table';
 import { DataTable } from '@/components/ui/data-table';
-import { Cross2Icon } from '@radix-ui/react-icons';
 import SubmitButton from '@/components/SubmitButton';
 import { createProduct } from '@/lib/functions/create';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { convertToSnakeCase } from '@/utils/helpers';
 import { getCurrencyString } from '@/utils/money';
-import { useRouter } from 'next/navigation';
 import Search from '@/components/Search';
 import { ProductState } from '@/types/optimisticTypes';
 
@@ -48,6 +47,26 @@ const CatalogPicker = ({ proposal, catalogItems, params, page, count, mutate }: 
 		pageSize: 10,
 	});
 
+	// const productInsert = (product: CatalogItem) => {
+	// 	// @ts-ignore
+	// 	const newProduct: ProductInsert = { ...convertToSnakeCase(product), proposal };
+	// 	// @ts-ignore
+	// 	delete newProduct['bundled_items'];
+	// 	startTransition(async () => {
+	// 		console.log(newProduct);
+	// 		// @ts-ignore
+	// 		mutate({ newProduct, pending: true });
+	// 		// await createProduct(
+	// 		// 	// @ts-ignore
+	// 		// 	newProduct,
+	// 		// 	// @ts-ignore
+	// 		// 	product.bundledItems?.map((p) => {
+	// 		// 		return { ...convertToSnakeCase(p), proposal };
+	// 		// 	})
+	// 		// );
+	// 	});
+	// };
+
 	const table = useReactTable<CatalogItem>({
 		data: catalogItems,
 		columns: catalogColumns,
@@ -63,6 +82,9 @@ const CatalogPicker = ({ proposal, catalogItems, params, page, count, mutate }: 
 		onRowSelectionChange: setRowSelection,
 		enableExpanding: true,
 		getSubRows: (row) => row.bundledItems,
+		meta: {
+			mutate,
+		},
 		onPaginationChange: setPagination,
 		manualPagination: true,
 		getRowId: (row) => row.id.toString(),
@@ -74,7 +96,6 @@ const CatalogPicker = ({ proposal, catalogItems, params, page, count, mutate }: 
 			expanded,
 			pagination,
 		},
-		debugTable: true,
 	});
 
 	return (

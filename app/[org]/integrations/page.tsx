@@ -1,16 +1,23 @@
 import { getIntegrations, getOrganization } from '@/lib/functions/read';
 import React from 'react';
 import OrganizationLayout from '../organization-layout';
-import OrganizationSettingsLayout from '../settings/organization-settings-layout';
 import IntegrationCard from '@/components/IntegrationCard';
 import { Button } from '@/components/ui/button';
 import Link from 'next/link';
 
 const IntegrationsPage = async ({ params }: { params: { org: string } }) => {
 	const organization = await getOrganization();
-	const integrations = await getIntegrations();
+	const integrationsData = await getIntegrations();
 
-	console.log(integrations);
+	const sectionedIntegrations = integrationsData.reduce((r, a) => {
+		if (a.type === null) {
+		}
+		r[a.type] = r[a.type] || [];
+		r[a.type].push(a);
+		return r;
+	}, Object.create(null));
+
+	console.log(sectionedIntegrations);
 
 	return (
 		<OrganizationLayout org={params.org}>
@@ -30,19 +37,37 @@ const IntegrationsPage = async ({ params }: { params: { org: string } }) => {
 				</div>
 
 				<div className='space-y-4 w-full overflow-y-auto'>
-					<section className='space-y-4'>
-						<h2 className='text-lg font-medium'>Resellers</h2>
-						<div className='grid grid-cols-3 gap-4'>
-							{integrations?.map((integration) => (
-								<IntegrationCard
-									key={integration.id}
-									integrations={organization?.organization_integrations ?? []}
-									integration={integration}
-									organization={params.org}
-								/>
-							))}
-						</div>
-					</section>
+					{/* {Object.entries(sectionedIntegrations).map([key, value]) => (
+						<section key={name} className='space-y-4'>
+							<h2 className='text-lg font-medium'>Resellers</h2>
+							<div className='grid grid-cols-3 gap-4'>
+								{integrations?.map((integration) => (
+									<IntegrationCard
+										key={integration.id}
+										integrations={organization?.organization_integrations ?? []}
+										integration={integration}
+										organization={params.org}
+									/>
+								))}
+							</div>
+						</section>
+					))} */}
+					{Object.entries(sectionedIntegrations).map(([key, integrations]) => (
+						<section key={key} className='space-y-4'>
+							<h2 className='text-lg font-medium capitalize'>{key}</h2>
+							<div className='grid grid-cols-3 gap-4'>
+								{/* @ts-ignore */}
+								{integrations?.map((integration: Integration) => (
+									<IntegrationCard
+										key={integration.id}
+										integrations={organization?.organization_integrations ?? []}
+										integration={integration}
+										organization={params.org}
+									/>
+								))}
+							</div>
+						</section>
+					))}
 				</div>
 			</div>
 		</OrganizationLayout>

@@ -3,7 +3,6 @@ import React from 'react';
 import { DataTableColumnHeader } from '@/components/ui/DataTableColumnHeader';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
-import { Input } from '@/components/ui/input';
 import { CatalogItem } from '@/types/manage';
 import { getCurrencyString } from '@/utils/money';
 import { ChevronDownIcon, ChevronRightIcon, DotsHorizontalIcon, Pencil2Icon, TrashIcon } from '@radix-ui/react-icons';
@@ -26,10 +25,14 @@ import {
 	AlertDialogTrigger,
 } from '@/components/ui/alert-dialog';
 import { deleteProduct } from '@/lib/functions/delete';
+import { convertToSnakeCase } from '@/utils/helpers';
+import { ProductState } from '@/types/optimisticTypes';
 
 declare module '@tanstack/react-table' {
 	interface TableMeta<TData extends RowData> {
-		updateProduct: typeof updateProduct;
+		updateProduct?: typeof updateProduct;
+		productInsert?: (product: CatalogItem) => void;
+		mutate?: (action: ProductState) => void;
 	}
 }
 
@@ -219,7 +222,35 @@ export const catalogColumns: ColumnDef<CatalogItem>[] = [
 				aria-label='Select all'
 			/>
 		),
-		cell: ({ row }) => <Checkbox checked={row.getIsSelected()} onCheckedChange={(value) => row.toggleSelected(!!value)} aria-label='Select row' />,
+		cell: ({ row, table }) => (
+			<Checkbox
+				checked={row.getIsSelected()}
+				onCheckedChange={(value) => {
+					row.toggleSelected(!!value);
+					if (value) {
+						// @ts-ignore
+						// @ts-ignore
+						const newProduct: ProductInsert = { ...convertToSnakeCase(row.original) };
+						// @ts-ignore
+						delete newProduct['bundled_items'];
+						console.log(newProduct);
+						// @ts-ignore
+						table.options?.meta?.mutate({ newProduct, pending: true });
+						// await createProduct(
+						// 	// @ts-ignore
+						// 	newProduct,
+						// 	// @ts-ignore
+						// 	product.bundledItems?.map((p) => {
+						// 		return { ...convertToSnakeCase(p), proposal };
+						// 	})
+						// );
+						// table.options?.meta?.productInsert(row.original);
+					} else {
+					}
+				}}
+				aria-label='Select row'
+			/>
+		),
 		enableSorting: false,
 		enableHiding: false,
 	},

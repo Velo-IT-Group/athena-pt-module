@@ -3,6 +3,41 @@ export type Json = string | number | boolean | null | { [key: string]: Json | un
 export type Database = {
 	public: {
 		Tables: {
+			activity_log: {
+				Row: {
+					event_timestamp: string;
+					event_type: string | null;
+					id: number;
+					row_data: Json | null;
+					table_name: string | null;
+					user: string | null;
+				};
+				Insert: {
+					event_timestamp?: string;
+					event_type?: string | null;
+					id?: number;
+					row_data?: Json | null;
+					table_name?: string | null;
+					user?: string | null;
+				};
+				Update: {
+					event_timestamp?: string;
+					event_type?: string | null;
+					id?: number;
+					row_data?: Json | null;
+					table_name?: string | null;
+					user?: string | null;
+				};
+				Relationships: [
+					{
+						foreignKeyName: 'public_activity_log_user_fkey';
+						columns: ['user'];
+						isOneToOne: false;
+						referencedRelation: 'profiles';
+						referencedColumns: ['id'];
+					}
+				];
+			};
 			integrations: {
 				Row: {
 					auth_type: Database['public']['Enums']['auth_type'] | null;
@@ -183,7 +218,7 @@ export type Database = {
 					product_class: string | null;
 					proposal: string | null;
 					quantity: number | null;
-					recurring_bill_cycle: string | null;
+					recurring_bill_cycle: number | null;
 					recurring_cost: number | null;
 					recurring_cycle_type: string | null;
 					recurring_flag: boolean | null;
@@ -228,7 +263,7 @@ export type Database = {
 					product_class?: string | null;
 					proposal?: string | null;
 					quantity?: number | null;
-					recurring_bill_cycle?: string | null;
+					recurring_bill_cycle?: number | null;
 					recurring_cost?: number | null;
 					recurring_cycle_type?: string | null;
 					recurring_flag?: boolean | null;
@@ -273,7 +308,7 @@ export type Database = {
 					product_class?: string | null;
 					proposal?: string | null;
 					quantity?: number | null;
-					recurring_bill_cycle?: string | null;
+					recurring_bill_cycle?: number | null;
 					recurring_cost?: number | null;
 					recurring_cycle_type?: string | null;
 					recurring_flag?: boolean | null;
@@ -356,6 +391,7 @@ export type Database = {
 				Row: {
 					company_name: string | null;
 					created_at: string;
+					expiration_date: string | null;
 					hours_required: number | null;
 					id: string;
 					labor_hours: number;
@@ -374,6 +410,7 @@ export type Database = {
 				Insert: {
 					company_name?: string | null;
 					created_at?: string;
+					expiration_date?: string | null;
 					hours_required?: number | null;
 					id?: string;
 					labor_hours?: number;
@@ -392,6 +429,7 @@ export type Database = {
 				Update: {
 					company_name?: string | null;
 					created_at?: string;
+					expiration_date?: string | null;
 					hours_required?: number | null;
 					id?: string;
 					labor_hours?: number;
@@ -568,6 +606,13 @@ export type Database = {
 				};
 				Returns: boolean;
 			};
+			jsonb_diff_val: {
+				Args: {
+					val1: Json;
+					val2: Json;
+				};
+				Returns: Json;
+			};
 			slugify: {
 				Args: {
 					value: string;
@@ -589,7 +634,7 @@ export type Database = {
 		};
 		Enums: {
 			auth_type: 'OAuth2';
-			integration_type: 'reseller' | 'distribution';
+			integration_type: 'reseller' | 'distribution' | 'email';
 		};
 		CompositeTypes: {
 			[_ in never]: never;

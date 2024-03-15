@@ -1,5 +1,5 @@
 'use client';
-import React, { useOptimistic } from 'react';
+import React, { useOptimistic, useTransition } from 'react';
 import { columns } from './columns';
 
 import {
@@ -18,6 +18,7 @@ import {
 } from '@tanstack/react-table';
 import { DataTable } from '@/components/ui/data-table';
 import { updateProduct } from '@/lib/functions/update';
+import { createProduct } from '@/lib/functions/create';
 import { ProductsListToolbar } from './products-list-toolbar';
 import { Button } from '@/components/ui/button';
 import { v4 as uuid } from 'uuid';
@@ -62,6 +63,7 @@ type Props = {
 };
 
 const ProductsList = ({ products, proposal, catalogItems, count, page, params }: Props) => {
+	const [pending, startTransition] = useTransition();
 	const [sorting, setSorting] = React.useState<SortingState>([]);
 	const [expanded, setExpanded] = React.useState<ExpandedState>({});
 	const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([]);
@@ -147,6 +149,10 @@ const ProductsList = ({ products, proposal, catalogItems, count, page, params }:
 		vendor: null,
 	};
 
+	// const productDeletion = () => {
+
+	// }
+
 	const table = useReactTable<NestedProduct>({
 		data: state.products,
 		columns,
@@ -163,6 +169,7 @@ const ProductsList = ({ products, proposal, catalogItems, count, page, params }:
 		getFacetedUniqueValues: getFacetedUniqueValues(),
 		getExpandedRowModel: getExpandedRowModel(),
 		autoResetPageIndex,
+		getRowId: (row) => row.unique_id,
 		getSubRows: (row) => row.products,
 		meta: {
 			updateProduct,
@@ -174,7 +181,6 @@ const ProductsList = ({ products, proposal, catalogItems, count, page, params }:
 			expanded,
 			rowSelection,
 		},
-		debugTable: true,
 	});
 
 	return (

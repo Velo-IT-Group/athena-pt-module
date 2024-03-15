@@ -39,7 +39,7 @@ export function ProductsListToolbar<TData>({ table }: ProductsListToolbarProps<T
 					className='h-8 w-[150px] lg:w-[250px]'
 				/>
 				<DataTableFacetedFilter column={table.getColumn('category')} title='Category' options={categories} />
-				<DataTableFacetedFilter column={table.getColumn('subcategory')} title='Sub Categories' options={subCategories} />
+				{/* <DataTableFacetedFilter column={table.getColumn('subcategory')} title='Sub Categories' options={subCategories} /> */}
 				{isFiltered && (
 					<Button variant='ghost' onClick={() => table.resetColumnFilters()} className='h-8 px-2 lg:px-3'>
 						Reset

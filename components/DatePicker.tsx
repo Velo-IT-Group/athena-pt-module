@@ -9,9 +9,12 @@ import { Calendar } from '@/components/ui/calendar';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { CalendarIcon } from '@radix-ui/react-icons';
 
-const DatePicker = () => {
-	const [date, setDate] = React.useState<Date>();
+type Props = {
+	date?: Date | null;
+	setDate: (date: Date) => void;
+};
 
+const DatePicker = ({ date, setDate }: Props) => {
 	return (
 		<Popover>
 			<PopoverTrigger asChild>
@@ -21,7 +24,7 @@ const DatePicker = () => {
 				</Button>
 			</PopoverTrigger>
 			<PopoverContent className='w-auto p-0'>
-				<Calendar mode='single' selected={date} onSelect={setDate} initialFocus />
+				<Calendar mode='single' selected={date ?? new Date()} onSelect={(e) => (e ? setDate(e) : undefined)} initialFocus />
 			</PopoverContent>
 		</Popover>
 	);

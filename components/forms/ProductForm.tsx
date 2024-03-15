@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { z } from 'zod';
-import { reduce, isEqual } from 'lodash';
+import { reduce, isEqual, isArray, isObject, transform } from 'lodash';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm } from 'react-hook-form';
 import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
@@ -71,18 +71,21 @@ const productFormSchema = z.object<ProductUpdate>({
 	unique_id: z.string(),
 	unit_of_measure: z.nullable(z.string()),
 	vendor: z.nullable(z.string()),
+	products: z.array(z.nullable(z.string())),
 });
 
-function getObjectDiff(obj1: object, obj2: object) {
-	let diff = Object.keys(obj2).reduce((diff, key) => {
-		if (obj1[key] === obj2[key]) return diff;
-		return {
-			...diff,
-			[key]: obj2[key],
-		};
-	}, {});
+function differenceInObj<T extends Record<keyof T, any>>(old: T, newObj: T): T {
+	// @ts-ignore
+	let differenceObj: Record<keyof T, any> = {};
+	for (const key in old) {
+		if (Object.prototype.hasOwnProperty.call(old, key)) {
+			if (old[key] !== newObj[key]) {
+				differenceObj[key as keyof T] = newObj[key];
+			}
+		}
+	}
 
-	return diff;
+	return differenceObj;
 }
 
 const ProductForm = ({ product }: { product: Product }) => {
@@ -98,25 +101,17 @@ const ProductForm = ({ product }: { product: Product }) => {
 
 	// 2. Define a submit handler.
 	async function onSubmit(values: z.infer<typeof productFormSchema>) {
-		console.log(isEqual(values, form.formState.defaultValues));
-		console.log(values, product);
-		const updatedProduct = reduce(
-			product,
-			(result, value, key) => {
-				// @ts-ignore
-				return isEqual(value, values[key]) ? result : result.concat(key);
-			},
-			[]
-		);
+		const difference = differenceInObj(product, values);
+		// @ts-ignore
+		delete difference['products'];
 
-		updatedProduct.forEach((p) => console.log(product[p]));
+		console.log(difference);
 
 		//@ts-ignore
 		// delete values['extended_price'];
 		// @ts-ignore
-		await updateProduct(product.unique_id ?? '', values);
+		await updateProduct(product.unique_id ?? '', difference);
 	}
-	console.log(product);
 
 	return (
 		<SheetContent className='max-w-none sm:max-w-none w-[700px] space-y-4 flex-1 flex flex-col overflow-hidden'>

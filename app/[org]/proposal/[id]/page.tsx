@@ -23,6 +23,7 @@ import DatePicker from '@/components/DatePicker';
 import { Textarea } from '@/components/ui/textarea';
 import { Switch } from '@/components/ui/switch';
 import { HoverCard, HoverCardContent, HoverCardTrigger } from '@/components/ui/hover-card';
+import ExpirationDatePicker from './expiration-date-picker';
 
 type Props = {
 	params: { id: string };
@@ -95,7 +96,7 @@ const ProposalPage = async ({ params }: Props) => {
 				<section className='space-y-4 w-1/2'>
 					<h2 className='text-xl font-semibold'>Expiration date</h2>
 					<div className='space-y-1'>
-						<DatePicker />
+						<ExpirationDatePicker id={params.id} expiration_date={proposal.expiration_date} />
 					</div>
 				</section>
 
@@ -134,7 +135,11 @@ const ProposalPage = async ({ params }: Props) => {
 					<CalendarIcon className='text-primary w-4 h-4' />
 					<div className='space-y-3'>
 						<h2 className='text-xs'>COMPLETION DATE</h2>
-						<p className='text-muted-foreground font-medium text-sm'>{new Intl.DateTimeFormat('en-US', { dateStyle: 'short' }).format(new Date())}</p>
+						<p className='text-muted-foreground font-medium text-sm'>
+							{new Intl.DateTimeFormat('en-US', { dateStyle: 'short' }).format(
+								proposal.expiration_date ? new Date(proposal.expiration_date) : new Date()
+							)}
+						</p>
 					</div>
 				</section>
 			</div>
