@@ -17,7 +17,6 @@ import {
 } from '@/components/ui/dropdown-menu';
 import React, { useTransition } from 'react';
 import { Button } from '@/components/ui/button';
-import { handleTicketDelete } from '@/app/actions';
 import { Badge } from '@/components/ui/badge';
 import CornerDownRightIcon from '@/components/icons/CornerDownRightIcon';
 import { Input } from '@/components/ui/input';

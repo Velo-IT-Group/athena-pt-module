@@ -15,6 +15,8 @@ import OrganizationLayout from './organization-layout';
 import { cookies } from 'next/headers';
 import SortSelector from './sort-selector';
 import Search from '@/components/Search';
+import ProposalOptions from './proposal-options';
+import { ProposalCard } from './proposal-card';
 
 export const HOME_SORT_COOKIE = 'homeSort';
 
@@ -58,47 +60,37 @@ const OverviewPage = async ({ params, searchParams }: Props) => {
 
 				<div className='grid gap-4' style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(350px, 1fr))' }}>
 					{proposals.map((proposal) => (
-						<Card key={proposal.id} className='flex flex-col justify-stretch h-full'>
-							<CardHeader className='flex-row items-start justify-between -space-y-2'>
-								<div>
-									<Link href={`${params.org}/proposal/${proposal.id}`}>
-										<CardTitle className='text-sm hover:underline'>{proposal.name}</CardTitle>
-									</Link>
-									<Link href={`/review/${proposal.id}`}>
-										<CardDescription className='line-clamp-1 hover:underline'>localhost:3000/review/{proposal.id}</CardDescription>
-									</Link>
-								</div>
-								<DropdownMenu>
-									<DropdownMenuTrigger asChild>
-										<Button variant='ghost' size='sm'>
-											<DotsHorizontalIcon className='w-4 h-4' />
-										</Button>
-									</DropdownMenuTrigger>
-									<DropdownMenuContent>
-										<DropdownMenuItem>Add To Favorites</DropdownMenuItem>
-										<DropdownMenuItem>Settings</DropdownMenuItem>
-										<DropdownMenuSeparator />
-										<DropdownMenuItem>Duplicate</DropdownMenuItem>
-										<DropdownMenuSeparator />
-										<DropdownMenuItem className='text-red-600'>Delete</DropdownMenuItem>
-									</DropdownMenuContent>
-								</DropdownMenu>
-							</CardHeader>
-							<CardContent className='grid grid-cols-2 gap-2'>
-								<div className='grid w-full max-w-sm items-center gap-1.5'>
-									<Label>Company</Label>
-									<p className='text-sm text-muted-foreground'>{proposal?.company_name ?? 'Company Name'}</p>
-								</div>
-								<div className='grid w-full max-w-sm items-center gap-1.5'>
-									<Label>Total</Label>
-									<p className='text-sm text-muted-foreground'>{getCurrencyString(proposal.total_labor_price)}</p>
-								</div>
-							</CardContent>
-							<CardFooter className='mt-auto'>
-								<CalendarIcon className='h-3 w-3 mr-2' />
-								<p className='text-sm text-muted-foreground'>{relativeDate(new Date(proposal.updated_at))}</p>
-							</CardFooter>
-						</Card>
+						<ProposalCard key={proposal.id} proposal={proposal} orgId={params.org} />
+						// <Card key={proposal.id} className='flex flex-col justify-stretch h-full'>
+						// 	<CardHeader className='flex-row items-start justify-between -space-y-2'>
+						// 		<div>
+						// 			<Link href={`${params.org}/proposal/${proposal.id}`}>
+						// 				<CardTitle className='text-sm hover:underline'>{proposal.name}</CardTitle>
+						// 			</Link>
+						// 			<Link href={`/review/${proposal.id}`}>
+						// 				<CardDescription className='line-clamp-1 hover:underline'>localhost:3000/review/{proposal.id}</CardDescription>
+						// 			</Link>
+						// 		</div>
+						// 		<ProposalOptions proposalId={proposal.id} orgId={params.org} />
+						// 	</CardHeader>
+						// 	<CardContent className='grid grid-cols-2 gap-2'>
+						// 		<div className='grid w-full max-w-sm items-center gap-1.5'>
+						// 			<Label>Company</Label>
+						// 			<p className='text-sm text-muted-foreground'>{proposal?.company_name ?? 'Company Name'}</p>
+						// 		</div>
+						// 		<div className='grid w-full max-w-sm items-center gap-1.5'>
+						// 			<Label>Total</Label>
+						// 			<p className='text-sm text-muted-foreground'>{getCurrencyString(proposal.total_labor_price)}</p>
+						// 		</div>
+						// 	</CardContent>
+						// 	<CardFooter className='mt-auto'>
+						// 		<Button variant='secondary' size='sm' className='w-full' asChild>
+						// 			<Link href={`${params.org}/proposal/${proposal.id}`}>View</Link>
+						// 		</Button>
+						// 		{/* <CalendarIcon className='h-3 w-3 mr-2' />
+						// 		<p className='text-sm text-muted-foreground'>{relativeDate(new Date(proposal.updated_at))}</p> */}
+						// 	</CardFooter>
+						// </Card>
 					))}
 				</div>
 			</div>

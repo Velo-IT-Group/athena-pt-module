@@ -2,29 +2,16 @@
 
 import { Button } from '@/components/ui/button';
 import { DialogClose, DialogContent, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import React, { useTransition } from 'react';
+import React, { useCallback, useEffect, useTransition } from 'react';
 import { catalogColumns } from './columns';
 import { CatalogItem } from '@/types/manage';
-import {
-	ColumnFiltersState,
-	ExpandedState,
-	PaginationState,
-	SortingState,
-	VisibilityState,
-	getCoreRowModel,
-	getExpandedRowModel,
-	getFilteredRowModel,
-	getSortedRowModel,
-	useReactTable,
-} from '@tanstack/react-table';
+import { ExpandedState, getCoreRowModel, getExpandedRowModel, useReactTable } from '@tanstack/react-table';
 import { DataTable } from '@/components/ui/data-table';
-import SubmitButton from '@/components/SubmitButton';
 import { createProduct } from '@/lib/functions/create';
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
-import { convertToSnakeCase } from '@/utils/helpers';
-import { getCurrencyString } from '@/utils/money';
 import Search from '@/components/Search';
 import { ProductState } from '@/types/optimisticTypes';
+import { usePagination } from '@/app/hooks/usePagination';
+import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 
 type Props = {
 	proposal: string;
@@ -33,65 +20,52 @@ type Props = {
 	page: number;
 	count: number;
 	mutate: (action: ProductState) => void;
+	searchParams?: { [key: string]: string | string[] | undefined };
 };
 
-const CatalogPicker = ({ proposal, catalogItems, params, page, count, mutate }: Props) => {
-	const [isPending, startTransition] = useTransition();
-	const [sorting, setSorting] = React.useState<SortingState>([]);
+const CatalogPicker = ({ proposal, catalogItems, params, count }: Props) => {
 	const [expanded, setExpanded] = React.useState<ExpandedState>({});
-	const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([]);
-	const [columnVisibility, setColumnVisibility] = React.useState<VisibilityState>({});
 	const [rowSelection, setRowSelection] = React.useState({});
-	const [pagination, setPagination] = React.useState<PaginationState>({
-		pageIndex: page,
-		pageSize: 10,
-	});
+	const { limit, onPaginationChange, pagination } = usePagination();
+	const router = useRouter();
+	const searchParams = useSearchParams();
+	const pathname = usePathname();
+	const pageCount = Math.round(count / limit);
 
-	// const productInsert = (product: CatalogItem) => {
-	// 	// @ts-ignore
-	// 	const newProduct: ProductInsert = { ...convertToSnakeCase(product), proposal };
-	// 	// @ts-ignore
-	// 	delete newProduct['bundled_items'];
-	// 	startTransition(async () => {
-	// 		console.log(newProduct);
-	// 		// @ts-ignore
-	// 		mutate({ newProduct, pending: true });
-	// 		// await createProduct(
-	// 		// 	// @ts-ignore
-	// 		// 	newProduct,
-	// 		// 	// @ts-ignore
-	// 		// 	product.bundledItems?.map((p) => {
-	// 		// 		return { ...convertToSnakeCase(p), proposal };
-	// 		// 	})
-	// 		// );
-	// 	});
-	// };
+	const createQueryString = useCallback(
+		(name: string, value: string) => {
+			const params = new URLSearchParams(searchParams.toString());
+			params.set(name, value);
+
+			return params.toString();
+		},
+		[searchParams]
+	);
+
+	useEffect(() => {
+		router.push(pathname + '?' + createQueryString('page', `${pagination.pageIndex + 1}`));
+	}, [createQueryString, pagination, pathname, router, searchParams]);
+
+	const productInsert = async (product: ProductInsert, bundledItems?: ProductInsert[]) => {
+		await createProduct({ ...product, proposal }, bundledItems);
+	};
 
 	const table = useReactTable<CatalogItem>({
 		data: catalogItems,
 		columns: catalogColumns,
-		onSortingChange: setSorting,
-		onColumnFiltersChange: setColumnFilters,
 		getCoreRowModel: getCoreRowModel(),
 		onExpandedChange: setExpanded,
-		getSortedRowModel: getSortedRowModel(),
-		getFilteredRowModel: getFilteredRowModel(),
 		getExpandedRowModel: getExpandedRowModel(),
-		pageCount: count,
-		onColumnVisibilityChange: setColumnVisibility,
 		onRowSelectionChange: setRowSelection,
 		enableExpanding: true,
 		getSubRows: (row) => row.bundledItems,
 		meta: {
-			mutate,
+			productInsert,
 		},
-		onPaginationChange: setPagination,
 		manualPagination: true,
-		getRowId: (row) => row.id.toString(),
+		onPaginationChange: onPaginationChange,
+		pageCount: pageCount,
 		state: {
-			sorting,
-			columnFilters,
-			columnVisibility,
 			rowSelection,
 			expanded,
 			pagination,
@@ -104,90 +78,26 @@ const CatalogPicker = ({ proposal, catalogItems, params, page, count, mutate }: 
 				<DialogTitle>Add Products</DialogTitle>
 			</DialogHeader>
 
-			<div className='flex-1 grid grid-cols-4 gap-4 flex-grow min-h-0'>
-				<div className='col-span-3 space-y-4'>
-					<div className='flex items-center'>
-						<Search baseUrl={`/${params.org}/proposal/${params.id}/products`} placeholder='Search products' />
-					</div>
-
-					<DataTable table={table} />
-
-					<div className='flex items-center justify-end space-x-2 py-4'>
-						<Button variant='outline' size='sm' type='button' onClick={() => table.previousPage()} disabled={!table.getCanPreviousPage()}>
-							Previous
-						</Button>
-						<Button variant='outline' size='sm' type='button' onClick={() => table.nextPage()} disabled={!table.getCanNextPage()}>
-							Next
-						</Button>
-					</div>
+			<div className='col-span-3 space-y-4'>
+				<div className='flex items-center'>
+					<Search baseUrl={`/${params.org}/proposal/${params.id}/products`} placeholder='Search products' />
 				</div>
 
-				<Card className='flex-1 flex flex-col overflow-hidden'>
-					<CardHeader className='flex-row justify-between items-center border-b'>
-						<p className='text-sm text-muted-foreground'>{table.getFilteredSelectedRowModel().rows.length} added</p>
-						<Button type='button' onClick={() => table.resetRowSelection()} variant='link' size='sm'>
-							Clear
-						</Button>
-					</CardHeader>
-					<CardContent className='flex-1 space-y-2 p-2 overflow-auto'>
-						{table.getGroupedSelectedRowModel().rows.map((row) => {
-							const { id, description, identifier, vendorSku } = row.original;
-							return (
-								<Card key={id}>
-									<CardHeader>
-										<CardTitle>{description}</CardTitle>
-										<CardDescription>
-											{identifier}
-											{vendorSku ? `• ${vendorSku}` : ''}
-										</CardDescription>
-									</CardHeader>
-								</Card>
-							);
-						})}
-					</CardContent>
-					<CardFooter>
-						<p>
-							Subtotal:
-							<span className='font-medium font-mono'>
-								{getCurrencyString(
-									table.getFilteredSelectedRowModel().rows.reduce((accumulator, { original }) => accumulator + (original.price ?? 0), 0)
-								)}
-							</span>
-						</p>
-					</CardFooter>
-				</Card>
+				<DataTable table={table} />
+
+				<div className='flex items-center justify-end space-x-2 py-4'>
+					<Button variant='outline' size='sm' type='button' onClick={table.previousPage} disabled={!table.getCanPreviousPage()}>
+						Previous
+					</Button>
+					<Button variant='outline' size='sm' type='button' onClick={table.nextPage} disabled={!table.getCanNextPage()}>
+						Next
+					</Button>
+				</div>
 			</div>
 
 			<DialogFooter>
 				<DialogClose asChild>
-					<SubmitButton
-						type='submit'
-						onClick={() => {
-							const createdProducts: { product: any; bundledItems?: any[] }[] = table.getGroupedSelectedRowModel().rows.map((item) => {
-								const bundledItems = item.original?.bundledItems;
-								delete item.original.bundledItems;
-								return {
-									// @ts-ignore
-									product: { ...convertToSnakeCase(item.original), proposal },
-									bundledItems: bundledItems?.map((p) => {
-										// @ts-ignore
-										delete p['_info'];
-										// @ts-ignore
-										return { ...convertToSnakeCase(p), proposal };
-									}),
-								};
-							});
-
-							startTransition(async () => {
-								mutate({ newProducts: createdProducts.map((p) => p.product as NestedProduct), pending: true });
-								// mutate({ newProducts: createdProducts.product, pending: true });
-								// @ts-ignore
-								await Promise.all(createdProducts.map((product) => createProduct(product.product, product?.bundledItems)));
-							});
-						}}
-					>
-						Add Items
-					</SubmitButton>
+					<Button>Save</Button>
 				</DialogClose>
 			</DialogFooter>
 		</DialogContent>

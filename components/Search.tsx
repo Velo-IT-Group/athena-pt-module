@@ -1,9 +1,9 @@
 'use client';
 import { Input } from '@/components/ui/input';
 import { MagnifyingGlassIcon } from '@radix-ui/react-icons';
-import { useRouter } from 'next/navigation';
-import React, { useEffect, useState } from 'react';
-import { useDebounce } from 'use-debounce';
+import { usePathname, useRouter, useSearchParams } from 'next/navigation';
+import React, { useCallback, useEffect, useState } from 'react';
+import { useDebouncedCallback } from 'use-debounce';
 
 type Props = {
 	baseUrl: string;
@@ -11,17 +11,33 @@ type Props = {
 };
 
 const Search = ({ baseUrl, placeholder }: Props) => {
-	const router = useRouter();
 	const [text, setText] = useState('');
-	const [query] = useDebounce(text, 500);
+	const debounced = useDebouncedCallback((value) => {
+		setText(value);
+	}, 500);
+	// const [query] = useDebounce(text, 500);
+	const router = useRouter();
+	const searchParams = useSearchParams();
+	const pathname = usePathname();
+
+	const createQueryString = useCallback(
+		(name: string, value: string) => {
+			const params = new URLSearchParams(searchParams.toString());
+			params.set(name, value);
+
+			return params.toString();
+		},
+		[searchParams]
+	);
 
 	useEffect(() => {
-		if (!query) {
+		if (!text) {
 			router.push(`${baseUrl}`);
 		} else {
-			router.push(`${baseUrl}?search=${query}`);
+			console.log(text);
+			router.push(pathname + '?' + createQueryString('search', text));
 		}
-	}, [query, router, baseUrl]);
+	}, [baseUrl, createQueryString, pathname, router, text]);
 
 	return (
 		<div
@@ -31,8 +47,13 @@ const Search = ({ baseUrl, placeholder }: Props) => {
 			<MagnifyingGlassIcon className='mr-2 h-4 w-4 shrink-0 opacity-50' />
 			<Input
 				placeholder={placeholder}
-				value={text}
-				onChange={(event) => setText(event.target.value)}
+				defaultValue={text}
+				onChange={(event) => debounced(event.target.value)}
+				onKeyUp={(e) => {
+					if (e.key === 'Enter') {
+						debounced.cancel();
+					}
+				}}
 				className='border-0 shadow-none focus-visible:ring-0'
 			/>
 		</div>

@@ -1,5 +1,5 @@
-import React, { Suspense, useEffect, useState } from 'react';
-import { HoverCard, HoverCardContent, HoverCardTrigger } from './ui/hover-card';
+import React, { useEffect, useState } from 'react';
+import { HoverCardContent } from './ui/hover-card';
 import { Separator } from './ui/separator';
 import { getOrganization } from '@/lib/functions/read';
 import Image from 'next/image';

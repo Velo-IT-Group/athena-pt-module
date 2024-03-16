@@ -115,3 +115,26 @@ export const convertToCamelCase = (item: string | object, flatten: boolean = tru
 
 	return snakeObject;
 };
+
+type ReturnType = {
+	laborTotal: number;
+	productTotal: number;
+	recurringTotal: number;
+	totalPrice: number;
+};
+
+export const calculateTotals = (products: Product[], phases: Phase[], labor_rate: number): ReturnType => {
+	const laborTotal = phases.reduce((accumulator, currentValue) => accumulator + (currentValue?.hours ?? 0) * labor_rate, 0) ?? 0;
+	const productTotal = products.reduce((accumulator, currentValue) => accumulator + (currentValue?.price ?? 0), 0);
+	const recurringTotal = products
+		?.filter((product) => product.recurring_flag)
+		.reduce((accumulator, currentValue) => accumulator + (currentValue?.price ?? 0), 0);
+	const totalPrice = laborTotal + productTotal;
+
+	return {
+		laborTotal,
+		productTotal,
+		recurringTotal,
+		totalPrice,
+	};
+};

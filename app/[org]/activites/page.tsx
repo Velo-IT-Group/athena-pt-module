@@ -3,7 +3,6 @@ import OrganizationLayout from '../organization-layout';
 import { Input } from '@/components/ui/input';
 import DatePicker from '@/components/DatePicker';
 import { Separator } from '@/components/ui/separator';
-import { groupBy } from 'lodash';
 import { getActivity } from '@/lib/functions/read';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';

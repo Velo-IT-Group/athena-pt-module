@@ -52,6 +52,29 @@ export const categories = [
 	},
 ];
 
+export const statuses = [
+	{
+		value: 'building',
+		label: 'Building',
+		icon: CircleIcon,
+	},
+	{
+		value: 'inProgress',
+		label: 'In Progress',
+		icon: StopwatchIcon,
+	},
+	{
+		value: 'signed',
+		label: 'Signed',
+		icon: CheckCircledIcon,
+	},
+	{
+		value: 'canceled',
+		label: 'Canceled',
+		icon: CrossCircledIcon,
+	},
+];
+
 export const priorities = [
 	{
 		label: 'Low',

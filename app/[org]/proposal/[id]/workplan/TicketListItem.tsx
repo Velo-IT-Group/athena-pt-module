@@ -22,7 +22,6 @@ import { updateTicket } from '@/lib/functions/update';
 import { TaskState, TicketState } from '@/types/optimisticTypes';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { deleteTicket } from '@/lib/functions/delete';
-import { Draggable, Droppable } from 'react-beautiful-dnd';
 import { createTask } from '@/lib/functions/create';
 import TaskListItem from './TaskListItem';
 import { toast } from 'sonner';

@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import { CatalogItem } from '@/types/manage';
 import { getCurrencyString } from '@/utils/money';
-import { ChevronDownIcon, ChevronRightIcon, DotsHorizontalIcon, Pencil2Icon, TrashIcon } from '@radix-ui/react-icons';
+import { ChevronDownIcon, ChevronRightIcon, Pencil2Icon, TrashIcon } from '@radix-ui/react-icons';
 import { ColumnDef, RowData } from '@tanstack/react-table';
 import { Sheet, SheetTrigger } from '@/components/ui/sheet';
 import ProductForm from '@/components/forms/ProductForm';
@@ -27,11 +27,13 @@ import {
 import { deleteProduct } from '@/lib/functions/delete';
 import { convertToSnakeCase } from '@/utils/helpers';
 import { ProductState } from '@/types/optimisticTypes';
+import { createProduct } from '@/lib/functions/create';
 
 declare module '@tanstack/react-table' {
 	interface TableMeta<TData extends RowData> {
 		updateProduct?: typeof updateProduct;
-		productInsert?: (product: CatalogItem) => void;
+		createProduct?: typeof createProduct;
+		productInsert?: (product: ProductInsert, bundledItems?: ProductInsert[]) => Promise<void>;
 		mutate?: (action: ProductState) => void;
 	}
 }
@@ -85,18 +87,7 @@ export const columns: ColumnDef<Product>[] = [
 		cell: ({ row }) => {
 			return (
 				<div className='flex space-x-2 flex-1 max-w-[500px] w-full'>
-					<span className='max-w-[500px] truncate font-medium decoration-dashed underline decoration-muted-foreground '>
-						{row.getValue('description')}
-					</span>
-					{/* <Input
-						onBlur={async (e) => {
-							if (e.currentTarget.value !== row.getValue('description')) {
-								table.options.meta?.updateProduct(unique_id, { description: e.currentTarget.value });
-							}
-						}}
-						className='border border-transparent hover:border-border hover:cursor-default rounded-lg shadow-none px-2 -mx-2 py-2 -my-2 truncate font-medium flex-1'
-						defaultValue={row.getValue('description')}
-					/> */}
+					<span className='max-w-[500px] truncate font-medium decoration-muted-foreground '>{row.getValue('description')}</span>
 				</div>
 			);
 		},
@@ -119,43 +110,14 @@ export const columns: ColumnDef<Product>[] = [
 		accessorKey: 'price',
 		header: ({ column }) => <DataTableColumnHeader column={column} title='Price' className='text-right' />,
 		cell: ({ row, table }) => {
-			return (
-				<span className='text-right'>{getCurrencyString(row.getValue('price'))}</span>
-				// <div className='relative'>
-				// 	<p className='absolute flex items-center my-auto left-3 h-9 text-sm select-none'>$</p>
-				// 	<Input
-				// 		min='0.01'
-				// 		step='0.01'
-				// 		type='number'
-				// 		onBlur={async (e) => {
-				// 			if (e.currentTarget.valueAsNumber !== price) {
-				// 				table.options.meta?.updateProduct(id, { price: e.currentTarget.valueAsNumber });
-				// 			}
-				// 		}}
-				// 		className='border border-transparent hover:border-border hover:cursor-default rounded-lg shadow-none p-2 pl-6 w-full max-w-32'
-				// 		defaultValue={price?.toFixed(2) ?? undefined}
-				// 	/>
-				// </div>
-			);
+			return <span className='text-right'>{getCurrencyString(row.getValue('price'))}</span>;
 		},
 	},
 	{
 		accessorKey: 'quantity',
 		header: ({ column }) => <DataTableColumnHeader column={column} title='Quantity' />,
 		cell: ({ row }) => {
-			return (
-				<span className='text-right justify-self-end'>{row.getValue('quantity')}</span>
-				// <Input
-				// 	onBlur={async (e) => {
-				// 		if (e.currentTarget.valueAsNumber !== quantity) {
-				// 			table.options.meta?.updateProduct(id, { quantity: e.currentTarget.valueAsNumber });
-				// 		}
-				// 	}}
-				// 	type='number'
-				// 	className='border border-transparent hover:border-border hover:cursor-default rounded-lg shadow-none p-2 max-w-32'
-				// 	defaultValue={quantity ?? undefined}
-				// />
-			);
+			return <span className='text-right justify-self-end'>{row.getValue('quantity')}</span>;
 		},
 	},
 	{
@@ -229,22 +191,14 @@ export const catalogColumns: ColumnDef<CatalogItem>[] = [
 					row.toggleSelected(!!value);
 					if (value) {
 						// @ts-ignore
-						// @ts-ignore
 						const newProduct: ProductInsert = { ...convertToSnakeCase(row.original) };
 						// @ts-ignore
-						delete newProduct['bundled_items'];
-						console.log(newProduct);
+						const bundledItems = row.original.bundledItems?.map((b) => convertToSnakeCase(b));
 						// @ts-ignore
-						table.options?.meta?.mutate({ newProduct, pending: true });
-						// await createProduct(
-						// 	// @ts-ignore
-						// 	newProduct,
-						// 	// @ts-ignore
-						// 	product.bundledItems?.map((p) => {
-						// 		return { ...convertToSnakeCase(p), proposal };
-						// 	})
-						// );
-						// table.options?.meta?.productInsert(row.original);
+						delete newProduct['bundled_items'];
+
+						// @ts-ignore
+						table.options?.meta?.productInsert(newProduct, bundledItems);
 					} else {
 					}
 				}}

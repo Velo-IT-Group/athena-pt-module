@@ -5,9 +5,10 @@ import { getCurrencyString } from '@/utils/money';
 import { HoverCard, HoverCardContent, HoverCardTrigger } from '@/components/ui/hover-card';
 import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
-import ProposalDropdownMenu from '@/components/ProposalDropdownMenu';
 import { notFound } from 'next/navigation';
-import { relativeDate } from '@/utils/date';
+import ProposalActions from './proposal-actions';
+import { ProposalShare } from './proposal-share';
+import { calculateTotals } from '@/utils/helpers';
 
 type Props = {
 	params: { org: string; id: string };
@@ -29,13 +30,7 @@ const ProposalIdLayout = async ({ params, children }: Props) => {
 		{ name: 'Settings', href: `/${org}/proposal/${id}/settings` },
 	];
 
-	const laborTotal = proposal.phases.reduce((accumulator, currentValue) => accumulator + (currentValue?.hours ?? 0) * proposal.labor_rate, 0) ?? 0;
-	const productTotal = products.reduce((accumulator, currentValue) => accumulator + (currentValue?.price ?? 0), 0);
-	const recurringTotal = products
-		?.filter((product) => product.recurring_flag)
-		.reduce((accumulator, currentValue) => accumulator + (currentValue?.price ?? 0), 0);
-	const totalPrice = laborTotal + productTotal;
-
+	const { laborTotal, productTotal, recurringTotal, totalPrice } = calculateTotals(products, proposal.phases, proposal.labor_rate);
 	return (
 		<>
 			<Navbar org={org} title={proposal?.name} tabs={tabs}>
@@ -75,7 +70,13 @@ const ProposalIdLayout = async ({ params, children }: Props) => {
 							</div>
 						</div>
 					</HoverCardContent>
-					<ProposalDropdownMenu id={id} members={members} />
+					<ProposalShare proposalId={proposal.id} />
+					<ProposalActions
+						proposal={proposal}
+						phases={proposal.phases}
+						tickets={proposal.phases.map((p) => p.tickets).flat()}
+						tasks={proposal.phases.map((p) => p.tickets.map((t) => t.tasks).flat()).flat()}
+					/>
 				</HoverCard>
 			</Navbar>
 			{/* <span className='text-muted-foreground text-xs animate-in fade-in truncate pb-2 capitalize'>

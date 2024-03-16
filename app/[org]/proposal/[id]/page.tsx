@@ -1,25 +1,12 @@
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
-import { Dialog, DialogContent, DialogTrigger } from '@/components/ui/dialog';
-import { Label } from '@/components/ui/label';
+import { Dialog, DialogTrigger } from '@/components/ui/dialog';
 import { Separator } from '@/components/ui/separator';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { getProducts, getProposal, getTicket, getTicketNotes } from '@/lib/functions/read';
 import { relativeDate } from '@/utils/date';
 import { getCurrencyString } from '@/utils/money';
-import {
-	CalendarIcon,
-	ChatBubbleIcon,
-	DotsHorizontalIcon,
-	EnvelopeClosedIcon,
-	FileTextIcon,
-	GlobeIcon,
-	StopwatchIcon,
-	TextIcon,
-} from '@radix-ui/react-icons';
+import { CalendarIcon, DotsHorizontalIcon, FileTextIcon, StopwatchIcon } from '@radix-ui/react-icons';
 import React from 'react';
 import ProductList from './product-list';
-import DatePicker from '@/components/DatePicker';
 import { Textarea } from '@/components/ui/textarea';
 import { Switch } from '@/components/ui/switch';
 import { HoverCard, HoverCardContent, HoverCardTrigger } from '@/components/ui/hover-card';

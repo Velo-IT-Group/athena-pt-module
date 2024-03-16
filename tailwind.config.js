@@ -53,6 +53,9 @@ module.exports = {
 				header: 'calc(100vh - 107px)',
 				'w-padding': 'calc(100vh - 64px)',
 			},
+			maxHeight: {
+				'w-padding': 'calc(100vh - 64px)',
+			},
 			width: {
 				'w-padding': 'calc(100vw - 64px)',
 			},

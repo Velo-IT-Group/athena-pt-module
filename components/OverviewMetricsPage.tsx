@@ -11,7 +11,6 @@ import {
 	DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import ResponsiveBarChart from '@/components/ResponsiveBarChart';
-import DatePicker from '@/components/DatePicker';
 import DatePickerWithRange from '@/components/DatePickerWithRange';
 
 const data = [

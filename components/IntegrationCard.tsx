@@ -1,6 +1,7 @@
 'use client';
+
 import React, { useState } from 'react';
-import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardFooter, CardHeader } from '@/components/ui/card';
 import Link from 'next/link';
 import Image from 'next/image';
 import { Button } from './ui/button';

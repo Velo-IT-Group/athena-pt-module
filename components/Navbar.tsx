@@ -1,11 +1,10 @@
 import Link from 'next/link';
 import React from 'react';
 import VeloLogo from './icons/VeloLogo';
-import { BellIcon, SlashIcon } from '@radix-ui/react-icons';
-import { getOrganization, getUser } from '@/lib/functions/read';
+import { SlashIcon } from '@radix-ui/react-icons';
+import { getOrganization } from '@/lib/functions/read';
 import NavigationTabs from './NavigationTabs';
 import UserNav from './UserNav';
-import { Button } from './ui/button';
 import { createClient } from '@/utils/supabase/server';
 
 export type Tab = {

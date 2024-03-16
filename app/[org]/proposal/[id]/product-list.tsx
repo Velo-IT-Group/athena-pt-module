@@ -1,17 +1,8 @@
 'use client';
 import { DataTableColumnHeader } from '@/components/ui/DataTableColumnHeader';
 import { Button } from '@/components/ui/button';
-import { DataTable } from '@/components/ui/data-table';
-import {
-	DropdownMenu,
-	DropdownMenuContent,
-	DropdownMenuItem,
-	DropdownMenuLabel,
-	DropdownMenuSeparator,
-	DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { cn } from '@/lib/utils';
 import { getCurrencyString } from '@/utils/money';
 import { DotsHorizontalIcon } from '@radix-ui/react-icons';
 import { ColumnDef, flexRender, getCoreRowModel, useReactTable } from '@tanstack/react-table';
@@ -48,7 +39,11 @@ const ProductList = ({ products }: { products: Product[] }) => {
 			header: ({ column }) => {
 				return <DataTableColumnHeader column={column} title='Total' className='text-right justify-end' />;
 			},
-			cell: ({ row }) => <div className='text-right font-medium'>{getCurrencyString(row.getValue('calculated_price'))}</div>,
+			cell: ({ row }) => (
+				<div className='text-right font-medium'>
+					{getCurrencyString(row.getValue('calculated_price') ?? (row.original.quantity ?? 1) * (row.original.price ?? 0))}
+				</div>
+			),
 			enableSorting: false,
 		},
 		{
