@@ -313,7 +313,7 @@ export const getProducts = unstable_cache(
 			.select('*, products(*)')
 			.eq('proposal', id)
 			.is('parent', null)
-			.order('description')
+			.order('created_at')
 			.returns<NestedProduct[]>();
 
 		if (!products || error) {

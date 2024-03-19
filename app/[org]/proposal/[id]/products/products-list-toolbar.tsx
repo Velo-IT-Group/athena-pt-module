@@ -23,9 +23,8 @@ export function ProductsListToolbar<TData>({ table }: ProductsListToolbarProps<T
 	const isFiltered = table.getState().columnFilters.length > 0;
 
 	useEffect(() => {
-		Promise.all([getCategories(), getSubCategories()]).then(([categoriesData, subCategoriesData]) => {
+		Promise.all([getCategories()]).then(([categoriesData]) => {
 			setCategories(categoriesData);
-			setSubCategories(subCategoriesData);
 		});
 	}, []);
 

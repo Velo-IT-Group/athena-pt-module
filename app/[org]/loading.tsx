@@ -10,7 +10,7 @@ const OrganizationLoadingPage = () => {
 			<Navbar org='' tabs={[]} />
 			<div className='min-h-header light:bg-muted/50'>
 				<div className='container py-8 space-y-8'>
-					<div className='grid grid-cols-3 gap-4'>
+					<div className='grid gap-4' style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(350px, 1fr))' }}>
 						{blankArray.map((_, index) => (
 							<CardSkeleton key={index} />
 						))}

@@ -20,7 +20,7 @@ const ProposalSettingsPage = async ({ params }: { params: { id: string } }) => {
 	if (!proposal || !ticket) return <div></div>;
 
 	return (
-		<>
+		<div className='grid grid-cols-2 gap-4'>
 			<Card>
 				<form
 					action={async (data: FormData) => {
@@ -42,6 +42,44 @@ const ProposalSettingsPage = async ({ params }: { params: { id: string } }) => {
 			</Card>
 
 			<Card>
+				<form>
+					<CardHeader>
+						<CardTitle>Service Ticket</CardTitle>
+						<CardDescription>The ticket that the proposal was made for.</CardDescription>
+					</CardHeader>
+					<CardContent className='grid grid-cols-2 gap-4'>
+						<div className='grid grid-cols-5 items-center gap-2 col-span-2'>
+							<h3 className='text-sm text-muted-foreground'>Ticket</h3>
+							<div className='col-span-4'>
+								<TicketSelector tickets={tickets ?? []} ticket={proposal.service_ticket} />
+							</div>
+						</div>
+						<div className='grid gap-2'>
+							<h3 className='text-sm text-muted-foreground'>Summary</h3>
+							<p className='font-medium'>{ticket?.summary}</p>
+						</div>
+						<div className='grid gap-2'>
+							<h3 className='text-sm text-muted-foreground'>Summary</h3>
+							<p className='font-medium'>{ticket?.summary}</p>
+						</div>
+						<div className='grid gap-2'>
+							<h3 className='text-sm text-muted-foreground'>Company</h3>
+							<p className='font-medium'>{ticket.company?.name ?? ''}</p>
+						</div>
+						<div className='grid gap-2'>
+							<h3 className='text-sm text-muted-foreground'>Contact</h3>
+							<p className='font-medium'>{ticket.contact?.name ?? ''}</p>
+						</div>
+					</CardContent>
+					<CardFooter>
+						<SubmitButton className='ml-auto' disabled={true}>
+							Save
+						</SubmitButton>
+					</CardFooter>
+				</form>
+			</Card>
+
+			<Card className='col-span-2'>
 				<form
 					action={async (data: FormData) => {
 						'use server';
@@ -102,45 +140,7 @@ const ProposalSettingsPage = async ({ params }: { params: { id: string } }) => {
 				</form>
 			</Card>
 
-			<Card>
-				<form>
-					<CardHeader>
-						<CardTitle>Service Ticket</CardTitle>
-						<CardDescription>The ticket that the proposal was made for.</CardDescription>
-					</CardHeader>
-					<CardContent className='grid grid-cols-2 gap-4'>
-						<div className='grid grid-cols-5 items-center gap-2 col-span-2'>
-							<h3 className='text-sm text-muted-foreground'>Ticket</h3>
-							<div className='col-span-4'>
-								<TicketSelector tickets={tickets ?? []} ticket={proposal.service_ticket} />
-							</div>
-						</div>
-						<div className='grid gap-2'>
-							<h3 className='text-sm text-muted-foreground'>Summary</h3>
-							<p className='font-medium'>{ticket?.summary}</p>
-						</div>
-						<div className='grid gap-2'>
-							<h3 className='text-sm text-muted-foreground'>Summary</h3>
-							<p className='font-medium'>{ticket?.summary}</p>
-						</div>
-						<div className='grid gap-2'>
-							<h3 className='text-sm text-muted-foreground'>Company</h3>
-							<p className='font-medium'>{ticket.company?.name ?? ''}</p>
-						</div>
-						<div className='grid gap-2'>
-							<h3 className='text-sm text-muted-foreground'>Contact</h3>
-							<p className='font-medium'>{ticket.contact?.name ?? ''}</p>
-						</div>
-					</CardContent>
-					<CardFooter>
-						<SubmitButton className='ml-auto' disabled={true}>
-							Save
-						</SubmitButton>
-					</CardFooter>
-				</form>
-			</Card>
-
-			<Card>
+			<Card className='col-span-2'>
 				<form>
 					<CardHeader>
 						<CardTitle>Delete Proposal</CardTitle>
@@ -164,7 +164,7 @@ const ProposalSettingsPage = async ({ params }: { params: { id: string } }) => {
 					</CardFooter>
 				</form>
 			</Card>
-		</>
+		</div>
 	);
 };
 

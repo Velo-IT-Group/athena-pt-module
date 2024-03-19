@@ -83,7 +83,7 @@ const ProposalPage = async ({ params }: Props) => {
 				<section className='space-y-4 w-1/2'>
 					<h2 className='text-xl font-semibold'>Expiration date</h2>
 					<div className='space-y-1'>
-						<ExpirationDatePicker id={params.id} expiration_date={proposal.expiration_date} />
+						<ExpirationDatePicker id={params.id} expiration_date={proposal.expiration_date ?? undefined} />
 					</div>
 				</section>
 

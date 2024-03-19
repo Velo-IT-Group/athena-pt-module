@@ -1,4 +1,4 @@
-import { CircleIcon, Pencil1Icon, StarIcon } from '@radix-ui/react-icons';
+import { Pencil1Icon } from '@radix-ui/react-icons';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
@@ -9,8 +9,9 @@ import { relativeDate } from '@/utils/date';
 import { calculateTotals } from '@/utils/helpers';
 import { getCurrencyString } from '@/utils/money';
 
-export function ProposalCard({ proposal, orgId }: { proposal: Proposal; orgId: string }) {
+export function ProposalCard({ proposal, orgId }: { proposal: NestedProposal; orgId: string }) {
 	const status = statuses.find((status) => status.value === 'inProgress');
+	// @ts-ignore
 	const { totalPrice } = calculateTotals(proposal?.products ?? [], proposal?.phases ?? [], proposal.labor_rate);
 
 	return (
@@ -21,11 +22,11 @@ export function ProposalCard({ proposal, orgId }: { proposal: Proposal; orgId: s
 					<CardDescription>{getCurrencyString(totalPrice)}</CardDescription>
 				</div>
 				<div className='flex items-center space-x-1 rounded-md bg-secondary text-secondary-foreground'>
-					<Button variant='secondary' className='px-3 shadow-none'>
+					<Button variant='secondary' className='px-3 shadow-none' asChild>
 						<Link href={`/${orgId}/proposal/${proposal.id}`}>
 							<Pencil1Icon className='mr-2 h-4 w-4' />
+							Edit
 						</Link>
-						Edit
 					</Button>
 					<Separator orientation='vertical' className='h-[20px]' />
 					<ProposalOptions proposalId={proposal.id} orgId={orgId} />
@@ -40,19 +41,11 @@ export function ProposalCard({ proposal, orgId }: { proposal: Proposal; orgId: s
 								<span className='whitespace-nowrap'>{status.label}</span>
 							</>
 						)}
-						{/* <CircleIcon className='mr-1 h-3 w-3 fill-sky-400 text-sky-400' />
-						TypeScript */}
 					</div>
-
-					{/* <div className='flex items-center'>
-						<StarIcon className='mr-1 h-3 w-3' />
-						20k
-					</div> */}
 
 					<div className='flex items-center text-muted-foreground text-xs animate-in fade-in truncate capitalize'>
 						Updated {relativeDate(new Date(proposal.updated_at))}
 					</div>
-					{/* <div>Updated April 2023</div> */}
 				</div>
 			</CardContent>
 		</Card>

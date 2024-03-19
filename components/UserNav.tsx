@@ -1,5 +1,4 @@
 'use client';
-import { handleSignOut } from '@/app/actions';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import {
@@ -12,9 +11,12 @@ import {
 	DropdownMenuShortcut,
 	DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
+import { createClient } from '@/utils/supabase/client';
 import { type User } from '@supabase/supabase-js';
 
 const UserNav = ({ user, className, url }: { user: User; className?: string; url?: string }) => {
+	const supabase = createClient();
+
 	return (
 		<DropdownMenu>
 			<DropdownMenuTrigger className={className} asChild>
@@ -49,7 +51,7 @@ const UserNav = ({ user, className, url }: { user: User; className?: string; url
 					<DropdownMenuItem>New Team</DropdownMenuItem>
 				</DropdownMenuGroup>
 				<DropdownMenuSeparator />
-				<DropdownMenuItem onClick={async () => await handleSignOut()}>
+				<DropdownMenuItem onClick={async () => await supabase.auth.signOut()}>
 					Log out
 					<DropdownMenuShortcut>⇧⌘Q</DropdownMenuShortcut>
 				</DropdownMenuItem>

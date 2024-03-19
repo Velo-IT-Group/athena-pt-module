@@ -5,7 +5,7 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigge
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { getCurrencyString } from '@/utils/money';
 import { DotsHorizontalIcon } from '@radix-ui/react-icons';
-import { ColumnDef, flexRender, getCoreRowModel, useReactTable } from '@tanstack/react-table';
+import { ColumnDef, ExpandedState, flexRender, getCoreRowModel, getExpandedRowModel, useReactTable } from '@tanstack/react-table';
 import React from 'react';
 
 const ProductList = ({ products }: { products: Product[] }) => {
@@ -69,11 +69,21 @@ const ProductList = ({ products }: { products: Product[] }) => {
 		},
 	];
 
-	const table = useReactTable({
+	const [expanded, setExpanded] = React.useState<ExpandedState>({});
+
+	const table = useReactTable<NestedProduct>({
 		data: products,
 		columns,
 		getCoreRowModel: getCoreRowModel(),
+		onExpandedChange: setExpanded,
+		getExpandedRowModel: getExpandedRowModel(),
+		enableExpanding: true,
+		getSubRows: (row) => row.products,
+		state: {
+			expanded,
+		},
 	});
+
 	return (
 		<div className='w-full'>
 			<div className=''>

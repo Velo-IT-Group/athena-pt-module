@@ -160,6 +160,7 @@ const OrganizationSettingsPage = async ({ params }: Props) => {
 											}}
 											name='phases'
 											type='submit'
+											// @ts-ignore
 											defaultChecked={organization.visibility_settings?.phases}
 										/>
 										Phases
@@ -175,6 +176,7 @@ const OrganizationSettingsPage = async ({ params }: Props) => {
 											}}
 											name='tickets'
 											type='submit'
+											// @ts-ignore
 											defaultChecked={organization.visibility_settings?.tickets}
 										/>
 										Tickets
@@ -190,6 +192,7 @@ const OrganizationSettingsPage = async ({ params }: Props) => {
 											}}
 											name='tasks'
 											type='submit'
+											// @ts-ignore
 											defaultChecked={organization.visibility_settings?.tasks}
 										/>
 										Tasks

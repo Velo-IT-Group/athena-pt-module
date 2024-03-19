@@ -21,6 +21,7 @@ import { Separator } from '../ui/separator';
 import { Textarea } from '../ui/textarea';
 import { Category, ReferenceType, Subcategory } from '@/types/manage';
 import { getBillingCycles, getCategories, getSubCategories } from '@/lib/functions/read';
+import SubmitButton from '../SubmitButton';
 
 function capitalizeFirstLetter(string: string) {
 	return string.charAt(0).toUpperCase() + string.slice(1);
@@ -101,16 +102,14 @@ const ProductForm = ({ product }: { product: Product }) => {
 
 	// 2. Define a submit handler.
 	async function onSubmit(values: z.infer<typeof productFormSchema>) {
-		const difference = differenceInObj(product, values);
+		// const difference = differenceInObj(product, values);
 		// @ts-ignore
-		delete difference['products'];
-
-		console.log(difference);
-
+		delete values['products'];
+		// console.log(difference);
 		//@ts-ignore
 		// delete values['extended_price'];
-		// @ts-ignore
-		await updateProduct(product.unique_id ?? '', difference);
+
+		await updateProduct(product.unique_id, values);
 	}
 
 	return (
@@ -120,7 +119,12 @@ const ProductForm = ({ product }: { product: Product }) => {
 				<SheetDescription>{getCurrencyString(product.calculated_price ?? product.price ?? 0)}</SheetDescription>
 			</SheetHeader>
 			<Form {...form}>
-				<form onSubmit={form.handleSubmit(onSubmit)} className='space-y-8 h-full flex flex-col flex-1 overflow-auto px-[1px]'>
+				<form
+					id='product-update'
+					name='product-update'
+					onSubmit={form.handleSubmit(onSubmit)}
+					className='space-y-8 h-full flex flex-col flex-1 overflow-auto px-[1px]'
+				>
 					<Collapsible defaultOpen>
 						<section>
 							<div className='flex items-center justify-between space-x-4'>
@@ -273,7 +277,8 @@ const ProductForm = ({ product }: { product: Product }) => {
 										render={({ field }) => (
 											<FormItem>
 												<FormLabel>Recurring Type</FormLabel>
-												<Select onValueChange={field.onChange} defaultValue={field.value ?? null}>
+												{/* @ts-ignore */}
+												<Select onValueChange={field.onChange} defaultValue={field.value ?? undefined}>
 													<FormControl>
 														<SelectTrigger>
 															<SelectValue placeholder='Select a recurring type' />
@@ -475,12 +480,16 @@ const ProductForm = ({ product }: { product: Product }) => {
 							</CollapsibleContent>
 						</section>
 					</Collapsible>
-					<SheetFooter>
-						<Button type='submit'>Save changes</Button>
-						<SheetClose asChild></SheetClose>
-					</SheetFooter>
+
+					<Button>Save</Button>
 				</form>
 			</Form>
+			<SheetFooter>
+				<SubmitButton type='submit' form='product-update'>
+					Save changes
+				</SubmitButton>
+				<SheetClose asChild></SheetClose>
+			</SheetFooter>
 		</SheetContent>
 	);
 };

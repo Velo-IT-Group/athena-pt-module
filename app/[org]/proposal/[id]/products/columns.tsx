@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import { CatalogItem } from '@/types/manage';
 import { getCurrencyString } from '@/utils/money';
-import { ChevronDownIcon, ChevronRightIcon, Pencil2Icon, TrashIcon } from '@radix-ui/react-icons';
+import { CheckIcon, ChevronDownIcon, ChevronRightIcon, Pencil2Icon, PlusIcon, TrashIcon } from '@radix-ui/react-icons';
 import { ColumnDef, RowData } from '@tanstack/react-table';
 import { Sheet, SheetTrigger } from '@/components/ui/sheet';
 import ProductForm from '@/components/forms/ProductForm';
@@ -177,34 +177,39 @@ export const columns: ColumnDef<Product>[] = [
 export const catalogColumns: ColumnDef<CatalogItem>[] = [
 	{
 		id: 'select',
-		header: ({ table }) => (
-			<Checkbox
-				checked={table.getIsAllPageRowsSelected() || (table.getIsSomePageRowsSelected() && 'indeterminate')}
-				onCheckedChange={(value) => table.toggleAllPageRowsSelected(!!value)}
-				aria-label='Select all'
-			/>
-		),
 		cell: ({ row, table }) => (
-			<Checkbox
-				checked={row.getIsSelected()}
-				onCheckedChange={(value) => {
-					row.toggleSelected(!!value);
-					if (value) {
-						// @ts-ignore
-						const newProduct: ProductInsert = { ...convertToSnakeCase(row.original) };
-						// @ts-ignore
-						const bundledItems = row.original.bundledItems?.map((b) => convertToSnakeCase(b));
-						// @ts-ignore
-						delete newProduct['bundled_items'];
-
-						// @ts-ignore
-						table.options?.meta?.productInsert(newProduct, bundledItems);
-					} else {
-					}
-				}}
-				aria-label='Select row'
-			/>
+			<div className='w-2'>
+				<Button
+					variant='ghost'
+					size='sm'
+					className='relative flex cursor-default select-none items-center'
+					onClick={() => {
+						row.toggleSelected(!!!row.getIsSelected());
+						if (!!!row.getIsSelected()) {
+							// @ts-ignore
+							const newProduct: ProductInsert = { ...convertToSnakeCase(row.original) };
+							// @ts-ignore
+							const bundledItems = row.original.bundledItems?.map((b) => convertToSnakeCase(b));
+							// @ts-ignore
+							delete newProduct['bundled_items'];
+							// @ts-ignore
+							table.options?.meta?.productInsert(newProduct, bundledItems);
+						}
+					}}
+				>
+					<span className='flex h-3.5 w-3.5'>{row.getIsSelected() ? <CheckIcon className='h-4 w-4' /> : <PlusIcon className='h-4 w-4' />}</span>
+				</Button>
+			</div>
 		),
+		enableSorting: false,
+		enableHiding: false,
+	},
+	{
+		accessorKey: 'identifier',
+		header: ({ column }) => {
+			return <DataTableColumnHeader column={column} title='ID' />;
+		},
+		cell: ({ row }) => <span>{row.getValue('identifier')}</span>,
 		enableSorting: false,
 		enableHiding: false,
 	},
@@ -216,7 +221,7 @@ export const catalogColumns: ColumnDef<CatalogItem>[] = [
 		cell: ({ row }) => (
 			<HoverCard>
 				<div className='flex items-center'>
-					{row.getCanExpand() ? (
+					{/* {row.getCanExpand() ? (
 						<>
 							<Button
 								variant='ghost'
@@ -232,7 +237,7 @@ export const catalogColumns: ColumnDef<CatalogItem>[] = [
 						</>
 					) : (
 						<></>
-					)}
+					)} */}
 
 					<HoverCardTrigger className='text-muted-foreground '>
 						<div className='flex space-x-2' style={{ paddingLeft: `${row.depth * 2}rem` }}>
@@ -248,6 +253,8 @@ export const catalogColumns: ColumnDef<CatalogItem>[] = [
 				<IntegrationPricingCard description={row.original.description} id={String(row.original.id)} vendorSku='' />
 			</HoverCard>
 		),
+		enableSorting: false,
+		enableHiding: false,
 	},
 	{
 		accessorKey: 'cost',

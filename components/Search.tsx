@@ -35,7 +35,7 @@ const Search = ({ baseUrl, placeholder }: Props) => {
 			router.push(`${baseUrl}`);
 		} else {
 			console.log(text);
-			router.push(pathname + '?' + createQueryString('search', text));
+			router.push(pathname + '?' + createQueryString('search', text.trim()));
 		}
 	}, [baseUrl, createQueryString, pathname, router, text]);
 
@@ -52,6 +52,12 @@ const Search = ({ baseUrl, placeholder }: Props) => {
 				onKeyUp={(e) => {
 					if (e.key === 'Enter') {
 						debounced.cancel();
+						if (!text) {
+							router.push(`${baseUrl}`);
+						} else {
+							console.log(text);
+							router.push(pathname + '?' + createQueryString('search', text));
+						}
 					}
 				}}
 				className='border-0 shadow-none focus-visible:ring-0'

@@ -149,10 +149,6 @@ const ProductsList = ({ products, proposal, catalogItems, count, page, params }:
 		vendor: null,
 	};
 
-	// const productDeletion = () => {
-
-	// }
-
 	const table = useReactTable<NestedProduct>({
 		data: state.products,
 		columns,
@@ -168,6 +164,7 @@ const ProductsList = ({ products, proposal, catalogItems, count, page, params }:
 		getFacetedRowModel: getFacetedRowModel(),
 		getFacetedUniqueValues: getFacetedUniqueValues(),
 		getExpandedRowModel: getExpandedRowModel(),
+		enableExpanding: true,
 		autoResetPageIndex,
 		getRowId: (row) => row.unique_id,
 		getSubRows: (row) => row.products,
@@ -189,7 +186,7 @@ const ProductsList = ({ products, proposal, catalogItems, count, page, params }:
 				<div className='flex items-center justify-between'>
 					<div className='flex gap-4 items-center'>
 						<h1 className='text-2xl font-medium leading-none'>Products</h1>
-						<p className='text-muted-foreground text-xs'>1 of 1 packages</p>
+						{/* <p className='text-muted-foreground text-xs'>1 of 1 packages</p> */}
 					</div>
 					<Dialog>
 						<DialogTrigger asChild>
@@ -197,7 +194,7 @@ const ProductsList = ({ products, proposal, catalogItems, count, page, params }:
 								<PlusCircledIcon className='h-4 w-4 mr-2' /> Add Product
 							</Button>
 						</DialogTrigger>
-						<CatalogPicker proposal={proposal} catalogItems={catalogItems} count={count} page={page} params={params} mutate={mutate} />
+						<CatalogPicker proposal={proposal} catalogItems={catalogItems} count={count} page={page} params={params} />
 					</Dialog>
 				</div>
 			</div>

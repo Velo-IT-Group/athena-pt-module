@@ -19,7 +19,6 @@ type Props = {
 	params: { org: string; id: string };
 	page: number;
 	count: number;
-	mutate: (action: ProductState) => void;
 	searchParams?: { [key: string]: string | string[] | undefined };
 };
 
@@ -58,6 +57,7 @@ const CatalogPicker = ({ proposal, catalogItems, params, count }: Props) => {
 		getExpandedRowModel: getExpandedRowModel(),
 		onRowSelectionChange: setRowSelection,
 		enableExpanding: true,
+		getRowId: (row) => row.id.toString(),
 		getSubRows: (row) => row.bundledItems,
 		meta: {
 			productInsert,

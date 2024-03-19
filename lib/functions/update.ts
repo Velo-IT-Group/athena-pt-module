@@ -12,7 +12,10 @@ import { cookies } from 'next/headers';
 export const updateProduct = async (id: string, product: ProductUpdate) => {
 	const supabase = createClient();
 	const { error } = await supabase.from('products').update(product).eq('unique_id', id);
+
+	console.log(id, product, error);
 	console.log('running func');
+
 	if (error) {
 		console.error(error);
 		return;

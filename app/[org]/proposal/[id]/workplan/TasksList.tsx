@@ -27,6 +27,7 @@ const TasksList = ({ tasks, ticketId }: { tasks: Task[]; ticketId: string }) => 
 			};
 		}
 	});
+
 	return (
 		<div className='space-y-2'>
 			{state.tasks?.map((task) => (

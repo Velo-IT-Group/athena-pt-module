@@ -123,7 +123,7 @@ const TicketListItem = ({ ticket, tasks, order, pending, ticketMutation }: Props
 							<DropdownMenuContent align='end' className='w-[200px]'>
 								<DropdownMenuLabel>Actions</DropdownMenuLabel>
 								<DropdownMenuGroup>
-									<DropdownMenuItem>Assign to...</DropdownMenuItem>
+									{/* <DropdownMenuItem>Assign to...</DropdownMenuItem>
 									<DropdownMenuItem>Set due date...</DropdownMenuItem>
 									<DropdownMenuSeparator />
 									<DropdownMenuSub>
@@ -145,7 +145,7 @@ const TicketListItem = ({ ticket, tasks, order, pending, ticketMutation }: Props
 											</DropdownMenuSubContent>
 										</DropdownMenuPortal>
 									</DropdownMenuSub>
-									<DropdownMenuSeparator />
+									<DropdownMenuSeparator /> */}
 									<DropdownMenuItem
 										onClick={() => {
 											startTransition(async () => {
@@ -159,7 +159,7 @@ const TicketListItem = ({ ticket, tasks, order, pending, ticketMutation }: Props
 										className='text-red-600'
 									>
 										Delete
-										<DropdownMenuShortcut>⌘⌫</DropdownMenuShortcut>
+										{/* <DropdownMenuShortcut>⌘⌫</DropdownMenuShortcut> */}
 									</DropdownMenuItem>
 								</DropdownMenuGroup>
 							</DropdownMenuContent>

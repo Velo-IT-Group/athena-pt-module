@@ -123,12 +123,17 @@ type ReturnType = {
 	totalPrice: number;
 };
 
-export const calculateTotals = (products: Product[], phases: Phase[], labor_rate: number): ReturnType => {
-	const laborTotal = phases.reduce((accumulator, currentValue) => accumulator + (currentValue?.hours ?? 0) * labor_rate, 0) ?? 0;
-	const productTotal = products.reduce((accumulator, currentValue) => accumulator + (currentValue?.price ?? 0), 0);
+export const calculateTotals = (products: Product[], phases: NestedPhase[], labor_rate: number): ReturnType => {
+	console.log(phases.map((p) => p.hours));
+	const ticketHours = phases.map((p) => p.tickets?.map((t) => t.budget_hours).flat()).flat();
+	const ticketSum = ticketHours?.reduce((accumulator, currentValue) => {
+		return (accumulator ?? 0) + (currentValue ?? 0);
+	}, 0);
+	const laborTotal = (ticketSum ?? 0) * labor_rate;
+	const productTotal = products.reduce((accumulator, currentValue) => accumulator + (currentValue?.price ?? 0) * (currentValue?.quantity ?? 0), 0);
 	const recurringTotal = products
 		?.filter((product) => product.recurring_flag)
-		.reduce((accumulator, currentValue) => accumulator + (currentValue?.price ?? 0), 0);
+		.reduce((accumulator, currentValue) => accumulator + (currentValue?.price ?? 0) * (currentValue?.quantity ?? 0), 0);
 	const totalPrice = laborTotal + productTotal;
 
 	return {

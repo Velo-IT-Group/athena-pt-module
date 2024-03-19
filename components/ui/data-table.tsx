@@ -15,12 +15,12 @@ export function DataTable<TData>({ table, hideHeader = false }: DataTablePaginat
 		<div className='rounded-md border'>
 			<Table>
 				{!hideHeader && (
-					<TableHeader className='bg-accent'>
+					<TableHeader>
 						{table.getHeaderGroups().map((headerGroup) => (
 							<TableRow key={headerGroup.id}>
 								{headerGroup.headers.map((header) => {
 									return (
-										<TableHead key={header.id}>
+										<TableHead key={header.id} colSpan={header.colSpan}>
 											{header.isPlaceholder ? null : flexRender(header.column.columnDef.header, header.getContext())}
 										</TableHead>
 									);
@@ -40,7 +40,7 @@ export function DataTable<TData>({ table, hideHeader = false }: DataTablePaginat
 						))
 					) : (
 						<TableRow>
-							<TableCell colSpan={table.getRowModel().rows?.length} className='h-24 text-center'>
+							<TableCell colSpan={table.getAllColumns().length} className='h-24 text-center'>
 								No results.
 							</TableCell>
 						</TableRow>

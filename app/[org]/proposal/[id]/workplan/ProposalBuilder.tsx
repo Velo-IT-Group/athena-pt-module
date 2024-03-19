@@ -1,12 +1,11 @@
 'use client';
 import React, { useOptimistic, useTransition } from 'react';
-import { DragDropContext, Draggable, DropResult, Droppable, DroppableStateSnapshot } from 'react-beautiful-dnd';
+import { DragDropContext, Draggable, DropResult, Droppable } from 'react-beautiful-dnd';
 import TemplateCatalog from '@/components/TemplateCatalog';
-import { ProjectPhase, ProjectTemplate } from '@/types/manage';
+import { ProjectTemplate } from '@/types/manage';
 import { v4 as uuid } from 'uuid';
 import { FileTextIcon, PlusIcon } from '@radix-ui/react-icons';
 import SubmitButton from '@/components/SubmitButton';
-import { handleNewTemplateInsert } from '@/app/actions';
 import { PhaseState } from '@/types/optimisticTypes';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import PhaseListItem from './PhaseListItem';

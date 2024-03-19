@@ -1,6 +1,5 @@
 import React from 'react';
 import Navbar, { Tab } from '../../components/Navbar';
-import { Badge } from '@/components/ui/badge';
 
 const OrganizationLayout = ({ org, children }: { org: string; children: React.ReactNode }) => {
 	const orgDashboardTabs: Tab[] = [
@@ -25,7 +24,7 @@ const OrganizationLayout = ({ org, children }: { org: string; children: React.Re
 	return (
 		<>
 			<Navbar org={org} tabs={orgDashboardTabs} />
-			<div className='min-h-header light:bg-muted/50'>{children}</div>
+			<div className='min-h-header light:bg-muted/50 flex flex-col'>{children}</div>
 		</>
 	);
 };

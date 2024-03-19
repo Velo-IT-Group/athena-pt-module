@@ -10,9 +10,9 @@ const IntegrationsPage = async ({ params }: { params: { org: string } }) => {
 	const integrationsData = await getIntegrations();
 
 	const sectionedIntegrations = integrationsData.reduce((r, a) => {
-		if (a.type === null) {
-		}
+		// @ts-ignore
 		r[a.type] = r[a.type] || [];
+		// @ts-ignore
 		r[a.type].push(a);
 		return r;
 	}, Object.create(null));
