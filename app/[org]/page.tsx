@@ -88,9 +88,7 @@ const OverviewPage = async ({ params, searchParams }: Props) => {
 											Close
 										</Button>
 									</DialogClose>
-									<SubmitButton type='submit' form='proposal-creation'>
-										Submit
-									</SubmitButton>
+									<SubmitButton>Submit</SubmitButton>
 								</DialogFooter>
 							</form>
 						</DialogContent>

@@ -92,32 +92,39 @@ export const columns: ColumnDef<Product>[] = [
 			);
 		},
 	},
-	{
-		accessorKey: 'category',
-		header: ({ column }) => <DataTableColumnHeader column={column} title='Category' />,
-		cell: ({ row, table }) => {
-			return <span>{row.getValue('category')}</span>;
-		},
-	},
+	// {
+	// 	accessorKey: 'category',
+	// 	header: ({ column }) => <DataTableColumnHeader column={column} title='Category' />,
+	// 	cell: ({ row, table }) => {
+	// 		return <span>{row.getValue('category')}</span>;
+	// 	},
+	// },
 	{
 		accessorKey: 'cost',
 		header: ({ column }) => <DataTableColumnHeader column={column} title='Cost' />,
 		cell: ({ row, table }) => {
-			return <span>{getCurrencyString(row.getValue('cost'))}</span>;
+			return <span className='text-right'>{getCurrencyString(row.getValue('cost'))}</span>;
 		},
 	},
 	{
 		accessorKey: 'price',
 		header: ({ column }) => <DataTableColumnHeader column={column} title='Price' className='text-right' />,
-		cell: ({ row, table }) => {
-			return <span className='text-right'>{getCurrencyString(row.getValue('price'))}</span>;
-		},
+		cell: ({ row, table }) => <span className='text-right'>{getCurrencyString(row.getValue('price'))}</span>,
 	},
 	{
 		accessorKey: 'quantity',
 		header: ({ column }) => <DataTableColumnHeader column={column} title='Quantity' />,
 		cell: ({ row }) => {
 			return <span className='text-right justify-self-end'>{row.getValue('quantity')}</span>;
+		},
+	},
+	{
+		accessorKey: 'calculated_cost',
+		header: ({ column }) => <DataTableColumnHeader column={column} title='Calculated Cost' />,
+		cell: ({ row }) => {
+			const amount = parseFloat(row.getValue('calculated_cost') ?? (row.original?.cost ?? 0) * (row.original.quantity ?? 1));
+
+			return <span className='text-right font-medium'>{getCurrencyString(amount)}</span>;
 		},
 	},
 	{

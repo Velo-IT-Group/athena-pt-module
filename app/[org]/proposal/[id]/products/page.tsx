@@ -1,5 +1,5 @@
 import React from 'react';
-import { getCatalogItems, getProducts } from '@/lib/functions/read';
+import { getCatalogItems, getIngramPricing, getProducts, getSynnexPricing } from '@/lib/functions/read';
 import ProductsList from './products-list';
 
 type Props = {
@@ -14,6 +14,10 @@ const ProposalProductPage = async ({ params, searchParams }: Props) => {
 	// await layoutTester(searchParams.loading);
 	const products = await getProducts(params.id);
 	const { catalogItems, count } = await getCatalogItems(search, identifier, page);
+
+	const response = await getIngramPricing();
+	const synnexProducts = await getSynnexPricing();
+	console.log(response, synnexProducts);
 
 	if (!products) {
 		return <div></div>;

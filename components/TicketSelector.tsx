@@ -14,7 +14,6 @@ const TicketSelector = ({ tickets, ticket }: { tickets: ServiceTicket[]; ticket?
 			</SelectTrigger>
 			<SelectContent>
 				{tickets.map((ticket) => (
-					// @ts-ignore
 					<SelectItem key={ticket.id} value={String(ticket.id)}>
 						#{ticket.id} - {ticket.summary}
 					</SelectItem>

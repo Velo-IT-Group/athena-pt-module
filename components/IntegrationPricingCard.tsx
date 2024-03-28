@@ -1,3 +1,5 @@
+'use client';
+
 import React, { useEffect, useState } from 'react';
 import { HoverCardContent } from './ui/hover-card';
 import { Separator } from './ui/separator';
@@ -5,9 +7,7 @@ import { getOrganization } from '@/lib/functions/read';
 import Image from 'next/image';
 import Link from 'next/link';
 import { ArrowTopRightIcon } from '@radix-ui/react-icons';
-import { Skeleton } from './ui/skeleton';
-import { getCurrencyString } from '@/utils/money';
-import { Button } from './ui/button';
+import IntegrationPricingModule from './IntegrationPricingModule';
 
 type Props = {
 	description: string;
@@ -63,25 +63,9 @@ const IntegrationPricingCard = ({ description, id, vendorSku, setPrice }: Props)
 							<h4 className='text-muted-foreground text-sm'>{integration.name}</h4>
 						)}
 
-						{/* <Suspense fallback={<Skeleton />}> */}
-						{loading ? (
-							<Skeleton className='h-4 w-16 ml-auto' />
-						) : (
-							<Button
-								type='button'
-								size='sm'
-								variant='link'
-								onClick={() => {
-									if (setPrice) {
-										setPrice(123);
-									}
-								}}
-								className='ml-auto font-medium'
-							>
-								{getCurrencyString(123)}
-							</Button>
-						)}
-						{/* </Suspense> */}
+						<IntegrationPricingModule distributor='synnex' />
+						{/* <Suspense fallback={<Skeleton className='h-4 w-16 ml-auto' />}>
+						</Suspense> */}
 					</li>
 				))}
 			</ul>

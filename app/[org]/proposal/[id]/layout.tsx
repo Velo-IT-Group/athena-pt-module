@@ -26,7 +26,6 @@ const ProposalIdLayout = async ({ params, children }: Props) => {
 		{ name: 'Products', href: `/${org}/proposal/${id}/products` },
 		{ name: 'Settings', href: `/${org}/proposal/${id}/settings` },
 	];
-	proposal.phases.find((p) => p.description === 'Executing').tickets.forEach((t) => console.log(t));
 
 	const { laborTotal, productTotal, recurringTotal, totalPrice } = calculateTotals(products, proposal.phases, proposal.labor_rate);
 
