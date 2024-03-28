@@ -3,12 +3,15 @@ import SubmitButton from '@/components/SubmitButton';
 import TicketSelector from '@/components/TicketSelector';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { deleteProposal } from '@/lib/functions/delete';
 import { getOrganization, getProposal, getTicket, getTickets } from '@/lib/functions/read';
 import { updateProposal } from '@/lib/functions/update';
 import { getCurrencyString, parseAmount } from '@/utils/money';
 import { redirect } from 'next/navigation';
 import React from 'react';
+import { statuses } from '../products/data/data';
+import { Label } from '@/components/ui/label';
 
 const ProposalSettingsPage = async ({ params }: { params: { id: string } }) => {
 	const proposal = await getProposal(params.id);
@@ -25,17 +28,37 @@ const ProposalSettingsPage = async ({ params }: { params: { id: string } }) => {
 				<form
 					action={async (data: FormData) => {
 						'use server';
-						await updateProposal(proposal.id, { name: data.get('name') as string });
+						// @ts-ignore
+						await updateProposal(proposal.id, { name: data.get('name') as string, status: data.get('status') as string });
 					}}
+					className='flex flex-col h-full'
 				>
 					<CardHeader>
-						<CardTitle>Proposal Name</CardTitle>
+						<CardTitle>General Settings</CardTitle>
 						<CardDescription>Used to identify your Project on the Dashboard, Vercel CLI, and in the URL of your Deployments.</CardDescription>
 					</CardHeader>
-					<CardContent>
-						<Input required name='name' defaultValue={proposal.name} />
+					<CardContent className='space-y-3'>
+						<div className='grid gap-1'>
+							<Label htmlFor='name'>Name</Label>
+							<Input required name='name' defaultValue={proposal.name} />
+						</div>
+						<div className='grid gap-1'>
+							<Label htmlFor='status'>Status</Label>
+							<Select defaultValue={proposal.status} name='status'>
+								<SelectTrigger>
+									<SelectValue placeholder='Select a status' />
+								</SelectTrigger>
+								<SelectContent>
+									{statuses.map((status) => (
+										<SelectItem value={status.value} key={status.value}>
+											{status.label}
+										</SelectItem>
+									))}
+								</SelectContent>
+							</Select>
+						</div>
 					</CardContent>
-					<CardFooter>
+					<CardFooter className='mt-auto'>
 						<SubmitButton className='ml-auto'>Save</SubmitButton>
 					</CardFooter>
 				</form>
@@ -79,7 +102,7 @@ const ProposalSettingsPage = async ({ params }: { params: { id: string } }) => {
 				</form>
 			</Card>
 
-			<Card className='col-span-2'>
+			{/* <Card className='col-span-2'>
 				<form
 					action={async (data: FormData) => {
 						'use server';
@@ -138,7 +161,7 @@ const ProposalSettingsPage = async ({ params }: { params: { id: string } }) => {
 						<SubmitButton className='ml-auto'>Save</SubmitButton>
 					</CardFooter>
 				</form>
-			</Card>
+			</Card> */}
 
 			<Card className='col-span-2'>
 				<form>

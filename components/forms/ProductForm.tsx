@@ -102,14 +102,19 @@ const ProductForm = ({ product }: { product: Product }) => {
 
 	// 2. Define a submit handler.
 	async function onSubmit(values: z.infer<typeof productFormSchema>) {
-		// const difference = differenceInObj(product, values);
 		// @ts-ignore
-		delete values['products'];
-		// console.log(difference);
+		const difference = differenceInObj(product, values);
+		// @ts-ignore
+		delete difference['products'];
+		// @ts-ignore
+		delete difference['created_at'];
+		// @ts-ignore
+		console.log(difference);
 		//@ts-ignore
 		// delete values['extended_price'];
+		console.log('hi', values);
 
-		await updateProduct(product.unique_id, values);
+		await updateProduct(product.unique_id, difference);
 	}
 
 	return (
@@ -249,7 +254,7 @@ const ProductForm = ({ product }: { product: Product }) => {
 
 									<FormField
 										control={form.control}
-										name='recurring_cost'
+										name='recurring_amount'
 										render={() => (
 											<FormItem>
 												<FormLabel>Recurring Amount</FormLabel>
@@ -260,9 +265,9 @@ const ProductForm = ({ product }: { product: Product }) => {
 															type='number'
 															min='0.01'
 															step='0.01'
-															placeholder='0.00'
-															{...form.register('recurring_cost', { valueAsNumber: true })}
+															{...form.register('recurring_amount', { valueAsNumber: true })}
 															className='pl-6'
+															placeholder='0.00'
 														/>
 													</div>
 												</FormControl>
@@ -370,7 +375,7 @@ const ProductForm = ({ product }: { product: Product }) => {
 
 									<FormField
 										control={form.control}
-										name='recurring_cost'
+										name='suggested_price'
 										render={() => (
 											<FormItem>
 												<FormLabel>Suggested Price</FormLabel>
@@ -382,7 +387,7 @@ const ProductForm = ({ product }: { product: Product }) => {
 															min='0.01'
 															step='0.01'
 															placeholder='0.00'
-															{...form.register('recurring_cost', { valueAsNumber: true })}
+															{...form.register('suggested_price', { valueAsNumber: true })}
 															className='pl-6'
 														/>
 													</div>
@@ -394,7 +399,7 @@ const ProductForm = ({ product }: { product: Product }) => {
 
 									<FormField
 										control={form.control}
-										name='recurring_cost'
+										name='recurring_suggested_price'
 										render={() => (
 											<FormItem>
 												<FormLabel>Recurring Suggested Price</FormLabel>
@@ -406,7 +411,7 @@ const ProductForm = ({ product }: { product: Product }) => {
 															min='0.01'
 															step='0.01'
 															placeholder='0.00'
-															{...form.register('recurring_cost', { valueAsNumber: true })}
+															{...form.register('recurring_suggested_price', { valueAsNumber: true })}
 															className='pl-6'
 														/>
 													</div>
@@ -481,7 +486,7 @@ const ProductForm = ({ product }: { product: Product }) => {
 						</section>
 					</Collapsible>
 
-					<Button>Save</Button>
+					<Button type='submit'>Save</Button>
 				</form>
 			</Form>
 			<SheetFooter>

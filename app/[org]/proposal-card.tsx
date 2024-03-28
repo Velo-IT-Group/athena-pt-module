@@ -10,7 +10,7 @@ import { calculateTotals } from '@/utils/helpers';
 import { getCurrencyString } from '@/utils/money';
 
 export function ProposalCard({ proposal, orgId }: { proposal: NestedProposal; orgId: string }) {
-	const status = statuses.find((status) => status.value === 'inProgress');
+	const status = statuses.find((status) => status.value === proposal.status);
 	// @ts-ignore
 	const { totalPrice } = calculateTotals(proposal?.products ?? [], proposal?.phases ?? [], proposal.labor_rate);
 

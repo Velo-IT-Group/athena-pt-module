@@ -28,10 +28,7 @@ export function ProposalShare({ proposalId }: { proposalId: string }) {
 				</div>
 				<div className='grid flex-1 gap-4 pt-4'>
 					<div className='grid gap-2'>
-						<Label
-							htmlFor='external_link'
-							// className='sr-only'
-						>
+						<Label htmlFor='external_link' className='sr-only'>
 							External Link
 						</Label>
 

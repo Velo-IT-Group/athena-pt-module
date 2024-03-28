@@ -77,6 +77,23 @@ export const updatePhase = async (id: string, phase: PhaseUpdate) => {
 };
 
 /**
+ * Updates Phase In Supabase.
+ * @param {string} id - The id of the comment you're wanting to update.
+ * @param {PhaseUpdate} comment - The comment you're wanting to update.
+ */
+export const updateComment = async (id: string, comment: CommentUpdate) => {
+	const supabase = createClient();
+	const { error } = await supabase.from('comments').update(comment).eq('id', id);
+
+	if (error) {
+		console.error(error);
+		return;
+	}
+
+	revalidateTag('proposals');
+};
+
+/**
  * Updates Task In Supabase.
  * @param {string} id - The id of the task you're wanting to update.
  * @param {TaskUpdate} task - The task you're wanting to update.

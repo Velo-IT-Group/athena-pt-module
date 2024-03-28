@@ -1,38 +1,30 @@
 import { Button } from '@/components/ui/button';
-import { Dialog, DialogTrigger } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Separator } from '@/components/ui/separator';
 import { getProducts, getProposal, getTicket, getTicketNotes } from '@/lib/functions/read';
 import { relativeDate } from '@/utils/date';
 import { getCurrencyString } from '@/utils/money';
-import { CalendarIcon, DotsHorizontalIcon, FileTextIcon, StopwatchIcon } from '@radix-ui/react-icons';
+import { CalendarIcon, DotsHorizontalIcon, FileTextIcon, PlusCircledIcon, StopwatchIcon } from '@radix-ui/react-icons';
 import React from 'react';
 import ProductList from './product-list';
-import { Textarea } from '@/components/ui/textarea';
-import { Switch } from '@/components/ui/switch';
 import { HoverCard, HoverCardContent, HoverCardTrigger } from '@/components/ui/hover-card';
 import ExpirationDatePicker from './expiration-date-picker';
+import { calculateTotals } from '@/utils/helpers';
 
 type Props = {
 	params: { id: string };
 };
 
 const ProposalPage = async ({ params }: Props) => {
-	const proposal = await getProposal(params.id);
-	const products = await getProducts(params.id);
+	const [proposal, products] = await Promise.all([getProposal(params.id), getProducts(params.id)]);
 
 	if (!proposal) return <div></div>;
 
-	const [ticket, notes] = await Promise.all([getTicket(proposal?.service_ticket ?? 0), getTicketNotes(proposal?.service_ticket ?? 0)]);
-	const laborTotal = proposal.phases.reduce((accumulator, currentValue) => accumulator + (currentValue?.hours ?? 0) * proposal.labor_rate, 0) ?? 0;
-	const productTotal = products.reduce((accumulator, currentValue) => accumulator + (currentValue?.price ?? 0), 0);
-	const productCost = products.reduce((accumulator, currentValue) => accumulator + (currentValue?.cost ?? 0), 0);
-	const recurringTotal = products
-		?.filter((product) => product.recurring_flag)
-		.reduce((accumulator, currentValue) => accumulator + (currentValue?.price ?? 0), 0);
-	const recurringCost = products
-		?.filter((product) => product.recurring_flag)
-		.reduce((accumulator, currentValue) => accumulator + (currentValue?.cost ?? 0), 0);
-	const totalPrice = laborTotal + productTotal;
+	const [ticket] = await Promise.all([
+		getTicket(proposal?.service_ticket ?? 0),
+		// getTicketNotes(proposal?.service_ticket ?? 0)
+	]);
+	const { ticketHours, totalPrice } = calculateTotals(products, proposal.phases, proposal.labor_rate);
 
 	return (
 		<div className='grid grid-cols-12 flex-1'>
@@ -66,11 +58,18 @@ const ProposalPage = async ({ params }: Props) => {
 					</div>
 				</section>
 
+				<section className='space-y-4 w-1/2'>
+					<h2 className='text-xl font-semibold'>Expiration date</h2>
+					<div className='space-y-1'>
+						<ExpirationDatePicker id={params.id} expiration_date={proposal.expiration_date ?? undefined} />
+					</div>
+				</section>
+
 				<section className='space-y-4'>
 					<h2 className='text-xl font-semibold flex items-center justify-between gap-2'>
 						Products{' '}
 						<div className='font-normal text-sm flex items-center text-muted-foreground'>
-							<Switch className='mr-2' /> Collect tax automatically
+							{/* <Switch className='mr-2' /> Collect tax automatically */}
 						</div>
 					</h2>
 					<div className='space-y-1'>
@@ -80,19 +79,40 @@ const ProposalPage = async ({ params }: Props) => {
 					</div>
 				</section>
 
-				<section className='space-y-4 w-1/2'>
-					<h2 className='text-xl font-semibold'>Expiration date</h2>
+				<section className='space-y-4'>
+					<h2 className='text-xl font-semibold flex items-center justify-between gap-2'>
+						Attachments
+						<div className='font-normal text-sm flex items-center text-muted-foreground'>
+							<Dialog>
+								<DialogTrigger asChild>
+									<Button>
+										<PlusCircledIcon className='w-4 h-4 mr-2' /> Add attachment
+									</Button>
+								</DialogTrigger>
+								<DialogContent>
+									<DialogHeader>
+										<DialogTitle>Add attachment</DialogTitle>
+									</DialogHeader>
+									<div className='border rounded-md border-dashed min-h-12'></div>
+								</DialogContent>
+							</Dialog>
+							{/* <Switch className='mr-2' /> Collect tax automatically */}
+						</div>
+					</h2>
 					<div className='space-y-1'>
-						<ExpirationDatePicker id={params.id} expiration_date={proposal.expiration_date ?? undefined} />
+						<Separator />
+						<p>Attachments go here.</p>
+						{/* <ProductList products={products} /> */}
+						<Separator />
 					</div>
 				</section>
 
-				<section className='space-y-4 w-1/2'>
+				{/* <section className='space-y-4 w-1/2'>
 					<h2 className='text-xl font-semibold'>Memo</h2>
 					<div className='space-y-1'>
 						<Textarea placeholder='Thanks for your business!' />
 					</div>
-				</section>
+				</section> */}
 			</div>
 
 			<div className='border-l py-16 pl-12 pr-16 w-full col-span-3 space-y-16 bg-muted/50'>
@@ -105,28 +125,30 @@ const ProposalPage = async ({ params }: Props) => {
 					<FileTextIcon className='text-primary w-4 h-4' />
 					<div className='space-y-3'>
 						<h2 className='text-xs'>TOTAL AMOUNT</h2>
-						<p className='text-muted-foreground font-medium text-sm uppercase'>{getCurrencyString(productTotal)}</p>
+						<p className='text-muted-foreground font-medium text-sm uppercase'>{getCurrencyString(totalPrice)}</p>
 						<p className='text-muted-foreground text-xs'>Bills when quote is accepted</p>
 					</div>
 				</section>
 
 				<section className='flex items-start gap-4'>
-					<StopwatchIcon className='text-muted-foreground w-4 h-4' />
+					<StopwatchIcon className='text-primary w-4 h-4' />
 					<div className='space-y-3'>
 						<h2 className='text-xs'>LABOR HOURS</h2>
-						<p className='text-muted-foreground font-medium text-sm'>{proposal.hours_required} hrs</p>
+						<p className='text-muted-foreground font-medium text-sm'>{ticketHours ?? 0} hrs</p>
 					</div>
 				</section>
 
 				<section className='flex items-start gap-4'>
 					<CalendarIcon className='text-primary w-4 h-4' />
 					<div className='space-y-3'>
-						<h2 className='text-xs'>COMPLETION DATE</h2>
-						<p className='text-muted-foreground font-medium text-sm'>
-							{new Intl.DateTimeFormat('en-US', { dateStyle: 'short' }).format(
-								proposal.expiration_date ? new Date(proposal.expiration_date) : new Date()
-							)}
-						</p>
+						<h2 className='text-xs'>EXPIRATION DATE</h2>
+						{proposal.expiration_date ? (
+							<p className='text-muted-foreground font-medium text-sm'>
+								{new Intl.DateTimeFormat('en-US', { dateStyle: 'short' }).format(new Date(proposal.expiration_date))}
+							</p>
+						) : (
+							<p className='text-muted-foreground font-medium text-sm'>No expiration date.</p>
+						)}
 					</div>
 				</section>
 			</div>

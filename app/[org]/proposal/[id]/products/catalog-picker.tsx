@@ -49,6 +49,8 @@ const CatalogPicker = ({ proposal, catalogItems, params, count }: Props) => {
 		await createProduct({ ...product, proposal }, bundledItems);
 	};
 
+	// console.log(catalogItems);
+
 	const table = useReactTable<CatalogItem>({
 		data: catalogItems,
 		columns: catalogColumns,
@@ -58,7 +60,7 @@ const CatalogPicker = ({ proposal, catalogItems, params, count }: Props) => {
 		onRowSelectionChange: setRowSelection,
 		enableExpanding: true,
 		getRowId: (row) => row.id.toString(),
-		getSubRows: (row) => row.bundledItems,
+		getSubRows: (row) => row?.bundledItems,
 		meta: {
 			productInsert,
 		},
@@ -79,8 +81,9 @@ const CatalogPicker = ({ proposal, catalogItems, params, count }: Props) => {
 			</DialogHeader>
 
 			<div className='col-span-3 space-y-4'>
-				<div className='flex items-center'>
-					<Search baseUrl={`/${params.org}/proposal/${params.id}/products`} placeholder='Search products' />
+				<div className='grid grid-cols-[250px_1fr] gap-4'>
+					<Search baseUrl={`/${params.org}/proposal/${params.id}/products`} placeholder='Search by identifier...' queryParam='identifier' />
+					<Search baseUrl={`/${params.org}/proposal/${params.id}/products`} placeholder='Search by description...' />
 				</div>
 
 				<DataTable table={table} />

@@ -29,7 +29,7 @@ const Navbar = async ({ title, children, org, tabs }: Props) => {
 
 	return (
 		<>
-			<nav className='flex items-center gap-4 w-full px-8 h-16 relative'>
+			<nav className='flex items-center gap-4 w-full px-8 h-16 relative bg-background'>
 				{org ? (
 					<>
 						<Link href={`/${org}`}>

@@ -17,10 +17,7 @@ type Props = {
 
 const ProposalIdLayout = async ({ params, children }: Props) => {
 	const { id, org } = params;
-
-	const proposal = await getProposal(id);
-	const products = await getProducts(id);
-	const members = await getMembers();
+	const [proposal, products, members] = await Promise.all([getProposal(id), getProducts(id), getMembers()]);
 	if (!proposal) return notFound();
 
 	const tabs: Tab[] = [
@@ -29,8 +26,10 @@ const ProposalIdLayout = async ({ params, children }: Props) => {
 		{ name: 'Products', href: `/${org}/proposal/${id}/products` },
 		{ name: 'Settings', href: `/${org}/proposal/${id}/settings` },
 	];
+	proposal.phases.find((p) => p.description === 'Executing').tickets.forEach((t) => console.log(t));
 
 	const { laborTotal, productTotal, recurringTotal, totalPrice } = calculateTotals(products, proposal.phases, proposal.labor_rate);
+
 	return (
 		<>
 			<Navbar org={org} title={proposal?.name} tabs={tabs}>
@@ -48,24 +47,21 @@ const ProposalIdLayout = async ({ params, children }: Props) => {
 								<h4 className='font-medium leading-none'>Totals</h4>
 								<p className='text-sm text-muted-foreground'>See the totals of the different aspects of the proposal.</p>
 							</div>
-							<div className='grid gap-2'>
+
+							<div className='grid gap-3'>
 								<div className='grid grid-cols-3 items-center gap-4'>
-									<Label>Labor Total</Label>
-									<p className='col-span-2 h-8 text-sm'>
-										{getCurrencyString(
-											proposal.phases.reduce((accumulator, currentValue) => accumulator + (currentValue?.hours ?? 0) * proposal.labor_rate, 0) ?? 0
-										)}
-									</p>
+									<Label>Labor</Label>
+									<p className='col-span-2 text-sm'>{getCurrencyString(laborTotal)}</p>
 								</div>
+
 								<div className='grid grid-cols-3 items-center gap-4'>
-									<Label>Product Total</Label>
-									<p className='col-span-2 h-8 text-sm'>
-										{getCurrencyString(products.reduce((accumulator, currentValue) => accumulator + (currentValue?.price ?? 0), 0) ?? 0)}
-									</p>
+									<Label>Product</Label>
+									<p className='col-span-2 text-sm'>{getCurrencyString(productTotal)}</p>
 								</div>
+
 								<div className='grid grid-cols-3 items-center gap-4'>
 									<Label>Recurring</Label>
-									<p className='col-span-2 h-8 text-sm'>{getCurrencyString(recurringTotal)}</p>
+									<p className='col-span-2 text-sm'>{getCurrencyString(recurringTotal)}</p>
 								</div>
 							</div>
 						</div>

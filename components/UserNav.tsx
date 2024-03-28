@@ -16,7 +16,6 @@ import { type User } from '@supabase/supabase-js';
 
 const UserNav = ({ user, className, url }: { user: User; className?: string; url?: string }) => {
 	const supabase = createClient();
-
 	return (
 		<DropdownMenu>
 			<DropdownMenuTrigger className={className} asChild>

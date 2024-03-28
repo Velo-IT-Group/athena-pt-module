@@ -55,7 +55,7 @@ export const columns: ColumnDef<Product>[] = [
 		header: ({ column }) => {
 			return <DataTableColumnHeader column={column} title='Manufacturer Part Number' />;
 		},
-		cell: ({ row, table }) => {
+		cell: ({ row }) => {
 			return (
 				<div className='flex items-center'>
 					{row.getCanExpand() && (
@@ -221,7 +221,7 @@ export const catalogColumns: ColumnDef<CatalogItem>[] = [
 		cell: ({ row }) => (
 			<HoverCard>
 				<div className='flex items-center'>
-					{/* {row.getCanExpand() ? (
+					{row.getCanExpand() ? (
 						<>
 							<Button
 								variant='ghost'
@@ -237,14 +237,13 @@ export const catalogColumns: ColumnDef<CatalogItem>[] = [
 						</>
 					) : (
 						<></>
-					)} */}
+					)}
 
 					<HoverCardTrigger className='text-muted-foreground '>
 						<div className='flex space-x-2' style={{ paddingLeft: `${row.depth * 2}rem` }}>
 							{row.original.productClass === 'Bundle' && <Badge variant='outline'>Bundle</Badge>}
 							<span className='max-w-[500px] truncate font-medium decoration-dashed underline decoration-muted-foreground '>
-								{/* @ts-ignore */}
-								{row.getValue('description') ?? row.original.catalogItem?.description ?? row.original.catalogItem?.identifier}
+								{row.getValue('description')}
 							</span>
 						</div>
 					</HoverCardTrigger>

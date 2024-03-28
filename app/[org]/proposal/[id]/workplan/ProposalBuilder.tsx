@@ -4,7 +4,7 @@ import { DragDropContext, Draggable, DropResult, Droppable } from 'react-beautif
 import TemplateCatalog from '@/components/TemplateCatalog';
 import { ProjectTemplate } from '@/types/manage';
 import { v4 as uuid } from 'uuid';
-import { FileTextIcon, PlusIcon } from '@radix-ui/react-icons';
+import { FileTextIcon, PlusCircledIcon, PlusIcon } from '@radix-ui/react-icons';
 import SubmitButton from '@/components/SubmitButton';
 import { PhaseState } from '@/types/optimisticTypes';
 import { ScrollArea } from '@/components/ui/scroll-area';
@@ -14,6 +14,7 @@ import { reorder } from '@/utils/array';
 import { updatePhase, updateTicket } from '@/lib/functions/update';
 import { createPhase, newTemplate } from '@/lib/functions/create';
 import { createNestedPhaseFromTemplate } from '@/utils/helpers';
+import { Button } from '@/components/ui/button';
 
 type Props = {
 	id: string;
@@ -161,9 +162,9 @@ const ProposalBuilder = ({ id, phases, templates }: Props) => {
 						<div className='w-full px-2 flex justify-between items-center'>
 							<h1 className='text-2xl font-semibold'>Workplan</h1>
 							<form action={action}>
-								<SubmitButton>
-									<PlusIcon className='w-4 h-4' />
-								</SubmitButton>
+								<Button size='sm' variant='secondary'>
+									<PlusCircledIcon className='w-4 h-4 mr-2' /> Add Phase
+								</Button>
 							</form>
 						</div>
 

@@ -114,6 +114,18 @@ export const createPhase = async (phase: PhaseInsert, tickets: Array<ProjectTemp
 	revalidateTag('proposals');
 };
 
+export const createComment = async (comment: CommentInsert) => {
+	const supabase = createClient();
+	const { error } = await supabase.from('comments').insert(comment);
+
+	if (error) {
+		console.error(error);
+		return;
+	}
+
+	revalidateTag('proposals');
+};
+
 export const createTicket = async (ticket: TicketInset, tasks: Array<ProjectTemplateTask>): Promise<Ticket | undefined> => {
 	'use server';
 	const supabase = createClient();

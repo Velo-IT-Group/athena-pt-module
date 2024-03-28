@@ -81,7 +81,7 @@ const PhaseListItem = ({ phase, tickets, order, pending, phaseMutation }: Props)
 
 	return (
 		<Collapsible className='border rounded-xl overflow-hidden'>
-			<div className='flex flex-row items-center gap-4 p-4 w-full bg-muted/25'>
+			<div className='flex flex-row items-center gap-4 p-4 w-full bg-secondary/25 text-secondary-foreground'>
 				<Input
 					readOnly={pending}
 					onBlur={async (e) => {

@@ -38,6 +38,65 @@ export type Database = {
 					}
 				];
 			};
+			comments: {
+				Row: {
+					id: string;
+					phase: string | null;
+					proposal: string;
+					sent_at: string;
+					text: string;
+					ticket: string | null;
+					user: string | null;
+				};
+				Insert: {
+					id?: string;
+					phase?: string | null;
+					proposal: string;
+					sent_at?: string;
+					text: string;
+					ticket?: string | null;
+					user?: string | null;
+				};
+				Update: {
+					id?: string;
+					phase?: string | null;
+					proposal?: string;
+					sent_at?: string;
+					text?: string;
+					ticket?: string | null;
+					user?: string | null;
+				};
+				Relationships: [
+					{
+						foreignKeyName: 'public_comments_phase_fkey';
+						columns: ['phase'];
+						isOneToOne: false;
+						referencedRelation: 'phases';
+						referencedColumns: ['id'];
+					},
+					{
+						foreignKeyName: 'public_comments_proposal_fkey';
+						columns: ['proposal'];
+						isOneToOne: false;
+						referencedRelation: 'proposals';
+						referencedColumns: ['id'];
+					},
+					{
+						foreignKeyName: 'public_comments_ticket_fkey';
+						columns: ['ticket'];
+						isOneToOne: false;
+						referencedRelation: 'tickets';
+						referencedColumns: ['id'];
+					},
+					{
+						foreignKeyName: 'public_comments_user_fkey';
+						columns: ['user'];
+						isOneToOne: false;
+						referencedRelation: 'profiles';
+						referencedColumns: ['id'];
+					}
+				];
+			};
 			integrations: {
 				Row: {
 					auth_type: Database['public']['Enums']['auth_type'] | null;
@@ -67,16 +126,19 @@ export type Database = {
 					client_id: string | null;
 					integration: string;
 					organization: string;
+					secret_key: string | null;
 				};
 				Insert: {
 					client_id?: string | null;
 					integration: string;
 					organization: string;
+					secret_key?: string | null;
 				};
 				Update: {
 					client_id?: string | null;
 					integration?: string;
 					organization?: string;
+					secret_key?: string | null;
 				};
 				Relationships: [
 					{
@@ -198,6 +260,7 @@ export type Database = {
 					catalog_item: number | null;
 					category: string | null;
 					cost: number | null;
+					created_at: string | null;
 					customer_description: string | null;
 					description: string | null;
 					drop_ship_flag: boolean | null;
@@ -217,7 +280,7 @@ export type Database = {
 					price: number | null;
 					product_class: string | null;
 					proposal: string | null;
-					quantity: number | null;
+					quantity: number;
 					recurring_bill_cycle: number | null;
 					recurring_cost: number | null;
 					recurring_cycle_type: string | null;
@@ -243,6 +306,7 @@ export type Database = {
 					catalog_item?: number | null;
 					category?: string | null;
 					cost?: number | null;
+					created_at?: string | null;
 					customer_description?: string | null;
 					description?: string | null;
 					drop_ship_flag?: boolean | null;
@@ -262,7 +326,7 @@ export type Database = {
 					price?: number | null;
 					product_class?: string | null;
 					proposal?: string | null;
-					quantity?: number | null;
+					quantity?: number;
 					recurring_bill_cycle?: number | null;
 					recurring_cost?: number | null;
 					recurring_cycle_type?: string | null;
@@ -288,6 +352,7 @@ export type Database = {
 					catalog_item?: number | null;
 					category?: string | null;
 					cost?: number | null;
+					created_at?: string | null;
 					customer_description?: string | null;
 					description?: string | null;
 					drop_ship_flag?: boolean | null;
@@ -307,7 +372,7 @@ export type Database = {
 					price?: number | null;
 					product_class?: string | null;
 					proposal?: string | null;
-					quantity?: number | null;
+					quantity?: number;
 					recurring_bill_cycle?: number | null;
 					recurring_cost?: number | null;
 					recurring_cycle_type?: string | null;
@@ -401,6 +466,7 @@ export type Database = {
 					organization: string | null;
 					sales_hours: number;
 					service_ticket: number | null;
+					status: Database['public']['Enums']['status'];
 					templates_used: number[] | null;
 					total_labor_price: number;
 					total_price: number | null;
@@ -420,6 +486,7 @@ export type Database = {
 					organization?: string | null;
 					sales_hours?: number;
 					service_ticket?: number | null;
+					status?: Database['public']['Enums']['status'];
 					templates_used?: number[] | null;
 					total_labor_price?: number;
 					total_price?: number | null;
@@ -439,6 +506,7 @@ export type Database = {
 					organization?: string | null;
 					sales_hours?: number;
 					service_ticket?: number | null;
+					status?: Database['public']['Enums']['status'];
 					templates_used?: number[] | null;
 					total_labor_price?: number;
 					total_price?: number | null;
@@ -583,9 +651,75 @@ export type Database = {
 			};
 		};
 		Views: {
-			[_ in never]: never;
+			decrypted_organization_integrations: {
+				Row: {
+					client_id: string | null;
+					decrypted_secret_key: string | null;
+					integration: string | null;
+					organization: string | null;
+					secret_key: string | null;
+				};
+				Insert: {
+					client_id?: string | null;
+					decrypted_secret_key?: never;
+					integration?: string | null;
+					organization?: string | null;
+					secret_key?: string | null;
+				};
+				Update: {
+					client_id?: string | null;
+					decrypted_secret_key?: never;
+					integration?: string | null;
+					organization?: string | null;
+					secret_key?: string | null;
+				};
+				Relationships: [
+					{
+						foreignKeyName: 'public_organization_integrations_integration_fkey';
+						columns: ['integration'];
+						isOneToOne: false;
+						referencedRelation: 'integrations';
+						referencedColumns: ['id'];
+					},
+					{
+						foreignKeyName: 'public_organization_integrations_organization_fkey';
+						columns: ['organization'];
+						isOneToOne: false;
+						referencedRelation: 'organizations';
+						referencedColumns: ['id'];
+					}
+				];
+			};
 		};
 		Functions: {
+			duplicate_phases: {
+				Args: {
+					original_id: string;
+					new_id: string;
+				};
+				Returns: undefined;
+			};
+			duplicate_products: {
+				Args: {
+					original_id: string;
+					new_id: string;
+				};
+				Returns: undefined;
+			};
+			duplicate_tasks: {
+				Args: {
+					original_id: string;
+					new_id: string;
+				};
+				Returns: undefined;
+			};
+			duplicate_tickets: {
+				Args: {
+					original_id: string;
+					new_id: string;
+				};
+				Returns: undefined;
+			};
 			get_organization_from_phase: {
 				Args: {
 					phase_id: string;
@@ -635,6 +769,7 @@ export type Database = {
 		Enums: {
 			auth_type: 'OAuth2';
 			integration_type: 'reseller' | 'distribution' | 'email';
+			status: 'building' | 'inProgress' | 'signed' | 'canceled';
 		};
 		CompositeTypes: {
 			[_ in never]: never;
@@ -642,8 +777,10 @@ export type Database = {
 	};
 };
 
+type PublicSchema = Database[Extract<keyof Database, 'public'>];
+
 export type Tables<
-	PublicTableNameOrOptions extends keyof (Database['public']['Tables'] & Database['public']['Views']) | { schema: keyof Database },
+	PublicTableNameOrOptions extends keyof (PublicSchema['Tables'] & PublicSchema['Views']) | { schema: keyof Database },
 	TableName extends PublicTableNameOrOptions extends { schema: keyof Database }
 		? keyof (Database[PublicTableNameOrOptions['schema']]['Tables'] & Database[PublicTableNameOrOptions['schema']]['Views'])
 		: never = never
@@ -653,8 +790,8 @@ export type Tables<
 	  }
 		? R
 		: never
-	: PublicTableNameOrOptions extends keyof (Database['public']['Tables'] & Database['public']['Views'])
-	? (Database['public']['Tables'] & Database['public']['Views'])[PublicTableNameOrOptions] extends {
+	: PublicTableNameOrOptions extends keyof (PublicSchema['Tables'] & PublicSchema['Views'])
+	? (PublicSchema['Tables'] & PublicSchema['Views'])[PublicTableNameOrOptions] extends {
 			Row: infer R;
 	  }
 		? R
@@ -662,7 +799,7 @@ export type Tables<
 	: never;
 
 export type TablesInsert<
-	PublicTableNameOrOptions extends keyof Database['public']['Tables'] | { schema: keyof Database },
+	PublicTableNameOrOptions extends keyof PublicSchema['Tables'] | { schema: keyof Database },
 	TableName extends PublicTableNameOrOptions extends { schema: keyof Database }
 		? keyof Database[PublicTableNameOrOptions['schema']]['Tables']
 		: never = never
@@ -672,8 +809,8 @@ export type TablesInsert<
 	  }
 		? I
 		: never
-	: PublicTableNameOrOptions extends keyof Database['public']['Tables']
-	? Database['public']['Tables'][PublicTableNameOrOptions] extends {
+	: PublicTableNameOrOptions extends keyof PublicSchema['Tables']
+	? PublicSchema['Tables'][PublicTableNameOrOptions] extends {
 			Insert: infer I;
 	  }
 		? I
@@ -681,7 +818,7 @@ export type TablesInsert<
 	: never;
 
 export type TablesUpdate<
-	PublicTableNameOrOptions extends keyof Database['public']['Tables'] | { schema: keyof Database },
+	PublicTableNameOrOptions extends keyof PublicSchema['Tables'] | { schema: keyof Database },
 	TableName extends PublicTableNameOrOptions extends { schema: keyof Database }
 		? keyof Database[PublicTableNameOrOptions['schema']]['Tables']
 		: never = never
@@ -691,8 +828,8 @@ export type TablesUpdate<
 	  }
 		? U
 		: never
-	: PublicTableNameOrOptions extends keyof Database['public']['Tables']
-	? Database['public']['Tables'][PublicTableNameOrOptions] extends {
+	: PublicTableNameOrOptions extends keyof PublicSchema['Tables']
+	? PublicSchema['Tables'][PublicTableNameOrOptions] extends {
 			Update: infer U;
 	  }
 		? U
@@ -700,12 +837,12 @@ export type TablesUpdate<
 	: never;
 
 export type Enums<
-	PublicEnumNameOrOptions extends keyof Database['public']['Enums'] | { schema: keyof Database },
+	PublicEnumNameOrOptions extends keyof PublicSchema['Enums'] | { schema: keyof Database },
 	EnumName extends PublicEnumNameOrOptions extends { schema: keyof Database }
 		? keyof Database[PublicEnumNameOrOptions['schema']]['Enums']
 		: never = never
 > = PublicEnumNameOrOptions extends { schema: keyof Database }
 	? Database[PublicEnumNameOrOptions['schema']]['Enums'][EnumName]
-	: PublicEnumNameOrOptions extends keyof Database['public']['Enums']
-	? Database['public']['Enums'][PublicEnumNameOrOptions]
+	: PublicEnumNameOrOptions extends keyof PublicSchema['Enums']
+	? PublicSchema['Enums'][PublicEnumNameOrOptions]
 	: never;

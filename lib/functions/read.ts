@@ -18,7 +18,7 @@ import { unstable_cache } from 'next/cache';
 import { redirect } from 'next/navigation';
 
 const catalogItemFields =
-	'calculatedCostFlag,calculatedPriceFlag,calculatedPrice,manufacturerPartNumber,calculatedCost,category/name,cost,customerDescription,parentCatalogItem,description,dropShipFlag,id,identifier,inactiveFlag,manufacturer/name,phaseProductFlag,price,productClass,proposal,recurringBillCycle,recurringCost,recurringCycleType,recurringFlag,recurringOneTimeFlag,recurringRevenue,serializedCostFlag,serializedFlag,specialOrderFlag,subcategory/name,taxableFlag,type,uniqueId,unitOfMeasure/id,vendor/name';
+	'calculatedCostFlag,calculatedPriceFlag,calculatedPrice,manufacturerPartNumber,calculatedCost,category/name,cost,customerDescription,parentCatalogItem,description,dropShipFlag,id,identifier,inactiveFlag,manufacturer/name,phaseProductFlag,price,productClass,proposal,recurringBillCycle/id,recurringCost,recurringCycleType,recurringFlag,recurringOneTimeFlag,recurringRevenue,serializedCostFlag,serializedFlag,specialOrderFlag,subcategory/name,taxableFlag,type,uniqueId,unitOfMeasure/id,vendor/name';
 
 const catalogComponentFields =
 	'catalogItem,cost,hideDescriptionFlag,hideExtendedPriceFlag,hideItemIdentifierFlag,hidePriceFlag,hideQuantityFlag,id,parentCatalogItem,price,quantity,sequenceNumber';
@@ -109,7 +109,7 @@ export const getTickets = unstable_cache(
 			...baseConfig,
 			url: '/service/tickets',
 			params: {
-				conditions: "closedFlag = false and board/id = 38 and type/id = 200 and summary contains 'Proposal'",
+				conditions: 'closedFlag = false and board/id = 38 and type/id = 200',
 				pageSize: 1000,
 				orderBy: 'id',
 			},
@@ -117,7 +117,7 @@ export const getTickets = unstable_cache(
 
 		try {
 			const response: AxiosResponse<ServiceTicket[], Error> = await axios.request(config);
-			console.log(response);
+			// console.log(response);
 			return response.data;
 		} catch (error) {
 			console.error(error);
@@ -128,53 +128,112 @@ export const getTickets = unstable_cache(
 	{ tags: ['serviceTickets'] }
 );
 
-export const getCatalogItems = unstable_cache(
-	async (searchText?: string, page?: number) => {
-		let config: AxiosRequestConfig = {
+export const getCatalogItems = async (searchText?: string, identifier?: string, page?: number) => {
+	let config: AxiosRequestConfig = {
+		...baseConfig,
+		url: '/procurement/catalog',
+		params: {
+			conditions: `inactiveFlag = false ${searchText ? `and description contains '${searchText}'` : ''} ${
+				identifier ? `and identifier contains '${identifier}'` : ''
+			}`,
+			pageSize: 10,
+			page: page ?? 1,
+			orderBy: 'description',
+			fields: catalogItemFields,
+		},
+	};
+
+	try {
+		const response: AxiosResponse<CatalogItem[], Error> = await axios.request(config);
+
+		config = {
 			...baseConfig,
-			url: '/procurement/catalog',
+			url: '/procurement/catalog/count',
 			params: {
 				conditions: `inactiveFlag = false ${searchText ? `and description contains '${searchText}'` : ''}`,
 				pageSize: 10,
 				page: page ?? 1,
-				orderBy: 'description',
-				fields: catalogItemFields,
 			},
 		};
 
-		try {
-			const response: AxiosResponse<CatalogItem[], Error> = await axios.request(config);
+		const countResponse: AxiosResponse<{ count: number }, Error> = await axios.request(config);
+		const bundles = response.data.filter((item) => item.productClass === 'Bundle');
+		const bItems = (await Promise.all(bundles.map((b) => getCatalogItemComponents(b.id)))).flat();
 
-			config = {
-				...baseConfig,
-				url: '/procurement/catalog/count',
-				params: {
-					conditions: `inactiveFlag = false ${searchText ? `and description contains '${searchText}'` : ''}`,
-					pageSize: 10,
-					page: page ?? 1,
-				},
+		// console.log(response.data);
+
+		const mappedData = response.data.map((item) => {
+			return {
+				...item,
+				bundledItems: bItems?.filter((bItem) => bItem && bItem.parentCatalogItem.id === item.id),
 			};
+		});
 
-			const countResponse: AxiosResponse<{ count: number }, Error> = await axios.request(config);
-			const bundles = response.data.filter((item) => item.productClass === 'Bundle');
-			const bItems = (await Promise.all(bundles.map((b) => getCatalogItemComponents(b.id)))).flat();
+		return { catalogItems: mappedData as CatalogItem[], count: countResponse.data.count };
+	} catch (error) {
+		console.error(error);
+		return { catalogItems: [], count: 0 };
+	}
+};
+// export const getCatalogItems = unstable_cache(
+// 	async (searchText?: string, page?: number) => {
+// 		let config: AxiosRequestConfig = {
+// 			...baseConfig,
+// 			url: '/procurement/catalog',
+// 			params: {
+// 				conditions: `inactiveFlag = false ${searchText ? `and description contains '${searchText}'` : ''}`,
+// 				pageSize: 10,
+// 				page: page ?? 1,
+// 				orderBy: 'description',
+// 				fields: catalogItemFields,
+// 			},
+// 		};
 
-			const mappedData = response.data.map((item) => {
-				return {
-					...item,
-					bundledItems: bItems?.filter((bItem) => bItem && bItem.parentCatalogItem.id === item.id),
-				};
-			});
+// 		try {
+// 			const response: AxiosResponse<CatalogItem[], Error> = await axios.request(config);
 
-			return { catalogItems: mappedData as CatalogItem[], count: countResponse.data.count };
-		} catch (error) {
-			console.error(error);
-			return { catalogItems: [], count: 0 };
-		}
-	},
-	['catalog'],
-	{ tags: ['catalog'] }
-);
+// 			config = {
+// 				...baseConfig,
+// 				url: '/procurement/catalog/count',
+// 				params: {
+// 					conditions: `inactiveFlag = false ${searchText ? `and description contains '${searchText}'` : ''}`,
+// 					pageSize: 10,
+// 					page: page ?? 1,
+// 				},
+// 			};
+
+// 			const countResponse: AxiosResponse<{ count: number }, Error> = await axios.request(config);
+// 			const bundles = response.data.filter((item) => item.productClass === 'Bundle');
+// 			const bItems = (await Promise.all(bundles.map((b) => getCatalogItemComponents(b.id)))).flat();
+
+// 			const mappedData = response.data.map((item) => {
+// 				return {
+// 					...item,
+// 					bundledItems: bItems?.filter((bItem) => bItem && bItem.parentCatalogItem.id === item.id),
+// 				};
+// 			});
+
+// 			return { catalogItems: mappedData as CatalogItem[], count: countResponse.data.count };
+// 		} catch (error) {
+// 			console.error(error);
+// 			return { catalogItems: [], count: 0 };
+// 		}
+// 	},
+// 	['catalog'],
+// 	{ tags: ['catalog'] }
+// );
+
+export const getComments = async (id: string) => {
+	const supabase = createClient();
+
+	const { data, error } = await supabase.from('comments').select('*, user(*)').eq('proposal', id);
+
+	if (!data || error) {
+		throw Error('Error in getting comments', { cause: error });
+	}
+
+	return data;
+};
 
 export const getCatalogItemComponents = async (id: number) => {
 	let config: AxiosRequestConfig = {
@@ -194,7 +253,7 @@ export const getCatalogItemComponents = async (id: number) => {
 			...baseConfig,
 			url: '/procurement/catalog',
 			params: {
-				conditions: `id in (${response.data.map((c) => c.id).toString()})`,
+				conditions: `id in (${response.data.map((c) => c.catalogItem.id).toString()})`,
 				fields: catalogItemFields,
 			},
 		};
@@ -202,11 +261,15 @@ export const getCatalogItemComponents = async (id: number) => {
 		const catalogItems: AxiosResponse<CatalogItem[], Error> = await axios.request(config);
 
 		const mappedCatalogItems = response.data.map((c) => {
+			const item = catalogItems.data.find((i) => i?.id === c?.catalogItem.id);
+
 			return {
-				...catalogItems.data.find((i) => i?.id === c?.id),
+				...item,
 				...c,
 			};
 		});
+
+		console.log(mappedCatalogItems);
 
 		return mappedCatalogItems;
 	} catch (error) {
@@ -347,7 +410,7 @@ export const getProposal = unstable_cache(
 
 		const proposalWithPhasesQuery = supabase
 			.from('proposals')
-			.select('*, phases(*, tickets(*, tasks(*)))')
+			.select(`*, phases(*, tickets(*, tasks(*)))`)
 			.eq('id', id)
 			.order('order', { referencedTable: 'phases', ascending: true })
 			.single();
@@ -480,9 +543,9 @@ export const getTemplate = unstable_cache(
 
 		try {
 			const response: AxiosResponse<ProjectTemplate, Error> = await axios.request(config);
-			console.log(response.data);
+			// console.log(response.data);
 			const workplan = await axios.request<ProjectWorkPlan>({ ...baseConfig, url: `/project/projectTemplates/${response.data.id}/workplan` });
-			console.log(workplan.data);
+			// console.log(workplan.data);
 
 			return { ...response.data, workplan: workplan?.data ?? [] };
 		} catch (error) {

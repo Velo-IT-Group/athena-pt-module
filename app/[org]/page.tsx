@@ -31,9 +31,7 @@ export async function generateMetadata({ params, searchParams }: Props, parent: 
 }
 
 const OverviewPage = async ({ params, searchParams }: Props) => {
-	const templates = await getTemplates();
-	const tickets = await getTickets();
-	const organization = await getOrganization();
+	const [templates, tickets, organization] = await Promise.all([getTemplates(), getTickets(), getOrganization()]);
 	const cookieStore = cookies();
 	const searchText = typeof searchParams.search === 'string' ? String(searchParams.search) : undefined;
 	const homeSort = cookieStore.get(HOME_SORT_COOKIE);
@@ -84,17 +82,17 @@ const OverviewPage = async ({ params, searchParams }: Props) => {
 								}}
 							>
 								<NewProposalForm templates={templates ?? []} tickets={tickets ?? []} />
+								<DialogFooter className='justify-between w-full flex-row mt-6'>
+									<DialogClose asChild>
+										<Button type='button' variant='secondary'>
+											Close
+										</Button>
+									</DialogClose>
+									<SubmitButton type='submit' form='proposal-creation'>
+										Submit
+									</SubmitButton>
+								</DialogFooter>
 							</form>
-							<DialogFooter className='justify-between w-full flex-row'>
-								<DialogClose asChild>
-									<Button type='button' variant='secondary'>
-										Close
-									</Button>
-								</DialogClose>
-								<SubmitButton type='submit' form='proposal-creation'>
-									Submit
-								</SubmitButton>
-							</DialogFooter>
 						</DialogContent>
 					</Dialog>
 				</form>

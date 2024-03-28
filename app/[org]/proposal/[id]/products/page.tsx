@@ -8,11 +8,12 @@ type Props = {
 };
 
 const ProposalProductPage = async ({ params, searchParams }: Props) => {
-	const searchText = typeof searchParams.search === 'string' ? String(searchParams.search) : undefined;
+	const search = typeof searchParams.search === 'string' ? String(searchParams.search) : undefined;
+	const identifier = typeof searchParams.identifier === 'string' ? String(searchParams.identifier) : undefined;
 	const page = typeof searchParams.page === 'string' ? Number(searchParams.page) : 1;
 	// await layoutTester(searchParams.loading);
 	const products = await getProducts(params.id);
-	const { catalogItems, count } = await getCatalogItems(searchText, page);
+	const { catalogItems, count } = await getCatalogItems(search, identifier, page);
 
 	if (!products) {
 		return <div></div>;
