@@ -8,14 +8,15 @@ import { cn } from '@/lib/utils';
 
 export interface Props extends React.ButtonHTMLAttributes<HTMLButtonElement>, VariantProps<typeof buttonVariants> {
 	children: React.ReactNode;
+	loading?: boolean;
 }
 
-const SubmitButton = React.forwardRef<HTMLButtonElement, Props>(({ children, variant, className, size, ...props }, ref) => {
+const SubmitButton = React.forwardRef<HTMLButtonElement, Props>(({ children, variant, className, size, loading, ...props }, ref) => {
 	const { pending } = useFormStatus();
 
 	return (
 		<Button className={cn(buttonVariants({ variant, size, className }))} type='submit' ref={ref} {...props} disabled={pending || props.disabled}>
-			{pending && <ReloadIcon className='mr-2 h-4 w-4 animate-spin' />}
+			{(pending || loading) && <ReloadIcon className='mr-2 h-4 w-4 animate-spin' />}
 			{children}
 		</Button>
 	);

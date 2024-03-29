@@ -1,31 +1,25 @@
-import React, { useEffect, useState } from 'react';
+'use client';
+
+import React, { useEffect } from 'react';
 import { z } from 'zod';
-import { reduce, isEqual, isArray, isObject, transform } from 'lodash';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm } from 'react-hook-form';
-import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
-import { SheetClose, SheetContent, SheetDescription, SheetFooter, SheetHeader, SheetTitle } from '@/components/ui/sheet';
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Button } from '../ui/button';
 import { Input } from '../ui/input';
 import { updateProduct } from '@/lib/functions/update';
 import { Switch } from '../ui/switch';
-import { HoverCard, HoverCardContent, HoverCardTrigger } from '../ui/hover-card';
-import { CaretSortIcon, InfoCircledIcon } from '@radix-ui/react-icons';
+import { HoverCard, HoverCardTrigger } from '../ui/hover-card';
+import { ArrowLeftIcon, CaretSortIcon, CubeIcon, InfoCircledIcon } from '@radix-ui/react-icons';
 import IntegrationPricingCard from '../IntegrationPricingCard';
-import { getCurrencyString } from '@/utils/money';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '../ui/collapsible';
-import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../ui/select';
-import Link from 'next/link';
 import { Separator } from '../ui/separator';
 import { Textarea } from '../ui/textarea';
-import { Category, ReferenceType, Subcategory } from '@/types/manage';
-import { getBillingCycles, getCategories, getSubCategories } from '@/lib/functions/read';
+import { ReferenceType } from '@/types/manage';
 import SubmitButton from '../SubmitButton';
-
-function capitalizeFirstLetter(string: string) {
-	return string.charAt(0).toUpperCase() + string.slice(1);
-}
+import { useRouter } from 'next/navigation';
+import CurrencyInput from '../CurrencyInput';
 
 //@ts-ignore
 const productFormSchema = z.object<ProductUpdate>({
@@ -57,7 +51,7 @@ const productFormSchema = z.object<ProductUpdate>({
 	proposal: z.nullable(z.string()),
 	quantity: z.nullable(z.number()),
 	recurring_bill_cycle: z.nullable(z.number()),
-	recurring_cost: z.nullable(z.number()),
+	recurring_cost: z.nullable(z.number().optional()),
 	recurring_cycle_type: z.nullable(z.string()),
 	recurring_flag: z.nullable(z.boolean()),
 	recurring_one_time_flag: z.nullable(z.boolean()),
@@ -89,16 +83,37 @@ function differenceInObj<T extends Record<keyof T, any>>(old: T, newObj: T): T {
 	return differenceObj;
 }
 
-const ProductForm = ({ product }: { product: Product }) => {
-	const [billingCycles, setBillingCycles] = useState<ReferenceType[]>([]);
+type Props = {
+	product: Product;
+	billingCycles: ReferenceType[];
+};
+
+const ProductForm = ({ product, billingCycles }: Props) => {
+	const router = useRouter();
+
 	const form = useForm<z.infer<typeof productFormSchema>>({
 		resolver: zodResolver(productFormSchema),
 		defaultValues: product,
 	});
+	const isDirty = form.formState.isDirty;
+
+	console.log(product);
 
 	useEffect(() => {
-		getBillingCycles().then((data) => setBillingCycles(data));
-	}, []);
+		console.log(isDirty);
+		if (!isDirty) return;
+
+		function handleOnBeforeUnload(e: BeforeUnloadEvent) {
+			e.preventDefault();
+			return (e.returnValue = '');
+		}
+
+		window.addEventListener('beforeunload', handleOnBeforeUnload, { capture: true });
+
+		return () => {
+			window.removeEventListener('beforeunload', handleOnBeforeUnload);
+		};
+	}, [isDirty]);
 
 	// 2. Define a submit handler.
 	async function onSubmit(values: z.infer<typeof productFormSchema>) {
@@ -114,21 +129,46 @@ const ProductForm = ({ product }: { product: Product }) => {
 		// delete values['extended_price'];
 		console.log('hi', values);
 
-		await updateProduct(product.unique_id, difference);
+		await updateProduct(product.unique_id, values);
 	}
 
 	return (
-		<SheetContent className='max-w-none sm:max-w-none w-[700px] space-y-4 flex-1 flex flex-col overflow-hidden'>
-			<SheetHeader>
-				<SheetTitle>Edit Product</SheetTitle>
-				<SheetDescription>{getCurrencyString(product.calculated_price ?? product.price ?? 0)}</SheetDescription>
-			</SheetHeader>
+		<>
+			<header className='flex items-center justify-between p-4'>
+				<Button
+					variant='ghost'
+					onClick={() => {
+						if (isDirty) {
+							if (confirm('Are you sure?') === true) {
+								router.back();
+							}
+						} else {
+							router.back();
+						}
+					}}
+				>
+					<ArrowLeftIcon className='w-4 h-4 mr-2' /> Products
+				</Button>
+				<SubmitButton type='submit' loading={form.formState.isSubmitting} disabled={!!!isDirty} form='product-update'>
+					Save changes
+				</SubmitButton>
+			</header>
+
+			<section className='flex items-center space-x-4 px-8 py-4'>
+				<div className='flex items-center justify-center bg-muted rounded-lg h-10 w-10'>
+					<CubeIcon />
+				</div>
+				<h1 className='text-lg font-semibold'>{product.description}</h1>
+			</section>
+
+			<Separator />
+
 			<Form {...form}>
 				<form
 					id='product-update'
 					name='product-update'
 					onSubmit={form.handleSubmit(onSubmit)}
-					className='space-y-8 h-full flex flex-col flex-1 overflow-auto px-[1px]'
+					className='space-y-8 px-8 py-4 h-full flex flex-col flex-1 overflow-auto'
 				>
 					<Collapsible defaultOpen>
 						<section>
@@ -228,24 +268,13 @@ const ProductForm = ({ product }: { product: Product }) => {
 													Price
 													<HoverCard>
 														<HoverCardTrigger>
-															<InfoCircledIcon className='w-4 h-4 text-muted-foreground inline-block' />
+															<InfoCircledIcon className='w-4 h-4 text-muted-foreground inline-block ml-2' />
 															<IntegrationPricingCard description='Testing' id='' vendorSku='' setPrice={field.onChange} />
 														</HoverCardTrigger>
 													</HoverCard>
 												</FormLabel>
-												<FormControl className='relative'>
-													<div className='relative'>
-														<p className='absolute flex items-center my-auto left-3 h-9 text-sm select-none'>$</p>
-
-														<Input
-															type='number'
-															min='0.01'
-															step='0.01'
-															{...form.register('price', { valueAsNumber: true })}
-															className='pl-6'
-															placeholder='0.00'
-														/>
-													</div>
+												<FormControl>
+													<CurrencyInput min='0.00' defaultValue={field.value as number} {...form.register('price', { valueAsNumber: true })} />
 												</FormControl>
 												<FormMessage />
 											</FormItem>
@@ -255,11 +284,16 @@ const ProductForm = ({ product }: { product: Product }) => {
 									<FormField
 										control={form.control}
 										name='recurring_amount'
-										render={() => (
+										render={({ field }) => (
 											<FormItem>
 												<FormLabel>Recurring Amount</FormLabel>
 												<FormControl>
-													<div className='relative'>
+													<CurrencyInput
+														min='0.00'
+														defaultValue={field.value as number}
+														{...form.register('recurring_amount', { valueAsNumber: true })}
+													/>
+													{/* <div className='relative'>
 														<p className='absolute flex items-center my-auto left-3 h-9 text-sm select-none'>$</p>
 														<Input
 															type='number'
@@ -269,7 +303,7 @@ const ProductForm = ({ product }: { product: Product }) => {
 															className='pl-6'
 															placeholder='0.00'
 														/>
-													</div>
+													</div> */}
 												</FormControl>
 												<FormMessage />
 											</FormItem>
@@ -303,21 +337,11 @@ const ProductForm = ({ product }: { product: Product }) => {
 									<FormField
 										control={form.control}
 										name='cost'
-										render={() => (
+										render={({ field }) => (
 											<FormItem>
 												<FormLabel>Cost</FormLabel>
 												<FormControl>
-													<div className='relative'>
-														<p className='absolute flex items-center my-auto left-3 h-9 text-sm select-none'>$</p>
-														<Input
-															type='number'
-															min='0.01'
-															step='0.01'
-															className='pl-6'
-															placeholder='Product name'
-															{...form.register('cost', { valueAsNumber: true })}
-														/>
-													</div>
+													<CurrencyInput min='0.00' defaultValue={field.value as number} {...form.register('cost', { valueAsNumber: true })} />
 												</FormControl>
 												<FormMessage />
 											</FormItem>
@@ -327,21 +351,15 @@ const ProductForm = ({ product }: { product: Product }) => {
 									<FormField
 										control={form.control}
 										name='recurring_cost'
-										render={() => (
+										render={({ field }) => (
 											<FormItem>
 												<FormLabel>Recurring Cost</FormLabel>
 												<FormControl>
-													<div className='relative'>
-														<p className='absolute flex items-center my-auto left-3 h-9 text-sm select-none'>$</p>
-														<Input
-															type='number'
-															min='0.01'
-															step='0.01'
-															placeholder='0.00'
-															{...form.register('recurring_cost', { valueAsNumber: true })}
-															className='pl-6'
-														/>
-													</div>
+													<CurrencyInput
+														min='0.00'
+														defaultValue={field.value as number}
+														{...form.register('recurring_cost', { valueAsNumber: true })}
+													/>
 												</FormControl>
 												<FormMessage />
 											</FormItem>
@@ -354,7 +372,7 @@ const ProductForm = ({ product }: { product: Product }) => {
 										render={({ field }) => (
 											<FormItem>
 												<FormLabel>Recurring Option</FormLabel>
-												<Select onValueChange={field.onChange} defaultValue={String(field.value)}>
+												<Select onValueChange={field.onChange} defaultValue={field.value}>
 													<FormControl>
 														<SelectTrigger>
 															<SelectValue placeholder='Select a recurring type' />
@@ -362,7 +380,7 @@ const ProductForm = ({ product }: { product: Product }) => {
 													</FormControl>
 													<SelectContent>
 														{billingCycles.map((cycle) => (
-															<SelectItem key={cycle.id} value={cycle.id.toString()}>
+															<SelectItem key={cycle.id} value={cycle.id}>
 																{cycle.name}
 															</SelectItem>
 														))}
@@ -376,21 +394,16 @@ const ProductForm = ({ product }: { product: Product }) => {
 									<FormField
 										control={form.control}
 										name='suggested_price'
-										render={() => (
+										render={({ field }) => (
 											<FormItem>
 												<FormLabel>Suggested Price</FormLabel>
 												<FormControl>
-													<div className='relative'>
-														<p className='absolute flex items-center my-auto left-3 h-9 text-sm select-none'>$</p>
-														<Input
-															type='number'
-															min='0.01'
-															step='0.01'
-															placeholder='0.00'
-															{...form.register('suggested_price', { valueAsNumber: true })}
-															className='pl-6'
-														/>
-													</div>
+													<CurrencyInput
+														min='0.01'
+														step={0.01}
+														defaultValue={field.value as number}
+														{...form.register('suggested_price', { valueAsNumber: true })}
+													/>
 												</FormControl>
 												<FormMessage />
 											</FormItem>
@@ -400,21 +413,16 @@ const ProductForm = ({ product }: { product: Product }) => {
 									<FormField
 										control={form.control}
 										name='recurring_suggested_price'
-										render={() => (
+										render={({ field }) => (
 											<FormItem>
 												<FormLabel>Recurring Suggested Price</FormLabel>
 												<FormControl>
-													<div className='relative'>
-														<p className='absolute flex items-center my-auto left-3 h-9 text-sm select-none'>$</p>
-														<Input
-															type='number'
-															min='0.01'
-															step='0.01'
-															placeholder='0.00'
-															{...form.register('recurring_suggested_price', { valueAsNumber: true })}
-															className='pl-6'
-														/>
-													</div>
+													<CurrencyInput
+														min='0.01'
+														step={0.01}
+														defaultValue={field.value as number}
+														{...form.register('recurring_suggested_price', { valueAsNumber: true })}
+													/>
 												</FormControl>
 												<FormMessage />
 											</FormItem>
@@ -489,13 +497,28 @@ const ProductForm = ({ product }: { product: Product }) => {
 					<Button type='submit'>Save</Button>
 				</form>
 			</Form>
-			<SheetFooter>
-				<SubmitButton type='submit' form='product-update'>
-					Save changes
-				</SubmitButton>
-				<SheetClose asChild></SheetClose>
-			</SheetFooter>
-		</SheetContent>
+		</>
+		// <Sheet onOpenChange={() => console.log(product)}>
+		// 	<SheetTrigger asChild>
+		// 		<Button variant='ghost' className='h-8 w-8 p-0'>
+		// 			<span className='sr-only'>Open menu</span>
+		// 			<Pencil2Icon className='h-4 w-4' />
+		// 		</Button>
+		// 	</SheetTrigger>
+		// 	<SheetContent className='max-w-none sm:max-w-none w-[700px] space-y-4 flex-1 flex flex-col overflow-hidden'>
+		// 		<SheetHeader>
+		// 			<SheetTitle>Edit Product</SheetTitle>
+		// 			<SheetDescription>{getCurrencyString(product.calculated_price ?? product.price ?? 0)}</SheetDescription>
+		// 		</SheetHeader>
+
+		// 		<SheetFooter>
+		// 			<SubmitButton type='submit' form={`product-update-${product.id}`}>
+		// 				Save changes
+		// 			</SubmitButton>
+		// 			<SheetClose asChild></SheetClose>
+		// 		</SheetFooter>
+		// 	</SheetContent>
+		// </Sheet>
 	);
 };
 

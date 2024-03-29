@@ -1,7 +1,7 @@
 'use client';
 
 import { Button } from '@/components/ui/button';
-import { DialogClose, DialogContent, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Dialog, DialogClose, DialogContent, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import React, { useCallback, useEffect, useTransition } from 'react';
 import { catalogColumns } from './columns';
 import { CatalogItem } from '@/types/manage';
@@ -12,6 +12,7 @@ import Search from '@/components/Search';
 import { ProductState } from '@/types/optimisticTypes';
 import { usePagination } from '@/app/hooks/usePagination';
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
+import { PlusCircledIcon } from '@radix-ui/react-icons';
 
 type Props = {
 	proposal: string;
@@ -74,36 +75,53 @@ const CatalogPicker = ({ proposal, catalogItems, params, count }: Props) => {
 		},
 	});
 
+	const baseUrl = `/${params.org}/proposal/${params.id}/products`;
+
 	return (
-		<DialogContent className='max-w-none w-w-padding h-w-padding flex flex-col space-y-3'>
-			<DialogHeader>
-				<DialogTitle>Add Products</DialogTitle>
-			</DialogHeader>
+		<Dialog
+			onOpenChange={(open) => {
+				if (!open) {
+					console.log(baseUrl);
+					router.push(baseUrl);
+				}
+			}}
+		>
+			<DialogTrigger asChild>
+				<Button variant='secondary' size='sm'>
+					<PlusCircledIcon className='h-4 w-4 mr-2' /> Add Product
+				</Button>
+			</DialogTrigger>
 
-			<div className='col-span-3 space-y-4'>
-				<div className='grid grid-cols-[250px_1fr] gap-4'>
-					<Search baseUrl={`/${params.org}/proposal/${params.id}/products`} placeholder='Search by identifier...' queryParam='identifier' />
-					<Search baseUrl={`/${params.org}/proposal/${params.id}/products`} placeholder='Search by description...' />
+			<DialogContent className='max-w-none w-w-padding h-w-padding flex flex-col space-y-3'>
+				<DialogHeader>
+					<DialogTitle>Add Products</DialogTitle>
+				</DialogHeader>
+
+				<div className='col-span-3 space-y-4'>
+					<div className='grid grid-cols-[250px_1fr] gap-4'>
+						<Search baseUrl={baseUrl} placeholder='Search by identifier...' queryParam='identifier' />
+						<Search baseUrl={baseUrl} placeholder='Search by description...' />
+					</div>
+
+					<DataTable table={table} />
+
+					<div className='flex items-center justify-end space-x-2 py-4'>
+						<Button variant='outline' size='sm' type='button' onClick={table.previousPage} disabled={!table.getCanPreviousPage()}>
+							Previous
+						</Button>
+						<Button variant='outline' size='sm' type='button' onClick={table.nextPage} disabled={!table.getCanNextPage()}>
+							Next
+						</Button>
+					</div>
 				</div>
 
-				<DataTable table={table} />
-
-				<div className='flex items-center justify-end space-x-2 py-4'>
-					<Button variant='outline' size='sm' type='button' onClick={table.previousPage} disabled={!table.getCanPreviousPage()}>
-						Previous
-					</Button>
-					<Button variant='outline' size='sm' type='button' onClick={table.nextPage} disabled={!table.getCanNextPage()}>
-						Next
-					</Button>
-				</div>
-			</div>
-
-			<DialogFooter>
-				<DialogClose asChild>
-					<Button>Save</Button>
-				</DialogClose>
-			</DialogFooter>
-		</DialogContent>
+				<DialogFooter>
+					<DialogClose asChild>
+						<Button>Save</Button>
+					</DialogClose>
+				</DialogFooter>
+			</DialogContent>
+		</Dialog>
 	);
 };
 

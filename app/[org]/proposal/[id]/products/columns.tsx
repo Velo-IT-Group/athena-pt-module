@@ -7,8 +7,6 @@ import { CatalogItem } from '@/types/manage';
 import { getCurrencyString } from '@/utils/money';
 import { CheckIcon, ChevronDownIcon, ChevronRightIcon, Pencil2Icon, PlusIcon, TrashIcon } from '@radix-ui/react-icons';
 import { ColumnDef, RowData } from '@tanstack/react-table';
-import { Sheet, SheetTrigger } from '@/components/ui/sheet';
-import ProductForm from '@/components/forms/ProductForm';
 import { HoverCard, HoverCardTrigger } from '@/components/ui/hover-card';
 import IntegrationPricingCard from '@/components/IntegrationPricingCard';
 import { updateProduct } from '@/lib/functions/update';
@@ -28,6 +26,9 @@ import { deleteProduct } from '@/lib/functions/delete';
 import { convertToSnakeCase } from '@/utils/helpers';
 import { ProductState } from '@/types/optimisticTypes';
 import { createProduct } from '@/lib/functions/create';
+import Link from 'next/link';
+import CurrencyInput from '@/components/CurrencyInput';
+import { Input } from '@/components/ui/input';
 
 declare module '@tanstack/react-table' {
 	interface TableMeta<TData extends RowData> {
@@ -82,7 +83,7 @@ export const columns: ColumnDef<Product>[] = [
 	{
 		accessorKey: 'description',
 		header: ({ column }) => {
-			return <DataTableColumnHeader column={column} title='Description' />;
+			return <DataTableColumnHeader column={column} title='Product Description' />;
 		},
 		cell: ({ row }) => {
 			return (
@@ -92,44 +93,45 @@ export const columns: ColumnDef<Product>[] = [
 			);
 		},
 	},
-	// {
-	// 	accessorKey: 'category',
-	// 	header: ({ column }) => <DataTableColumnHeader column={column} title='Category' />,
-	// 	cell: ({ row, table }) => {
-	// 		return <span>{row.getValue('category')}</span>;
-	// 	},
-	// },
-	{
-		accessorKey: 'cost',
-		header: ({ column }) => <DataTableColumnHeader column={column} title='Cost' />,
-		cell: ({ row, table }) => {
-			return <span className='text-right'>{getCurrencyString(row.getValue('cost'))}</span>;
-		},
-	},
 	{
 		accessorKey: 'price',
-		header: ({ column }) => <DataTableColumnHeader column={column} title='Price' className='text-right' />,
-		cell: ({ row, table }) => <span className='text-right'>{getCurrencyString(row.getValue('price'))}</span>,
+		header: ({ column }) => <DataTableColumnHeader column={column} title='Quote Item Price' className='text-right' />,
+		cell: ({ row, table }) => {
+			const handleUpdate = async (amount: number | null | undefined) => {
+				table.options.meta?.updateProduct && table.options.meta?.updateProduct(row.original.unique_id, { price: amount });
+			};
+			return (
+				<span className='text-right'>
+					{row.subRows.length > 0 ? (
+						<>{getCurrencyString(row.getValue('price'))}</>
+					) : (
+						<CurrencyInput
+							handleBlurChange={handleUpdate}
+							defaultValue={row.getValue('price')}
+							className='border border-transparent hover:border-border hover:cursor-default rounded-lg shadow-none px-2 -mx-2 py-2 -my-2 truncate font-medium flex-1'
+						/>
+					)}
+				</span>
+			);
+		},
 	},
 	{
 		accessorKey: 'quantity',
 		header: ({ column }) => <DataTableColumnHeader column={column} title='Quantity' />,
 		cell: ({ row }) => {
-			return <span className='text-right justify-self-end'>{row.getValue('quantity')}</span>;
-		},
-	},
-	{
-		accessorKey: 'calculated_cost',
-		header: ({ column }) => <DataTableColumnHeader column={column} title='Calculated Cost' />,
-		cell: ({ row }) => {
-			const amount = parseFloat(row.getValue('calculated_cost') ?? (row.original?.cost ?? 0) * (row.original.quantity ?? 1));
-
-			return <span className='text-right font-medium'>{getCurrencyString(amount)}</span>;
+			return (
+				<span className='text-right justify-self-end'>
+					<Input
+						defaultValue={row.getValue('quantity')}
+						className='border border-transparent hover:border-border hover:cursor-default rounded-lg shadow-none px-2 -mx-2 py-2 -my-2 truncate font-medium flex-1'
+					/>
+				</span>
+			);
 		},
 	},
 	{
 		accessorKey: 'calculated_price',
-		header: ({ column }) => <DataTableColumnHeader column={column} title='Calculated Price' />,
+		header: ({ column }) => <DataTableColumnHeader column={column} title='Extended Price' />,
 		cell: ({ row }) => {
 			const amount = parseFloat(row.getValue('calculated_price') ?? (row.original?.price ?? 0) * (row.original.quantity ?? 1));
 
@@ -144,15 +146,12 @@ export const columns: ColumnDef<Product>[] = [
 
 			return (
 				<>
-					<Sheet>
-						<SheetTrigger asChild>
-							<Button variant='ghost' className='h-8 w-8 p-0'>
-								<span className='sr-only'>Open menu</span>
-								<Pencil2Icon className='h-4 w-4' />
-							</Button>
-						</SheetTrigger>
-						<ProductForm product={product} />
-					</Sheet>
+					<Button variant='ghost' className='h-8 w-8 p-0' asChild>
+						<Link href={`products/${product.unique_id}`}>
+							<span className='sr-only'>Open menu</span>
+							<Pencil2Icon className='h-4 w-4' />
+						</Link>
+					</Button>
 					<AlertDialog>
 						<AlertDialogTrigger asChild>
 							<Button variant='ghost' className='h-8 w-8 p-0'>

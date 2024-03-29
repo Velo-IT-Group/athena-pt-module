@@ -23,7 +23,7 @@ const Search = ({ baseUrl, placeholder, className, queryParam = 'search' }: Prop
 	const searchParams = useSearchParams();
 	const pathname = usePathname();
 
-	console.log(pathname);
+	// console.log(pathname);
 
 	const createQueryString = useCallback(
 		(name: string, value: string) => {

@@ -376,6 +376,7 @@ export const getProducts = unstable_cache(
 			.select('*, products(*)')
 			.eq('proposal', id)
 			.is('parent', null)
+			.order('sequence_number')
 			.order('created_at')
 			.returns<NestedProduct[]>();
 
@@ -384,6 +385,22 @@ export const getProducts = unstable_cache(
 		}
 
 		return products;
+	},
+	['products'],
+	{ tags: ['products'] }
+);
+
+export const getProduct = unstable_cache(
+	async (id: string) => {
+		const supabase = createClient();
+
+		const { data: product, error } = await supabase.from('products').select('*').eq('unique_id', id).single();
+
+		if (!product || error) {
+			throw Error('Error in getting products', { cause: error });
+		}
+
+		return product;
 	},
 	['products'],
 	{ tags: ['products'] }
@@ -408,22 +425,26 @@ export const getProposal = unstable_cache(
 	async (id: string) => {
 		const supabase = createClient();
 
-		const proposalWithPhasesQuery = supabase
-			.from('proposals')
-			.select(`*, phases(*, tickets(*, tasks(*)))`)
-			.eq('id', id)
-			.order('order', { referencedTable: 'phases', ascending: true })
-			.single();
+		try {
+			const proposalWithPhasesQuery = supabase
+				.from('proposals')
+				.select(`*, phases(*, tickets(*, tasks(*)))`)
+				.eq('id', id)
+				.order('order', { referencedTable: 'phases', ascending: true })
+				.single();
 
-		type ProposalWithPhases = QueryData<typeof proposalWithPhasesQuery>;
+			type ProposalWithPhases = QueryData<typeof proposalWithPhasesQuery>;
 
-		const { data: proposal, error } = await proposalWithPhasesQuery;
+			const { data: proposal, error } = await proposalWithPhasesQuery;
 
-		if (!proposal || error) {
-			throw Error('Error in getting proposal', { cause: error });
+			if (!proposal || error) {
+				throw Error('Error in getting proposal', { cause: error });
+			}
+
+			return proposal as ProposalWithPhases;
+		} catch (error) {
+			console.error(error);
 		}
-
-		return proposal as ProposalWithPhases;
 	},
 	['proposals'],
 	{ tags: ['proposals'] }
