@@ -123,29 +123,6 @@ const TicketListItem = ({ ticket, tasks, order, pending, ticketMutation }: Props
 							<DropdownMenuContent align='end' className='w-[200px]'>
 								<DropdownMenuLabel>Actions</DropdownMenuLabel>
 								<DropdownMenuGroup>
-									{/* <DropdownMenuItem>Assign to...</DropdownMenuItem>
-									<DropdownMenuItem>Set due date...</DropdownMenuItem>
-									<DropdownMenuSeparator />
-									<DropdownMenuSub>
-										<DropdownMenuSubTrigger>Move</DropdownMenuSubTrigger>
-										<DropdownMenuPortal>
-											<DropdownMenuSubContent>
-												<DropdownMenuItem>
-													Move Up
-													<DropdownMenuShortcut>
-														<ArrowUpIcon />
-													</DropdownMenuShortcut>
-												</DropdownMenuItem>
-												<DropdownMenuItem>
-													Move Down
-													<DropdownMenuShortcut>
-														<ArrowDownIcon />
-													</DropdownMenuShortcut>
-												</DropdownMenuItem>
-											</DropdownMenuSubContent>
-										</DropdownMenuPortal>
-									</DropdownMenuSub>
-									<DropdownMenuSeparator /> */}
 									<DropdownMenuItem
 										onClick={() => {
 											startTransition(async () => {
@@ -182,6 +159,7 @@ const TicketListItem = ({ ticket, tasks, order, pending, ticketMutation }: Props
 								const newTask = { ...taskStub, summary: 'New Task' };
 
 								startTransition(async () => {
+									// @ts-ignore
 									taskMutation({ newTask: { ...newTask, id: uuid() } as Task, pending: true });
 
 									await createTask(newTask);

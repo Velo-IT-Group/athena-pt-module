@@ -85,11 +85,25 @@ export const columns: ColumnDef<Product>[] = [
 		header: ({ column }) => {
 			return <DataTableColumnHeader column={column} title='Product Description' />;
 		},
-		cell: ({ row }) => {
+		size: 500,
+		cell: ({ row, table }) => {
 			return (
-				<div className='flex space-x-2 flex-1 max-w-[500px] w-full'>
-					<span className='max-w-[500px] truncate font-medium decoration-muted-foreground '>{row.getValue('description')}</span>
-				</div>
+				<span>
+					<Input
+						// className='max-w-[500px] truncate font-medium decoration-muted-foreground'
+						className='border border-transparent hover:border-border hover:cursor-default rounded-lg shadow-none px-2 -mx-2 py-2 -my-2 w-full truncate font-medium flex-1'
+						defaultValue={row.getValue('description')}
+						onBlur={(e) => {
+							if (e.currentTarget.value !== row.getValue('description')) {
+								table.options.meta?.updateProduct &&
+									table.options.meta?.updateProduct(row.original.unique_id, { description: e.currentTarget.value });
+							}
+						}}
+					/>
+				</span>
+				// <div className='flex space-x-2 flex-1 max-w-[500px] w-full'>
+				// {/* <span className='max-w-[500px] truncate font-medium decoration-muted-foreground '>{row.getValue('description')}</span> */}
+				// </div>
 			);
 		},
 	},
@@ -100,14 +114,22 @@ export const columns: ColumnDef<Product>[] = [
 			const handleUpdate = async (amount: number | null | undefined) => {
 				table.options.meta?.updateProduct && table.options.meta?.updateProduct(row.original.unique_id, { price: amount });
 			};
+
+			const amount =
+				row.subRows.length > 0
+					? row.subRows.reduce((accumulator, currentValue) => {
+							return (accumulator ?? 0) + (currentValue.original.price ?? 0);
+					  }, 0)
+					: (row.getValue('price') as number);
+
 			return (
 				<span className='text-right'>
 					{row.subRows.length > 0 ? (
-						<>{getCurrencyString(row.getValue('price'))}</>
+						<>{getCurrencyString(amount)}</>
 					) : (
 						<CurrencyInput
 							handleBlurChange={handleUpdate}
-							defaultValue={row.getValue('price')}
+							defaultValue={amount}
 							className='border border-transparent hover:border-border hover:cursor-default rounded-lg shadow-none px-2 -mx-2 py-2 -my-2 truncate font-medium flex-1'
 						/>
 					)}
@@ -118,13 +140,26 @@ export const columns: ColumnDef<Product>[] = [
 	{
 		accessorKey: 'quantity',
 		header: ({ column }) => <DataTableColumnHeader column={column} title='Quantity' />,
-		cell: ({ row }) => {
+		cell: ({ row, table }) => {
 			return (
 				<span className='text-right justify-self-end'>
-					<Input
-						defaultValue={row.getValue('quantity')}
-						className='border border-transparent hover:border-border hover:cursor-default rounded-lg shadow-none px-2 -mx-2 py-2 -my-2 truncate font-medium flex-1'
-					/>
+					{row.depth > 0 ? (
+						table.getRowModel().rows.find((c) => c.original?.unique_id == row.parentId)?.original.quantity
+					) : (
+						<Input
+							type='number'
+							defaultValue={row.getValue('quantity')}
+							onBlur={async (e) => {
+								if (e.currentTarget.valueAsNumber !== row.original.quantity) {
+									table.options.meta?.updateProduct &&
+										table.options.meta?.updateProduct(row.original.unique_id, {
+											quantity: e.currentTarget.valueAsNumber,
+										});
+								}
+							}}
+							className='border border-transparent hover:border-border hover:cursor-default rounded-lg shadow-none px-2 -mx-2 py-2 -my-2 truncate font-medium flex-1'
+						/>
+					)}
 				</span>
 			);
 		},
@@ -133,7 +168,12 @@ export const columns: ColumnDef<Product>[] = [
 		accessorKey: 'calculated_price',
 		header: ({ column }) => <DataTableColumnHeader column={column} title='Extended Price' />,
 		cell: ({ row }) => {
-			const amount = parseFloat(row.getValue('calculated_price') ?? (row.original?.price ?? 0) * (row.original.quantity ?? 1));
+			const calculatedPrice = row.subRows.reduce((accumulator, currentValue) => {
+				return (accumulator ?? 0) + (currentValue.original.price ?? 0);
+			}, 0);
+
+			const amount =
+				row.subRows.length > 0 ? calculatedPrice * (row.original.quantity ?? 1) : (row.original.price ?? 0) * (row.original.quantity ?? 1);
 
 			return <span className='text-right font-medium'>{getCurrencyString(amount)}</span>;
 		},
@@ -195,7 +235,16 @@ export const catalogColumns: ColumnDef<CatalogItem>[] = [
 							// @ts-ignore
 							const newProduct: ProductInsert = { ...convertToSnakeCase(row.original) };
 							// @ts-ignore
-							const bundledItems = row.original.bundledItems?.map((b) => convertToSnakeCase(b));
+							const bundledItems = row.original.bundledItems?.map((b) => {
+								// @ts-ignore
+								const snakedObj = convertToSnakeCase(b);
+								// @ts-ignore
+								const snakedFixed = { ...snakedObj, id: b.catalogItem.id };
+								console.log(snakedFixed);
+								// @ts-ignore
+								return { ...snakedObj, id: b.catalogItem.id };
+							});
+
 							// @ts-ignore
 							delete newProduct['bundled_items'];
 							// @ts-ignore
@@ -255,7 +304,7 @@ export const catalogColumns: ColumnDef<CatalogItem>[] = [
 					</HoverCardTrigger>
 				</div>
 
-				<IntegrationPricingCard description={row.original.description} id={String(row.original.id)} vendorSku='' />
+				<IntegrationPricingCard description={row.original.description ?? ''} id={String(row.original.id)} vendorSku='' />
 			</HoverCard>
 		),
 		enableSorting: false,
@@ -282,13 +331,7 @@ export const catalogColumns: ColumnDef<CatalogItem>[] = [
 		cell: ({ row }) => {
 			const amount = parseFloat(row.getValue('price'));
 
-			// Format the amount as a dollar amount
-			const formatted = new Intl.NumberFormat('en-US', {
-				style: 'currency',
-				currency: 'USD',
-			}).format(amount);
-
-			return <div className='text-right font-medium'>{formatted}</div>;
+			return <div className='text-right font-medium'>{getCurrencyString(amount)}</div>;
 		},
 	},
 ];

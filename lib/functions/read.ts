@@ -4,6 +4,7 @@ import type {
 	CatalogComponent,
 	CatalogItem,
 	Category,
+	ProductsItem,
 	ProjectTemplate,
 	ProjectWorkPlan,
 	ReferenceType,
@@ -102,31 +103,27 @@ export const getCompany = async (id: number): Promise<ServiceTicket | undefined>
 	return await response.json();
 };
 
-export const getTickets = unstable_cache(
-	async (): Promise<ServiceTicket[] | undefined> => {
-		'use server';
-		let config: AxiosRequestConfig = {
-			...baseConfig,
-			url: '/service/tickets',
-			params: {
-				conditions: 'closedFlag = false and board/id = 38 and type/id = 200',
-				pageSize: 1000,
-				orderBy: 'id',
-			},
-		};
+export const getTickets = async (): Promise<ServiceTicket[] | undefined> => {
+	'use server';
+	let config: AxiosRequestConfig = {
+		...baseConfig,
+		url: '/service/tickets',
+		params: {
+			conditions: 'closedFlag = false and board/id = 38 and type/id = 200',
+			pageSize: 1000,
+			orderBy: 'id',
+		},
+	};
 
-		try {
-			const response: AxiosResponse<ServiceTicket[], Error> = await axios.request(config);
-			// console.log(response);
-			return response.data;
-		} catch (error) {
-			console.error(error);
-			return;
-		}
-	},
-	['serviceTickets'],
-	{ tags: ['serviceTickets'] }
-);
+	try {
+		const response: AxiosResponse<ServiceTicket[], Error> = await axios.request(config);
+		// console.log(response);
+		return response.data;
+	} catch (error) {
+		console.error(error);
+		return;
+	}
+};
 
 export const getCatalogItems = async (searchText?: string, identifier?: string, page?: number) => {
 	let config: AxiosRequestConfig = {
@@ -175,6 +172,48 @@ export const getCatalogItems = async (searchText?: string, identifier?: string, 
 		return { catalogItems: [], count: 0 };
 	}
 };
+
+export const getCatalogItemsById = async (ids: number[]) => {
+	let config: AxiosRequestConfig = {
+		...baseConfig,
+		url: '/procurement/catalog',
+		params: {
+			conditions: `id in (${ids.toString()})`,
+			orderBy: 'description',
+		},
+	};
+
+	try {
+		const response: AxiosResponse<CatalogItem[], Error> = await axios.request(config);
+
+		return response.data;
+	} catch (error) {
+		console.error(error);
+		return;
+	}
+};
+
+export const getCatalogItem = async (id: number) => {
+	let config: AxiosRequestConfig = {
+		...baseConfig,
+		url: `/procurement/catalog/${id}`,
+	};
+
+	try {
+		const headers = new Headers();
+		headers.append('clientId', '9762e3fa-abbd-4179-895e-ca7b0e015ab2');
+		headers.append('Authorization', 'Basic dmVsbytYMzJMQjRYeDVHVzVNRk56Olhjd3Jmd0dwQ09EaFNwdkQ=');
+
+		const response = await fetch(`${process.env.NEXT_PUBLIC_CW_URL!}/procurement/catalog/${id}`, { method: 'GET', headers });
+
+		const data = await response.json();
+
+		return data;
+	} catch (error) {
+		console.error(error);
+	}
+};
+
 // export const getCatalogItems = unstable_cache(
 // 	async (searchText?: string, page?: number) => {
 // 		let config: AxiosRequestConfig = {
@@ -394,7 +433,7 @@ export const getProduct = unstable_cache(
 	async (id: string) => {
 		const supabase = createClient();
 
-		const { data: product, error } = await supabase.from('products').select('*').eq('unique_id', id).single();
+		const { data: product, error } = await supabase.from('products').select('*, parent(*)').eq('unique_id', id).single();
 
 		if (!product || error) {
 			throw Error('Error in getting products', { cause: error });
@@ -425,10 +464,12 @@ export const getProposal = unstable_cache(
 	async (id: string) => {
 		const supabase = createClient();
 
+		console.log(id);
+
 		try {
 			const proposalWithPhasesQuery = supabase
 				.from('proposals')
-				.select(`*, phases(*, tickets(*, tasks(*)))`)
+				.select(`*, phases(*, tickets(*, tasks(*))), products(*, products(*)), created_by(*)`)
 				.eq('id', id)
 				.order('order', { referencedTable: 'phases', ascending: true })
 				.single();
@@ -577,6 +618,66 @@ export const getTemplate = unstable_cache(
 	['templates'],
 	{ tags: ['templates'] }
 );
+
+export const getOpportunityProducts = async (id: number): Promise<ProductsItem[] | undefined> => {
+	let config: AxiosRequestConfig = {
+		...baseConfig,
+		url: `/procurement/products?conditions=opportunity/id=${id}`,
+	};
+
+	try {
+		const response: AxiosResponse<ProductsItem[], Error> = await axios.request(config);
+
+		return response.data;
+	} catch (error) {
+		console.error(error);
+		return;
+	}
+};
+
+export const getOpportunityTypes = async (): Promise<{ id: number; description: string }[] | undefined> => {
+	const headers = new Headers();
+	headers.set('clientId', process.env.NEXT_PUBLIC_CW_CLIENT_ID!);
+	headers.set('Authorization', 'Basic ' + btoa(process.env.NEXT_PUBLIC_CW_USERNAME! + ':' + process.env.NEXT_PUBLIC_CW_PASSWORD!));
+
+	const response = await fetch(`${process.env.NEXT_PUBLIC_CW_URL}/sales/opportunities/types?fields=id,description&orderBy=description`, {
+		headers,
+	});
+
+	return await response.json();
+};
+
+export const getOpportunityStatuses = async (): Promise<{ id: number; name: string }[] | undefined> => {
+	const headers = new Headers();
+	headers.set('clientId', process.env.NEXT_PUBLIC_CW_CLIENT_ID!);
+	headers.set('Authorization', 'Basic ' + btoa(process.env.NEXT_PUBLIC_CW_USERNAME! + ':' + process.env.NEXT_PUBLIC_CW_PASSWORD!));
+
+	const response = await fetch(`${process.env.NEXT_PUBLIC_CW_URL}/sales/opportunities/statuses?fields=id,name&orderBy=name`, { headers });
+
+	return await response.json();
+};
+
+export const getProjectStatuses = async () => {
+	const headers = new Headers();
+	headers.set('clientId', process.env.NEXT_PUBLIC_CW_CLIENT_ID!);
+	headers.set('Authorization', 'Basic ' + btoa(process.env.NEXT_PUBLIC_CW_USERNAME! + ':' + process.env.NEXT_PUBLIC_CW_PASSWORD!));
+
+	const response = await fetch(`${process.env.NEXT_PUBLIC_CW_URL}/project/statuses?fields=id,name&orderBy=name`, { headers });
+
+	return await response.json();
+};
+
+export const getProjectBoards = async () => {
+	const headers = new Headers();
+	headers.set('clientId', process.env.NEXT_PUBLIC_CW_CLIENT_ID!);
+	headers.set('Authorization', 'Basic ' + btoa(process.env.NEXT_PUBLIC_CW_USERNAME! + ':' + process.env.NEXT_PUBLIC_CW_PASSWORD!));
+
+	const response = await fetch(`${process.env.NEXT_PUBLIC_CW_URL}/service/boards?conditions=projectFlag = true and inactiveFlag = false`, {
+		headers,
+	});
+
+	return await response.json();
+};
 
 export const signIn = async (formData: FormData) => {
 	'use server';

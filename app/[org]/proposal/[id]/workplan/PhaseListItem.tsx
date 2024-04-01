@@ -65,6 +65,7 @@ const PhaseListItem = ({ phase, tickets, order, pending, phaseMutation }: Props)
 			// @ts-ignore
 			delete newTicket['id'];
 
+			// @ts-ignore
 			await createTicket(newTicket, []);
 		});
 	};

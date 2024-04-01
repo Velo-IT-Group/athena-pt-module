@@ -1,5 +1,5 @@
 import React from 'react';
-import { getCatalogItems, getIngramPricing, getProducts, getSynnexPricing } from '@/lib/functions/read';
+import { getCatalogItems, getIngramPricing, getOpportunityProducts, getProducts, getSynnexPricing } from '@/lib/functions/read';
 import ProductsList from './products-list';
 
 type Props = {

@@ -14,7 +14,7 @@ import {
 	AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
 import { Button } from '@/components/ui/button';
-import { DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { DialogClose, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
@@ -23,17 +23,22 @@ import { deleteProposal } from '@/lib/functions/delete';
 import SubmitButton from '@/components/SubmitButton';
 import { Card, CardContent, CardTitle } from '@/components/ui/card';
 import { updatePhase } from '@/lib/functions/update';
+import { createOpportunity } from '@/lib/functions/create';
+import { ServiceTicket } from '@/types/manage';
+import ConversionModal from './conversion-modal';
 
 type Props = {
-	proposal: Proposal;
+	proposal: NestedProposal;
 	phases: Phase[];
 	tickets: Ticket[];
 	tasks: Task[];
+	ticket: ServiceTicket;
 };
 
-const ProposalActions = ({ proposal, phases, tickets, tasks }: Props) => {
+const ProposalActions = ({ proposal, phases, tickets, tasks, ticket }: Props) => {
 	const [open, setIsOpen] = React.useState(false);
 	const [showDeleteDialog, setShowDeleteDialog] = React.useState(false);
+	const [showOpportunityDialog, setShowOpportunityDialog] = React.useState(false);
 
 	return (
 		<>
@@ -46,12 +51,32 @@ const ProposalActions = ({ proposal, phases, tickets, tasks }: Props) => {
 				</DropdownMenuTrigger>
 				<DropdownMenuContent align='end'>
 					<DropdownMenuItem onSelect={() => setIsOpen(true)}>Content filter preferences</DropdownMenuItem>
+					<DropdownMenuItem onSelect={() => setShowOpportunityDialog(true)}>Transfer to Manage</DropdownMenuItem>
 					<DropdownMenuSeparator />
 					<DropdownMenuItem onSelect={() => setShowDeleteDialog(true)} className='text-red-600'>
 						Delete proposal
 					</DropdownMenuItem>
 				</DropdownMenuContent>
 			</DropdownMenu>
+			<Dialog open={showOpportunityDialog} onOpenChange={setShowOpportunityDialog}>
+				<DialogContent className='max-h-w-padding-padding min-h-0 flex flex-col overflow-auto'>
+					<DialogHeader>
+						<DialogTitle>Transfer To Manage</DialogTitle>
+					</DialogHeader>
+
+					<ConversionModal proposal={proposal} ticket={ticket} />
+
+					{/* <form action={async () => await createOpportunity(proposal, ticket)}>
+						<DialogFooter>
+							<DialogClose asChild>
+								<Button variant='secondary'>Close</Button>
+							</DialogClose>
+
+							<SubmitButton>Submit</SubmitButton>
+						</DialogFooter>
+					</form> */}
+				</DialogContent>
+			</Dialog>
 			<Dialog open={open} onOpenChange={setIsOpen}>
 				<DialogContent className='max-h-w-padding-padding min-h-0 flex flex-col overflow-auto'>
 					<DialogHeader>

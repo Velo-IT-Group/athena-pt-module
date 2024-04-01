@@ -1,11 +1,25 @@
 'use server';
-import { CatalogComponent, ProjectPhase, ProjectTemplate, ProjectTemplateTask, ProjectTemplateTicket } from '@/types/manage';
-import { PostgrestError } from '@supabase/supabase-js';
+import {
+	CatalogComponent,
+	CatalogItem,
+	Opportunity,
+	ProductClass,
+	ProductsItem,
+	Project,
+	ProjectPhase,
+	ProjectTemplate,
+	ProjectTemplateTask,
+	ProjectTemplateTicket,
+	ServiceTicket,
+} from '@/types/manage';
 import { createClient } from '@/utils/supabase/server';
 import { revalidateTag } from 'next/cache';
 import { headers } from 'next/headers';
 import { redirect } from 'next/navigation';
-import { getCatalogItems, getTemplate } from './read';
+import { baseConfig, baseHeaders } from '@/lib/utils';
+import { getOpportunityProducts, getTemplate } from './read';
+import axios, { AxiosRequestConfig, AxiosResponse } from 'axios';
+import { ManageProductUpdate, updateManageProduct, updateProposal } from './update';
 
 /**
  * Creates Phases, Tickets and Tasks In Supabase.
@@ -225,4 +239,250 @@ export const signUp = async (formData: FormData) => {
 	}
 
 	return redirect('/login?message=Check email to continue sign in process');
+};
+
+export const createOpportunity = async (proposal: NestedProposal, ticket: ServiceTicket): Promise<Opportunity | undefined> => {
+	// if (proposal.opportunity_id && proposal.products) {
+	// 	await Promise.all(proposal?.products?.map((p) => createManageProduct(proposal.opportunity_id!, { id: p.id, productClass: p.product_class! }, p)));
+	// }
+
+	const data = JSON.stringify({
+		name: proposal.name,
+		type: {
+			id: 5,
+		},
+		primarySalesRep: {
+			// @ts-ignore
+			id: proposal.created_by?.manage_reference_id,
+		},
+		company: {
+			// id: ticket.company?.id,
+			id: 19297,
+		},
+		contact: {
+			id: ticket.contact?.id,
+		},
+		stage: {
+			id: 6,
+		},
+		// status: {
+		// 	id: 2,
+		// },
+	});
+
+	console.log(data);
+
+	const config: AxiosRequestConfig = {
+		...baseConfig,
+		url: '/sales/opportunities',
+		method: 'post',
+		headers: {
+			...baseConfig.headers,
+			'Content-Type': 'application/json',
+		},
+		data,
+	};
+	//
+	console.log(config.headers);
+	// console.log(proposal, proposal.created_by, proposal.products);
+
+	try {
+		const response: AxiosResponse<Opportunity, Error> = await axios.request(config);
+
+		await updateProposal(proposal.id, { opportunity_id: response.data.id });
+
+		if (proposal.products) {
+			await Promise.all(
+				proposal.products.map((p) =>
+					createManageProduct(response.data.id, { id: p.catalog_item!, productClass: p.product_class! as ProductClass }, p)
+				)
+			);
+		}
+	} catch (error) {
+		console.error(error);
+		return;
+	}
+};
+
+export const createManageProduct = async (
+	opportunityId: number,
+	catalogItem: CatalogItem,
+	product: NestedProduct
+): Promise<ProductsItem | undefined> => {
+	const isBundle = catalogItem.productClass === 'Bundle';
+
+	const data = JSON.stringify({
+		catalogItem: {
+			id: product.id,
+		},
+		price: isBundle ? null : product.price,
+		cost: isBundle ? null : product.cost,
+		quantity: isBundle ? product.quantity : null,
+		billableOption: 'Billable',
+		// ...product.overrides,
+		opportunity: {
+			id: opportunityId,
+		},
+	});
+
+	console.log(data);
+
+	const config: AxiosRequestConfig = {
+		...baseConfig,
+		url: '/procurement/products',
+		method: 'post',
+		headers: {
+			...baseConfig.headers,
+			'Content-Type': 'application/json',
+		},
+		data,
+	};
+
+	try {
+		const response: AxiosResponse<ProductsItem, Error> = await axios.request(config);
+
+		console.log('CREATING PRODUCT', 'created succesfully');
+
+		return response.data;
+	} catch (error) {
+		console.error('ERROR CREATING PRODUCT', error);
+		return;
+	}
+};
+
+interface ProjectCreate {
+	name: string;
+	board: { id: number };
+	status: { id: number };
+	company: { id: number };
+	estimatedStart: string;
+	estimatedEnd: string;
+}
+
+export const createProject = async (project: ProjectCreate, proposalId: string): Promise<Project | undefined> => {
+	const supabase = createClient();
+	let config: RequestInit = {
+		method: 'POST',
+		headers: baseHeaders,
+		body: JSON.stringify({
+			...project,
+			billingMethod: 'FixedFee',
+		}),
+	};
+
+	console.log(config.body);
+
+	try {
+		const response = await fetch(`${process.env.NEXT_PUBLIC_CW_URL}`, config);
+		console.log(response);
+
+		const data = await response.json();
+
+		console.log(data);
+
+		await supabase.from('proposals').update({ project_id: data.id }).eq('id', proposalId);
+
+		return await response.json();
+	} catch (e) {
+		console.error(e);
+	}
+};
+
+export const createProjectPhase = async (projectId: number, phase: Phase): Promise<ProjectPhase | undefined> => {
+	const supabase = createClient();
+	let config: RequestInit = {
+		method: 'POST',
+		headers: baseHeaders,
+		body: JSON.stringify({
+			projectId,
+			description: phase.description,
+			wbsCode: String(phase.order),
+		} as ProjectPhase),
+	};
+
+	const response = await fetch(`${process.env.NEXT_PUBLIC_CW_URL}`, config);
+
+	const data = await response.json();
+
+	await supabase.from('phases').update({ reference_id: data.id }).eq('id', phase.id);
+
+	return data;
+};
+
+interface ProjectTicketInsert {
+	summary: string;
+	budgetHours: number;
+	phase: {
+		id: number;
+	};
+}
+
+export const createProjectTicket = async (phaseId: number, ticket: Ticket): Promise<ProjectTemplateTicket | undefined> => {
+	const supabase = createClient();
+
+	const { summary, budget_hours: budgetHours } = ticket;
+
+	let config: RequestInit = {
+		method: 'POST',
+		headers: baseHeaders,
+		body: JSON.stringify({
+			summary,
+			budgetHours,
+			phase: {
+				id: phaseId,
+			},
+		} as ProjectTicketInsert),
+	};
+
+	const response = await fetch(`${process.env.NEXT_PUBLIC_CW_URL}/project/tickets`, config);
+
+	const data = await response.json();
+
+	await supabase.from('tickets').update({ reference_id: data.id }).eq('id', ticket.id);
+
+	return data;
+};
+
+interface ProjectTaskInsert {
+	// ticketId: number;
+	notes?: string;
+	summary: string;
+}
+
+export const createProjectTask = async (ticketId: number, task: Task): Promise<ProjectTemplateTask | undefined> => {
+	const supabase = createClient();
+
+	const { summary, notes } = task;
+
+	let config: RequestInit = {
+		method: 'POST',
+		headers: baseHeaders,
+		body: JSON.stringify({
+			summary,
+			notes,
+		} as ProjectTaskInsert),
+	};
+
+	const response = await fetch(`${process.env.NEXT_PUBLIC_CW_URL}/project/tickets/${ticketId}/tasks`, config);
+
+	const data = await response.json();
+
+	await supabase.from('tasks').update({ reference_id: data.id }).eq('id', task.id);
+
+	return data;
+};
+
+export const convertOpportunityToProject = async (opportunity: Opportunity, projectId: number) => {
+	let data = JSON.stringify({ projectId, includeAllProductsFlag: true });
+
+	let config = {
+		...baseConfig,
+		method: 'patch',
+		url: `/sales/opportunities/${opportunity.id}/convertToProject`,
+		headers: {
+			...baseConfig.headers,
+			'Content-Type': 'application/json',
+		},
+		data,
+	};
 };

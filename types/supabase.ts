@@ -192,6 +192,7 @@ export type Database = {
 					order: number;
 					proposal: string | null;
 					visible: boolean | null;
+					reference_id?: number | null;
 				};
 				Insert: {
 					description: string;
@@ -200,6 +201,7 @@ export type Database = {
 					order?: number;
 					proposal?: string | null;
 					visible?: boolean | null;
+					reference_id?: number | null;
 				};
 				Update: {
 					description?: string;
@@ -208,6 +210,7 @@ export type Database = {
 					order?: number;
 					proposal?: string | null;
 					visible?: boolean | null;
+					reference_id?: number | null;
 				};
 				Relationships: [
 					{
@@ -274,6 +277,7 @@ export type Database = {
 					inactive_flag: boolean | null;
 					manufacturer: string | null;
 					manufacturer_part_number: string | null;
+					overrides: Json | null;
 					parent: string | null;
 					parent_catalog_item: number | null;
 					phase_product_flag: boolean | null;
@@ -320,6 +324,7 @@ export type Database = {
 					inactive_flag?: boolean | null;
 					manufacturer?: string | null;
 					manufacturer_part_number?: string | null;
+					overrides?: Json | null;
 					parent?: string | null;
 					parent_catalog_item?: number | null;
 					phase_product_flag?: boolean | null;
@@ -366,6 +371,7 @@ export type Database = {
 					inactive_flag?: boolean | null;
 					manufacturer?: string | null;
 					manufacturer_part_number?: string | null;
+					overrides?: Json | null;
 					parent?: string | null;
 					parent_catalog_item?: number | null;
 					phase_product_flag?: boolean | null;
@@ -412,6 +418,7 @@ export type Database = {
 					avatar_url: string | null;
 					full_name: string | null;
 					id: string;
+					manage_reference_id: number | null;
 					organization: string | null;
 					updated_at: string | null;
 					username: string | null;
@@ -421,6 +428,7 @@ export type Database = {
 					avatar_url?: string | null;
 					full_name?: string | null;
 					id: string;
+					manage_reference_id?: number | null;
 					organization?: string | null;
 					updated_at?: string | null;
 					username?: string | null;
@@ -430,6 +438,7 @@ export type Database = {
 					avatar_url?: string | null;
 					full_name?: string | null;
 					id?: string;
+					manage_reference_id?: number | null;
 					organization?: string | null;
 					updated_at?: string | null;
 					username?: string | null;
@@ -452,10 +461,42 @@ export type Database = {
 					}
 				];
 			};
+			proposal_sharing: {
+				Row: {
+					proposal: string;
+					user: string;
+				};
+				Insert: {
+					proposal: string;
+					user: string;
+				};
+				Update: {
+					proposal?: string;
+					user?: string;
+				};
+				Relationships: [
+					{
+						foreignKeyName: 'public_proposal_sharing_proposal_fkey';
+						columns: ['proposal'];
+						isOneToOne: false;
+						referencedRelation: 'proposals';
+						referencedColumns: ['id'];
+					},
+					{
+						foreignKeyName: 'public_proposal_sharing_user_fkey';
+						columns: ['user'];
+						isOneToOne: false;
+						referencedRelation: 'profiles';
+						referencedColumns: ['id'];
+					}
+				];
+			};
 			proposals: {
 				Row: {
+					catalog_items: number[] | null;
 					company_name: string | null;
 					created_at: string;
+					created_by: string | null;
 					expiration_date: string | null;
 					hours_required: number | null;
 					id: string;
@@ -463,7 +504,9 @@ export type Database = {
 					labor_rate: number;
 					management_hours: number;
 					name: string;
+					opportunity_id: number | null;
 					organization: string | null;
+					project_id: number | null;
 					sales_hours: number;
 					service_ticket: number | null;
 					status: Database['public']['Enums']['status'];
@@ -474,8 +517,10 @@ export type Database = {
 					updated_at: string;
 				};
 				Insert: {
+					catalog_items?: number[] | null;
 					company_name?: string | null;
 					created_at?: string;
+					created_by?: string | null;
 					expiration_date?: string | null;
 					hours_required?: number | null;
 					id?: string;
@@ -483,7 +528,9 @@ export type Database = {
 					labor_rate?: number;
 					management_hours?: number;
 					name: string;
+					opportunity_id?: number | null;
 					organization?: string | null;
+					project_id?: number | null;
 					sales_hours?: number;
 					service_ticket?: number | null;
 					status?: Database['public']['Enums']['status'];
@@ -494,8 +541,10 @@ export type Database = {
 					updated_at?: string;
 				};
 				Update: {
+					catalog_items?: number[] | null;
 					company_name?: string | null;
 					created_at?: string;
+					created_by?: string | null;
 					expiration_date?: string | null;
 					hours_required?: number | null;
 					id?: string;
@@ -503,7 +552,9 @@ export type Database = {
 					labor_rate?: number;
 					management_hours?: number;
 					name?: string;
+					opportunity_id?: number | null;
 					organization?: string | null;
+					project_id?: number | null;
 					sales_hours?: number;
 					service_ticket?: number | null;
 					status?: Database['public']['Enums']['status'];
@@ -520,6 +571,13 @@ export type Database = {
 						isOneToOne: false;
 						referencedRelation: 'organizations';
 						referencedColumns: ['id'];
+					},
+					{
+						foreignKeyName: 'public_proposals_created_by_fkey';
+						columns: ['created_by'];
+						isOneToOne: false;
+						referencedRelation: 'profiles';
+						referencedColumns: ['id'];
 					}
 				];
 			};
@@ -532,6 +590,7 @@ export type Database = {
 					summary: string;
 					ticket: string;
 					visibile: boolean;
+					reference_id?: number | null;
 				};
 				Insert: {
 					created_at?: string;
@@ -541,6 +600,7 @@ export type Database = {
 					summary: string;
 					ticket: string;
 					visibile?: boolean;
+					reference_id?: number;
 				};
 				Update: {
 					created_at?: string;
@@ -550,6 +610,7 @@ export type Database = {
 					summary?: string;
 					ticket?: string;
 					visibile?: boolean;
+					reference_id?: number;
 				};
 				Relationships: [
 					{
@@ -570,6 +631,7 @@ export type Database = {
 					phase: string;
 					summary: string;
 					visible: boolean;
+					reference_id?: number | null;
 				};
 				Insert: {
 					budget_hours?: number;
@@ -579,6 +641,7 @@ export type Database = {
 					phase: string;
 					summary: string;
 					visible?: boolean;
+					reference_id?: number;
 				};
 				Update: {
 					budget_hours?: number;
@@ -588,6 +651,7 @@ export type Database = {
 					phase?: string;
 					summary?: string;
 					visible?: boolean;
+					reference_id?: number;
 				};
 				Relationships: [
 					{
@@ -736,6 +800,13 @@ export type Database = {
 			is_organization_member: {
 				Args: {
 					organization_id: string;
+					user_id: string;
+				};
+				Returns: boolean;
+			};
+			is_proposal_shared: {
+				Args: {
+					proposal_id: string;
 					user_id: string;
 				};
 				Returns: boolean;

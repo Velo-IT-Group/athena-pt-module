@@ -1,23 +1,14 @@
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
 import { Button } from '@/components/ui/button';
-import { HoverCard, HoverCardContent, HoverCardTrigger } from '@/components/ui/hover-card';
-import { Label } from '@/components/ui/label';
 import React from 'react';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { CalendarIcon, PaperPlaneIcon, Pencil1Icon } from '@radix-ui/react-icons';
-import { ScrollArea } from '@/components/ui/scroll-area';
-import { Input } from '@/components/ui/input';
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
-import { getComments, getProducts, getProposal, getUser } from '@/lib/functions/read';
+import { Dialog, DialogTrigger } from '@/components/ui/dialog';
+import { getProducts, getProposal, getUser } from '@/lib/functions/read';
 import { getCurrencyString } from '@/utils/money';
 import Navbar from '@/components/Navbar';
-import { Textarea } from '@/components/ui/textarea';
-import SubmitButton from '@/components/SubmitButton';
 import { calculateTotals } from '@/utils/helpers';
-import { createComment } from '@/lib/functions/create';
-import { updateComment } from '@/lib/functions/update';
-import { cn } from '@/lib/utils';
+import ApprovalForm from './approval-form';
+import { notFound } from 'next/navigation';
 
 type Props = {
 	params: { id: string };
@@ -26,11 +17,17 @@ type Props = {
 const ProposalReviewPage = async ({ params }: Props) => {
 	const proposal = await getProposal(params.id);
 	const products = await getProducts(params.id);
-	const comments = await getComments(params.id);
+	// const comments = await getComments(params.id);
 
-	if (!proposal || !products) return <div></div>;
+	if (!proposal || !products) return notFound();
 
-	const { productTotal, totalPrice, laborTotal } = calculateTotals(products, proposal.phases, proposal.labor_rate);
+	const { productTotal, totalPrice, laborTotal, laborHours } = calculateTotals(
+		products,
+		proposal.phases,
+		proposal.labor_rate,
+		proposal.management_hours,
+		proposal.sales_hours
+	);
 
 	const user = await getUser();
 
@@ -42,47 +39,28 @@ const ProposalReviewPage = async ({ params }: Props) => {
 						Revise
 					</Button>
 				)}
+
 				<Dialog>
 					<DialogTrigger asChild>
 						<Button className='mr-2'>Approve</Button>
 					</DialogTrigger>
-					<DialogContent>
-						<DialogHeader>
-							<DialogTitle>Are you absolutely sure?</DialogTitle>
-							<DialogDescription>
-								This action cannot be undone. This will permanently delete your account and remove your data from our servers.
-							</DialogDescription>
-						</DialogHeader>
-						<form>
-							<div className='grid w-full items-center gap-4'>
-								<div className='flex flex-col space-y-1.5'>
-									<Label htmlFor='name'>Initals</Label>
-									<Input id='name' placeholder='Name of your project' />
-								</div>
-								<div className='flex flex-col space-y-1.5'>
-									<Label htmlFor='name'>Name</Label>
-									<Input id='name' placeholder='Name of your project' />
-								</div>
-							</div>
-						</form>
-						<DialogFooter>
-							<Button type='submit'>Sign</Button>
-						</DialogFooter>
-					</DialogContent>
+
+					<ApprovalForm id={proposal.id} />
 				</Dialog>
 			</Navbar>
 
 			<div className='border-t'>
-				<div className='grid grid-cols-5 gap-12 py-12 container'>
-					<div className='col-span-3'>
+				<div className='grid gap-6 py-6 sm:grid-cols-5 sm:gap-12 sm:py-12 container'>
+					<div className='sm:col-span-3'>
 						<div className='space-y-4'>
 							<h1 className='text-lg font-semibold'>Proposal breakdown</h1>
+
 							<p className='text-sm text-muted-foreground'>
 								Based on your proposal, you can see what you&apos;ll be able to expect as your monthly expense.
 							</p>
 
 							<div className='rounded-xl border bg-neutral-100 p-4 space-y-4'>
-								<div className='flex items-center justify-between px-4'>
+								<div className='flex flex-col items-start sm:flex-row sm:items-center sm:justify-between px-4'>
 									<p className='text-sm text-muted-foreground'>Quote Price</p>
 									<p className='text-sm text-muted-foreground text-right'>
 										<span className='font-medium'>{getCurrencyString(totalPrice!)}</span>
@@ -95,11 +73,11 @@ const ProposalReviewPage = async ({ params }: Props) => {
 											<CardTitle>Hardware</CardTitle>
 										</CardHeader>
 										<CardContent className='space-y-2.5'>
-											<div className={`flex items-center gap-6 justify-between`}>
+											<div className='hidden sm:flex items-center gap-6 justify-between'>
 												<div className='max-w-96'>
 													<span className='text-sm text-muted-foreground'>Description</span>
 												</div>
-												<div className='grid gap-2 justify-items-end' style={{ gridTemplateColumns: '100px 125px' }}>
+												<div className='grid gap-2 justify-items-end grid-cols-[100px_125px]'>
 													<span className='text-sm text-muted-foreground'>Quantity</span>
 													<span className='text-sm text-muted-foreground'>Extended Price</span>
 												</div>
@@ -107,16 +85,23 @@ const ProposalReviewPage = async ({ params }: Props) => {
 											{products?.map((hardwareItem) => (
 												<>
 													<Separator />
-													<div key={hardwareItem.id} className='flex items-center gap-6 justify-between'>
+													<div key={hardwareItem.id} className='flex flex-col sm:flex-row sm:items-start gap-6 justify-between'>
 														<div className='max-w-96'>
-															<div className='font-medium text-sm truncate'>{hardwareItem.description}</div>
-															<div className='text-muted-foreground text-sm'>{getCurrencyString(hardwareItem.price!)}</div>
+															<div className='font-medium text-sm line-clamp-1'>{hardwareItem.description}</div>
+															<div className='flex items-center w-full'>
+																<div className='text-muted-foreground text-sm'>{getCurrencyString(hardwareItem.price!)} </div>
+																<p className='sm:hidden text-right mx-2'>•</p>
+																<p className='sm:hidden text-sm text-muted-foreground text-right'>{hardwareItem.quantity}</p>
+																<p className='sm:hidden text-sm text-muted-foreground text-right ml-auto'>
+																	<span className='font-medium'>{getCurrencyString(hardwareItem.price! * hardwareItem.quantity!)}</span>
+																</p>
+															</div>
 														</div>
 														{/* <div className='grid gap-2' style={{ gridTemplateColumns: '60px 1fr' }}>
 														<p className='text-sm text-muted-foreground hover:underline line-clamp-1 text-center'>{hardwareItem.quantity}</p>
 														<p className='text-sm text-muted-foreground hover:underline line-clamp-1'>{hardwareItem.description}</p>
 													</div> */}
-														<div className='grid gap-2' style={{ gridTemplateColumns: '100px 125px' }}>
+														<div className='hidden sm:grid gap-2 sm:grid-cols-[100px_125px]'>
 															<p className='text-sm text-muted-foreground text-right'>{hardwareItem.quantity}</p>
 															<p className='text-sm text-muted-foreground text-right'>
 																<span className='font-medium'>{getCurrencyString(hardwareItem.price! * hardwareItem.quantity!)}</span>
@@ -142,30 +127,30 @@ const ProposalReviewPage = async ({ params }: Props) => {
 									<CardHeader>
 										<CardTitle>Services</CardTitle>
 									</CardHeader>
+
 									<CardContent className='space-y-2'>
 										<div className='flex items-center justify-between'>
 											<p className='text-sm text-muted-foreground'>Total Labor Hours</p>
-											<p className='text-sm text-muted-foreground text-right font-medium'>{proposal.labor_hours!}</p>
+											<p className='text-sm text-muted-foreground text-right font-medium'>{laborHours} hrs</p>
 										</div>
+
 										<div className='flex items-center justify-between'>
 											<p className='text-sm text-muted-foreground'>Sales Work</p>
-											<p className='text-sm text-muted-foreground text-right font-medium'>{proposal.sales_hours!}</p>
+											<p className='text-sm text-muted-foreground text-right font-medium'>{proposal.sales_hours!} hrs</p>
 										</div>
+
 										<div className='flex items-center justify-between'>
 											<p className='text-sm text-muted-foreground'>Project Management</p>
-											<p className='text-sm text-muted-foreground text-right font-medium'>{proposal.management_hours!}</p>
+											<p className='text-sm text-muted-foreground text-right font-medium'>{proposal.management_hours!} hrs</p>
 										</div>
+
 										<div className='flex items-center justify-between'>
 											<p className='text-sm text-muted-foreground'>Hours Required</p>
-											<p className='text-sm text-muted-foreground text-right font-medium'>{proposal.hours_required!}</p>
+											<p className='text-sm text-muted-foreground text-right font-medium'>{proposal.hours_required!} hrs</p>
 										</div>
-										{/* <div className='flex items-center justify-between'>
-											<p className='text-sm text-muted-foreground'>Labor Rate</p>
-											<p className='text-sm text-muted-foreground text-right'>
-												<span className='font-medium'>{getCurrencyString(proposal.labor_rate!)}</span>
-											</p>
-										</div> */}
+
 										<Separator />
+
 										<div className='flex items-center justify-between'>
 											<p className='text-sm text-muted-foreground'>Services Subtotal</p>
 											<p className='text-sm text-muted-foreground text-right'>
@@ -178,7 +163,7 @@ const ProposalReviewPage = async ({ params }: Props) => {
 						</div>
 					</div>
 
-					<Card className='col-span-2'>
+					<Card className='sm:col-span-2'>
 						<CardHeader>
 							<CardTitle>Scope Of Work</CardTitle>
 						</CardHeader>
@@ -187,14 +172,14 @@ const ProposalReviewPage = async ({ params }: Props) => {
 							<div className='space-y-4'>
 								<Separator />
 								{proposal?.phases?.map((phase) => {
-									const comment = comments.find((c) => c.phase === phase.id);
+									// const comment = comments.find((c) => c.phase === phase.id);
 									return (
 										<div className='space-y-4' key={phase.id}>
 											<div className='flex items-center gap-2'>
 												<h3 className='font-medium tracking-tight'>
 													{phase.description} - {phase.hours}hrs
 												</h3>
-												<Dialog>
+												{/* <Dialog>
 													<DialogTrigger asChild>
 														<Button
 															size='icon'
@@ -239,7 +224,7 @@ const ProposalReviewPage = async ({ params }: Props) => {
 															</DialogFooter>
 														</form>
 													</DialogContent>
-												</Dialog>
+												</Dialog> */}
 											</div>
 
 											<ul className='list-disc list-inside px-4'>

@@ -23,50 +23,50 @@ import CurrencyInput from '../CurrencyInput';
 
 //@ts-ignore
 const productFormSchema = z.object<ProductUpdate>({
-	calculated_cost: z.nullable(z.undefined(z.number())),
-	calculated_cost_flag: z.nullable(z.boolean()),
-	calculated_price: z.nullable(z.number()),
-	calculated_price_flag: z.nullable(z.boolean()),
-	catalog_item: z.nullable(z.number()),
-	category: z.nullable(z.string()),
-	cost: z.nullable(z.number()),
-	customer_description: z.nullable(z.string()),
-	description: z.nullable(z.string()),
-	drop_ship_flag: z.nullable(z.boolean()),
-	hide_description_flag: z.nullable(z.boolean()),
-	hide_extended_price_flag: z.nullable(z.boolean()),
-	hide_item_identifier_flag: z.nullable(z.boolean()),
-	hide_price_flag: z.nullable(z.boolean()),
-	hide_quantity_flag: z.nullable(z.boolean()),
-	id: z.nullable(z.number()),
-	identifier: z.nullable(z.string()),
-	inactive_flag: z.nullable(z.boolean()),
-	manufacturer: z.nullable(z.string()),
-	manufacturer_part_number: z.nullable(z.string()),
-	parent: z.nullable(z.string()),
-	parent_catalog_item: z.nullable(z.number()),
-	phase_product_flag: z.nullable(z.boolean()),
-	price: z.nullable(z.number()),
-	product_class: z.nullable(z.string()),
-	proposal: z.nullable(z.string()),
-	quantity: z.nullable(z.number()),
-	recurring_bill_cycle: z.nullable(z.number()),
-	recurring_cost: z.nullable(z.number().optional()),
-	recurring_cycle_type: z.nullable(z.string()),
-	recurring_flag: z.nullable(z.boolean()),
-	recurring_one_time_flag: z.nullable(z.boolean()),
-	recurring_revenue: z.nullable(z.number()),
-	sequence_number: z.nullable(z.number()),
-	serialized_cost_flag: z.nullable(z.boolean()),
-	serialized_flag: z.nullable(z.boolean()),
-	special_order_flag: z.nullable(z.boolean()),
-	subcategory: z.nullable(z.string()),
-	taxable_flag: z.nullable(z.boolean()),
-	type: z.nullable(z.string()),
+	calculated_cost: z.nullable(z.number().optional()),
+	calculated_cost_flag: z.nullable(z.boolean().optional()),
+	calculated_price: z.nullable(z.number().optional()),
+	calculated_price_flag: z.nullable(z.boolean().optional()),
+	catalog_item: z.nullable(z.number().optional()),
+	category: z.nullable(z.string().optional()),
+	cost: z.nullable(z.number().optional()),
+	customer_description: z.nullable(z.string().optional()),
+	description: z.nullable(z.string().optional()),
+	drop_ship_flag: z.nullable(z.boolean().optional()),
+	hide_description_flag: z.nullable(z.boolean().optional()),
+	hide_extended_price_flag: z.nullable(z.boolean().optional()),
+	hide_item_identifier_flag: z.nullable(z.boolean().optional()),
+	hide_price_flag: z.nullable(z.boolean().optional()),
+	hide_quantity_flag: z.nullable(z.boolean().optional()),
+	id: z.nullable(z.number().optional()),
+	identifier: z.nullable(z.string().optional()),
+	inactive_flag: z.nullable(z.boolean().optional()),
+	manufacturer: z.nullable(z.string().optional()),
+	manufacturer_part_number: z.nullable(z.string().optional()),
+	parent: z.nullable(z.string().optional()),
+	parent_catalog_item: z.nullable(z.number().optional()),
+	phase_product_flag: z.nullable(z.boolean().optional()),
+	price: z.nullable(z.number().optional()),
+	product_class: z.nullable(z.string().optional()),
+	proposal: z.nullable(z.string().optional()),
+	quantity: z.nullable(z.number().optional()),
+	recurring_bill_cycle: z.nullable(z.number().optional()),
+	recurring_cost: z.nullable(z.number().optional().optional()),
+	recurring_cycle_type: z.nullable(z.string().optional()),
+	recurring_flag: z.nullable(z.boolean().optional()),
+	recurring_one_time_flag: z.nullable(z.boolean().optional()),
+	recurring_revenue: z.nullable(z.number().optional()),
+	sequence_number: z.nullable(z.number().optional()),
+	serialized_cost_flag: z.nullable(z.boolean().optional()),
+	serialized_flag: z.nullable(z.boolean().optional()),
+	special_order_flag: z.nullable(z.boolean().optional()),
+	subcategory: z.nullable(z.string().optional()),
+	taxable_flag: z.nullable(z.boolean().optional()),
+	type: z.nullable(z.string().optional()),
 	unique_id: z.string(),
-	unit_of_measure: z.nullable(z.string()),
-	vendor: z.nullable(z.string()),
-	products: z.array(z.nullable(z.string())),
+	unit_of_measure: z.nullable(z.string().optional()),
+	vendor: z.nullable(z.string().optional()),
+	products: z.array(z.nullable(z.string().optional())),
 });
 
 function differenceInObj<T extends Record<keyof T, any>>(old: T, newObj: T): T {
@@ -129,6 +129,7 @@ const ProductForm = ({ product, billingCycles }: Props) => {
 		// delete values['extended_price'];
 		console.log('hi', values);
 
+		// @ts-ignore
 		await updateProduct(product.unique_id, values);
 	}
 
@@ -219,7 +220,6 @@ const ProductForm = ({ product, billingCycles }: Props) => {
 										<FormItem>
 											<FormLabel>Vendor Part Number</FormLabel>
 											<FormControl>
-												{/* @ts-ignore */}
 												<Input placeholder='#12345' {...field} />
 											</FormControl>
 											<FormMessage />
@@ -372,6 +372,7 @@ const ProductForm = ({ product, billingCycles }: Props) => {
 										render={({ field }) => (
 											<FormItem>
 												<FormLabel>Recurring Option</FormLabel>
+												{/* @ts-ignore */}
 												<Select onValueChange={field.onChange} defaultValue={field.value}>
 													<FormControl>
 														<SelectTrigger>
@@ -380,7 +381,7 @@ const ProductForm = ({ product, billingCycles }: Props) => {
 													</FormControl>
 													<SelectContent>
 														{billingCycles.map((cycle) => (
-															<SelectItem key={cycle.id} value={cycle.id}>
+															<SelectItem key={cycle.id} value={cycle.id.toString()}>
 																{cycle.name}
 															</SelectItem>
 														))}

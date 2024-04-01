@@ -1,6 +1,8 @@
+'use client';
 import { cn } from '@/lib/utils';
 import React, { useState } from 'react';
 import ReactCurrencyInput, { CurrencyInputProps, CurrencyInputOnChangeValues } from 'react-currency-input-field';
+import { toast } from 'sonner';
 
 interface Props extends CurrencyInputProps {
 	handleBlurChange?: (amount?: number | null | undefined) => void;
@@ -34,10 +36,14 @@ const CurrencyInput = (props: Props) => {
 			value={value}
 			onValueChange={handleOnValueChange}
 			onBlur={(e) => {
-				props.handleBlurChange && props.handleBlurChange(values?.float);
+				try {
+					props.handleBlurChange && props.handleBlurChange(values?.float);
+				} catch (error) {
+					toast('Error updating ');
+				}
 			}}
 			className={cn(
-				'flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm transition-colors file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50',
+				'flex h-9 w-full bg-transparent rounded-md border border-input hover:bg-transparent px-3 py-1 text-sm shadow-sm transition-colors file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50',
 				props.className
 			)}
 			{...props}

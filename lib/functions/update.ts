@@ -3,6 +3,9 @@ import { HOME_SORT_COOKIE } from '@/app/[org]/page';
 import { createClient } from '@/utils/supabase/server';
 import { revalidateTag } from 'next/cache';
 import { cookies } from 'next/headers';
+import axios, { AxiosResponse } from 'axios';
+import { baseConfig } from '../utils';
+import { ProductsItem } from '@/types/manage';
 
 /**
  * Updates Product In Supabase.
@@ -36,7 +39,7 @@ export const updateProposal = async (id: string, proposal: ProposalUpdate) => {
 
 	if (error) {
 		console.error(error);
-		return;
+		throw Error(error.message);
 	}
 
 	revalidateTag('proposals');
@@ -151,4 +154,42 @@ export const updateHomeSortCookie = (sort: string) => {
 	const cookieStore = cookies();
 	cookieStore.set(HOME_SORT_COOKIE, sort);
 	revalidateTag('proposals');
+};
+
+type Operation = 'replace';
+
+export type ManageProductUpdate = {
+	id: number;
+	values: PatchOperation[];
+};
+
+type PatchOperation = {
+	op: Operation;
+	path: string;
+	value: string | number;
+};
+
+export const updateManageProduct = async (product: ManageProductUpdate): Promise<ProductsItem | undefined> => {
+	let data = JSON.stringify(product.values);
+
+	let config = {
+		...baseConfig,
+		method: 'patch',
+		url: `/procurement/products/${product.id}`,
+		headers: {
+			...baseConfig.headers,
+			'Content-Type': 'application/json',
+		},
+		data: data,
+	};
+
+	try {
+		const product: AxiosResponse<ProductsItem, Error> = await axios.request(config);
+
+		console.log('SUCCESFULLY UPDATED MANAGE PRODUCT', product.data);
+
+		return product.data;
+	} catch (error) {
+		console.error(error);
+	}
 };

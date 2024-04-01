@@ -11,8 +11,13 @@ import { getCurrencyString } from '@/utils/money';
 
 export function ProposalCard({ proposal, orgId }: { proposal: NestedProposal; orgId: string }) {
 	const status = statuses.find((status) => status.value === proposal.status);
-	// @ts-ignore
-	const { totalPrice } = calculateTotals(proposal?.products ?? [], proposal?.phases ?? [], proposal.labor_rate);
+	const { totalPrice } = calculateTotals(
+		proposal?.products ?? [],
+		proposal?.phases ?? [],
+		proposal.labor_rate,
+		proposal.management_hours,
+		proposal.sales_hours
+	);
 
 	return (
 		<Card className='flex flex-col'>

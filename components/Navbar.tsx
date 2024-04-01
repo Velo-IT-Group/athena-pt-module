@@ -6,6 +6,10 @@ import { getOrganization } from '@/lib/functions/read';
 import NavigationTabs from './NavigationTabs';
 import UserNav from './UserNav';
 import { createClient } from '@/utils/supabase/server';
+import { Input } from './ui/input';
+import { updateProposal } from '@/lib/functions/update';
+import BlurInput from '@/app/[org]/proposal/[id]/products/[product_id]/blur-input';
+import NavbarTitleEditor from './navbar-title-editor';
 
 export type Tab = {
 	name: string;
@@ -14,12 +18,14 @@ export type Tab = {
 
 type Props = {
 	title?: string;
+	titleEditable?: boolean;
+	titleId?: string;
 	children?: React.ReactNode;
 	org: string;
 	tabs?: Tab[];
 };
 
-const Navbar = async ({ title, children, org, tabs }: Props) => {
+const Navbar = async ({ title, titleEditable, titleId, children, org, tabs }: Props) => {
 	const supabase = createClient();
 	const organization = await getOrganization();
 
@@ -48,7 +54,15 @@ const Navbar = async ({ title, children, org, tabs }: Props) => {
 				{title && (
 					<>
 						<SlashIcon className='h-4 opacity-15' />
-						<span className='font-semibold'>{title}</span>
+						{titleEditable && titleId ? (
+							<>
+								<NavbarTitleEditor id={titleId} title={title} />
+							</>
+						) : (
+							<>
+								<span className='font-semibold'>{title}</span>
+							</>
+						)}
 					</>
 				)}
 				{(children || user) && (

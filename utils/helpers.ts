@@ -121,19 +121,37 @@ type ReturnType = {
 	productTotal: number;
 	recurringTotal: number;
 	totalPrice: number;
+	laborHours: number;
 	ticketHours?: number;
 };
 
-export const calculateTotals = (products: Product[], phases: NestedPhase[], labor_rate: number): ReturnType => {
+export const calculateTotals = (
+	products: Product[],
+	phases: NestedPhase[],
+	labor_rate: number,
+	management_hours: number,
+	sales_hours: number
+): ReturnType => {
 	const ticketHours = phases.map((p) => p.tickets?.map((t) => t.budget_hours).flat()).flat();
+
 	const ticketSum = ticketHours?.reduce((accumulator, currentValue) => {
 		return (accumulator ?? 0) + (currentValue ?? 0);
 	}, 0);
-	const laborTotal = (ticketSum ?? 0) * labor_rate;
-	const productTotal = products.reduce((accumulator, currentValue) => accumulator + (currentValue?.price ?? 0) * (currentValue?.quantity ?? 0), 0);
+
+	const laborHours = management_hours + sales_hours + (ticketSum ?? 0);
+
+	const laborTotal = laborHours * labor_rate;
+
+	const productTotal = products.reduce((accumulator, currentValue) => {
+		const price: number | null = currentValue.product_class === 'Bundle' ? currentValue.calculated_price : currentValue.price;
+
+		return accumulator + (price ?? 0) * (currentValue?.quantity ?? 0);
+	}, 0);
+
 	const recurringTotal = products
 		?.filter((product) => product.recurring_flag)
 		.reduce((accumulator, currentValue) => accumulator + (currentValue?.price ?? 0) * (currentValue?.quantity ?? 0), 0);
+
 	const totalPrice = laborTotal + productTotal;
 
 	return {
@@ -142,5 +160,6 @@ export const calculateTotals = (products: Product[], phases: NestedPhase[], labo
 		recurringTotal,
 		totalPrice,
 		ticketHours: ticketSum,
+		laborHours,
 	};
 };

@@ -1,13 +1,13 @@
 import React from 'react';
 import Navbar, { Tab } from '@/components/Navbar';
-import { getMembers, getProducts, getProposal } from '@/lib/functions/read';
+import { getMembers, getProducts, getProposal, getTicket } from '@/lib/functions/read';
 import { getCurrencyString } from '@/utils/money';
 import { HoverCard, HoverCardContent, HoverCardTrigger } from '@/components/ui/hover-card';
 import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
 import { notFound } from 'next/navigation';
-import ProposalActions from './proposal-actions';
-import { ProposalShare } from './proposal-share';
+import ProposalActions from './(product_id)/proposal-actions';
+import { ProposalShare } from './(product_id)/proposal-share';
 import { calculateTotals } from '@/utils/helpers';
 
 type Props = {
@@ -27,11 +27,23 @@ const ProposalIdLayout = async ({ params, children }: Props) => {
 		{ name: 'Settings', href: `/${org}/proposal/${id}/settings` },
 	];
 
-	const { laborTotal, productTotal, recurringTotal, totalPrice } = calculateTotals(products, proposal.phases, proposal.labor_rate);
+	const serviceTicket = await getTicket(proposal.service_ticket ?? 0);
+
+	if (!serviceTicket) {
+		notFound();
+	}
+
+	const { laborTotal, productTotal, recurringTotal, totalPrice } = calculateTotals(
+		products,
+		proposal.phases,
+		proposal.labor_rate,
+		proposal.management_hours,
+		proposal.sales_hours
+	);
 
 	return (
 		<>
-			<Navbar org={org} title={proposal?.name} tabs={tabs}>
+			<Navbar org={org} title={proposal?.name} titleEditable titleId={id} tabs={tabs}>
 				<HoverCard>
 					<HoverCardTrigger asChild>
 						<Button variant='link' className='text-sm font-medium'>
@@ -71,6 +83,7 @@ const ProposalIdLayout = async ({ params, children }: Props) => {
 						phases={proposal.phases}
 						tickets={proposal.phases.map((p) => p.tickets).flat()}
 						tasks={proposal.phases.map((p) => p.tickets.map((t) => t.tasks).flat()).flat()}
+						ticket={serviceTicket}
 					/>
 				</HoverCard>
 			</Navbar>

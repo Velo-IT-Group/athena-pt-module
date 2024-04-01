@@ -19,6 +19,11 @@ export const baseConfig: AxiosRequestConfig = {
 	},
 };
 
+export const baseHeaders = new Headers();
+baseHeaders.set('clientId', process.env.NEXT_PUBLIC_CW_CLIENT_ID!);
+baseHeaders.set('Authorization', 'Basic ' + btoa(process.env.NEXT_PUBLIC_CW_USERNAME! + ':' + process.env.NEXT_PUBLIC_CW_PASSWORD!));
+baseHeaders.set('Content-Type', 'application/json');
+
 export const getBackgroundColor = (snapshot: DroppableStateSnapshot): string => {
 	// Giving isDraggingOver preference
 	if (snapshot.isDraggingOver) {

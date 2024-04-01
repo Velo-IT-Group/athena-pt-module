@@ -78,7 +78,19 @@ const ProductList = ({ products }: { products: Product[] }) => {
 		onExpandedChange: setExpanded,
 		getExpandedRowModel: getExpandedRowModel(),
 		enableExpanding: true,
-		getSubRows: (row) => row.products,
+		getSubRows: (row) => {
+			let orderedItems = row.products?.sort((a, b) => {
+				// First, compare by score in descending order
+				if (Number(a.sequence_number) > Number(b.sequence_number)) return 1;
+				if (Number(a.sequence_number) < Number(b.sequence_number)) return -1;
+
+				// If scores are equal, then sort by created_at in ascending order
+				return Number(a.id) - Number(b.id);
+				// return new Date(a.=).getTime() - new Date(b.created_at).getTime();
+			});
+
+			return orderedItems;
+		},
 		state: {
 			expanded,
 		},

@@ -1,15 +1,14 @@
-import { Button } from '@/components/ui/button';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Separator } from '@/components/ui/separator';
-import { getProducts, getProposal, getTicket, getTicketNotes } from '@/lib/functions/read';
+import { getProducts, getProposal, getTicket } from '@/lib/functions/read';
 import { relativeDate } from '@/utils/date';
 import { getCurrencyString } from '@/utils/money';
-import { CalendarIcon, DotsHorizontalIcon, FileTextIcon, PlusCircledIcon, StopwatchIcon } from '@radix-ui/react-icons';
+import { CalendarIcon, FileTextIcon, StopwatchIcon } from '@radix-ui/react-icons';
 import React from 'react';
 import ProductList from './product-list';
-import { HoverCard, HoverCardContent, HoverCardTrigger } from '@/components/ui/hover-card';
 import ExpirationDatePicker from './expiration-date-picker';
 import { calculateTotals } from '@/utils/helpers';
+import { Label } from '@/components/ui/label';
+import BlurredInput from './blurred-input';
 
 type Props = {
 	params: { id: string };
@@ -24,7 +23,7 @@ const ProposalPage = async ({ params }: Props) => {
 		getTicket(proposal?.service_ticket ?? 0),
 		// getTicketNotes(proposal?.service_ticket ?? 0)
 	]);
-	const { ticketHours, totalPrice } = calculateTotals(products, proposal.phases, proposal.labor_rate);
+	const { totalPrice, laborHours } = calculateTotals(products, proposal.phases, proposal.labor_rate, proposal.management_hours, proposal.sales_hours);
 
 	return (
 		<div className='grid grid-cols-12 flex-1'>
@@ -37,31 +36,33 @@ const ProposalPage = async ({ params }: Props) => {
 							<div>
 								<div className='font-medium text-sm'>{ticket?.contactName}</div>
 								<div className='text-sm text-muted-foreground'>{ticket?.contactEmailAddress}</div>
-								<HoverCard>
-									<HoverCardTrigger asChild>
-										<Button variant='link' size='sm' className='px-0 font-normal h-auto leading-5'>
-											Edit customer address
-										</Button>
-									</HoverCardTrigger>
-									<HoverCardContent></HoverCardContent>
-								</HoverCard>
 							</div>
-							<Dialog>
-								<DialogTrigger asChild>
-									<Button variant='ghost' size='icon'>
-										<DotsHorizontalIcon />
-									</Button>
-								</DialogTrigger>
-							</Dialog>
 						</div>
 						<Separator />
 					</div>
 				</section>
 
-				<section className='space-y-4 w-1/2'>
-					<h2 className='text-xl font-semibold'>Expiration date</h2>
-					<div className='space-y-1'>
-						<ExpirationDatePicker id={params.id} expiration_date={proposal.expiration_date ?? undefined} />
+				<section className='grid sm:grid-cols-2 gap-4 sm:gap-12'>
+					<div className='space-y-4'>
+						<h2 className='text-xl font-semibold'>Expiration date</h2>
+						<div className=''>
+							<ExpirationDatePicker id={params.id} expiration_date={proposal.expiration_date ?? undefined} />
+						</div>
+					</div>
+
+					<div className='space-y-4'>
+						<h2 className='text-xl font-semibold flex items-center justify-between gap-2'>Labor Hours</h2>
+						<div className='grid gap-3'>
+							<div className='grid sm:grid-cols-3 items-center gap-4'>
+								<Label>Sales Hours</Label>
+								<BlurredInput defaultValue={proposal.sales_hours} proposalKey='sales_hours' id={proposal.id} />
+							</div>
+
+							<div className='grid sm:grid-cols-3 items-center gap-4'>
+								<Label>Management Hours</Label>
+								<BlurredInput defaultValue={proposal.management_hours} proposalKey='management_hours' id={proposal.id} />
+							</div>
+						</div>
 					</div>
 				</section>
 
@@ -78,41 +79,6 @@ const ProposalPage = async ({ params }: Props) => {
 						<Separator />
 					</div>
 				</section>
-
-				<section className='space-y-4'>
-					<h2 className='text-xl font-semibold flex items-center justify-between gap-2'>
-						Attachments
-						<div className='font-normal text-sm flex items-center text-muted-foreground'>
-							<Dialog>
-								<DialogTrigger asChild>
-									<Button>
-										<PlusCircledIcon className='w-4 h-4 mr-2' /> Add attachment
-									</Button>
-								</DialogTrigger>
-								<DialogContent>
-									<DialogHeader>
-										<DialogTitle>Add attachment</DialogTitle>
-									</DialogHeader>
-									<div className='border rounded-md border-dashed min-h-12'></div>
-								</DialogContent>
-							</Dialog>
-							{/* <Switch className='mr-2' /> Collect tax automatically */}
-						</div>
-					</h2>
-					<div className='space-y-1'>
-						<Separator />
-						<p>Attachments go here.</p>
-						{/* <ProductList products={products} /> */}
-						<Separator />
-					</div>
-				</section>
-
-				{/* <section className='space-y-4 w-1/2'>
-					<h2 className='text-xl font-semibold'>Memo</h2>
-					<div className='space-y-1'>
-						<Textarea placeholder='Thanks for your business!' />
-					</div>
-				</section> */}
 			</div>
 
 			<div className='border-l py-16 pl-12 pr-16 w-full col-span-3 space-y-16 bg-muted/50'>
@@ -134,7 +100,7 @@ const ProposalPage = async ({ params }: Props) => {
 					<StopwatchIcon className='text-primary w-4 h-4' />
 					<div className='space-y-3'>
 						<h2 className='text-xs'>LABOR HOURS</h2>
-						<p className='text-muted-foreground font-medium text-sm'>{ticketHours ?? 0} hrs</p>
+						<p className='text-muted-foreground font-medium text-sm'>{laborHours ?? 0} hrs</p>
 					</div>
 				</section>
 

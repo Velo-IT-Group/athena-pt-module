@@ -11,7 +11,7 @@ import { CalendarIcon } from '@radix-ui/react-icons';
 
 type Props = {
 	date?: Date | null;
-	setDate: (date: Date) => void;
+	setDate?: (date: Date) => void;
 };
 
 const DatePicker = ({ date, setDate }: Props) => {
@@ -24,7 +24,7 @@ const DatePicker = ({ date, setDate }: Props) => {
 				</Button>
 			</PopoverTrigger>
 			<PopoverContent className='w-auto p-0' align='start'>
-				<Calendar mode='single' selected={date ?? new Date()} onSelect={(e) => (e ? setDate(e) : undefined)} initialFocus />
+				<Calendar mode='single' selected={date ?? new Date()} onSelect={(e) => (e ? setDate && setDate(e) : undefined)} initialFocus />
 			</PopoverContent>
 		</Popover>
 	);

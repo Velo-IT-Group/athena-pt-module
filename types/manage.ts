@@ -36,6 +36,7 @@ export type TicketNote = {
 export type ProjectPhase = {
 	id: number;
 	templateId: number;
+	projectId?: number;
 	description: string;
 	markAsMilestoneFlag: boolean;
 	billPhaseSeparately: boolean;
@@ -116,46 +117,48 @@ export type ProjectWorkPlan = {
 	phases: Array<ProjectPhase>;
 };
 
+export type ProductClass = 'Agreement' | 'Bundle' | 'Inventory' | 'NonInventory' | 'Service';
+
 export type CatalogItem = {
 	id: number;
-	identifier: string;
-	description: string;
-	inactiveFlag: boolean;
-	subcategory: Subcategory;
-	type: Type;
-	productClass: 'Agreement' | 'Bundle' | 'Inventory' | 'NonInventory' | 'Service';
+	identifier?: string;
+	description?: string;
+	inactiveFlag?: boolean;
+	subcategory?: Subcategory;
+	type?: Type;
+	productClass: ProductClass;
 	bundledItems?: CatalogItem[] | undefined;
-	serializedFlag: boolean;
-	serializedCostFlag: boolean;
-	phaseProductFlag: boolean;
-	unitOfMeasure: UnitOfMeasure;
-	price: number;
-	cost: number;
-	priceAttribute: string;
-	taxableFlag: boolean;
-	dropShipFlag: boolean;
-	specialOrderFlag: boolean;
-	customerDescription: string;
-	manufacturer: Manufacturer;
-	manufacturerPartNumber: string;
-	vendor: Vendor;
-	vendorSku: string;
-	notes: string;
-	integrationXRef: string;
-	sla: Sla;
-	entityType: EntityType;
-	recurringFlag: boolean;
-	recurringRevenue: number;
-	recurringCost: number;
-	recurringOneTimeFlag: boolean;
-	recurringBillCycle: RecurringBillCycle;
-	recurringCycleType: string;
-	calculatedPriceFlag: boolean;
-	calculatedCostFlag: boolean;
-	category: Category;
-	calculatedPrice: number;
-	calculatedCost: number;
-	billableOption: string;
+	serializedFlag?: boolean;
+	serializedCostFlag?: boolean;
+	phaseProductFlag?: boolean;
+	unitOfMeasure?: UnitOfMeasure;
+	price?: number;
+	cost?: number;
+	priceAttribute?: string;
+	taxableFlag?: boolean;
+	dropShipFlag?: boolean;
+	specialOrderFlag?: boolean;
+	customerDescription?: string;
+	manufacturer?: Manufacturer;
+	manufacturerPartNumber?: string;
+	vendor?: Vendor;
+	vendorSku?: string;
+	notes?: string;
+	integrationXRef?: string;
+	sla?: Sla;
+	entityType?: EntityType;
+	recurringFlag?: boolean;
+	recurringRevenue?: number;
+	recurringCost?: number;
+	recurringOneTimeFlag?: boolean;
+	recurringBillCycle?: RecurringBillCycle;
+	recurringCycleType?: string;
+	calculatedPriceFlag?: boolean;
+	calculatedCostFlag?: boolean;
+	category?: Category;
+	calculatedPrice?: number;
+	calculatedCost?: number;
+	billableOption?: string;
 };
 
 export type CatalogComponent = {
@@ -364,7 +367,7 @@ export interface ServiceTicket {
 	source?: Source;
 	requiredDate?: string;
 	budgetHours?: number;
-	opportunity?: Opportunity;
+	opportunity?: ReferenceType;
 	agreement?: Agreement;
 	severity?: string;
 	impact?: string;
@@ -448,8 +451,202 @@ export interface ServiceTicket {
 	minutesWaiting?: number;
 }
 
+export interface Opportunity {
+	id: number;
+	name: string;
+	expectedCloseDate: string;
+	type: ReferenceType;
+	stage: ReferenceType;
+	status: ReferenceType;
+	priority: ReferenceType;
+	probability: ReferenceType;
+	rating: ReferenceType;
+	primarySalesRep: ReferenceType;
+	locationId: number;
+	businessUnitId: number;
+	company: ReferenceType;
+	contact: ReferenceType;
+	site: ReferenceType;
+	dateBecameLead: string;
+	totalSalesTax: number;
+	shipToCompany: ReferenceType;
+	shipToSite: ReferenceType;
+	billToCompany: ReferenceType;
+	billToContact: ReferenceType;
+	billToSite: ReferenceType;
+	billingTerms: ReferenceType;
+	currency: Currency;
+	companyLocationId: number;
+}
+
+export interface ProductsItem {
+	id: number;
+	catalogItem: CatalogItem;
+	description?: string;
+	sequenceNumber?: number;
+	quantity?: number;
+	unitOfMeasure?: ReferenceType;
+	price: number;
+	cost: number;
+	extPrice: number;
+	extCost: number;
+	discount?: number;
+	margin?: number;
+	agreementAmount?: number;
+	priceMethod?: string;
+	billableOption?: string;
+	agreement?: ReferenceType;
+	locationId?: number;
+	location?: ReferenceType;
+	businessUnitId?: number;
+	businessUnit?: ReferenceType;
+	vendor?: ReferenceType;
+	vendorSku?: string;
+	taxableFlag?: boolean;
+	dropshipFlag?: boolean;
+	specialOrderFlag?: boolean;
+	phaseProductFlag?: boolean;
+	cancelledFlag?: boolean;
+	quantityCancelled?: number;
+	cancelledReason?: string;
+	customerDescription?: string;
+	internalNotes?: string;
+	productSuppliedFlag?: boolean;
+	subContractorShipToId?: number;
+	subContractorAmountLimit?: number;
+	recurring?: Recurring;
+	sla?: ReferenceType;
+	entityType?: ReferenceType;
+	ticket?: ReferenceType;
+	project?: ReferenceType;
+	phase?: ReferenceType;
+	salesOrder?: ReferenceType;
+	opportunity?: ReferenceType;
+	invoice?: Invoice;
+	warehouseId?: number;
+	warehouseIdObject?: ReferenceType;
+	warehouseBinId?: number;
+	warehouseBinIdObject?: ReferenceType;
+	calculatedPriceFlag?: boolean;
+	calculatedCostFlag?: boolean;
+	forecastDetailId?: number;
+	cancelledBy?: number;
+	cancelledDate?: string;
+	warehouse?: string;
+	warehouseBin?: string;
+	purchaseDate?: string;
+	taxCode?: ReferenceType;
+	integrationXRef?: string;
+	listPrice?: number;
+	serialNumberIds?: Array<number>;
+	serialNumbers?: Array<string>;
+	company?: ReferenceType;
+	forecastStatus?: ReferenceType;
+	productClass?: string;
+	needToPurchaseFlag?: boolean;
+	needToOrderQuantity?: number;
+	minimumStockFlag?: boolean;
+	shipSet?: string;
+	calculatedPrice?: number;
+	calculatedCost?: number;
+	poApprovedFlag?: boolean;
+	uom?: string;
+	addComponentsFlag?: boolean;
+	ignorePricingSchedulesFlag?: boolean;
+	asioSubscriptionsID?: string;
+	bypassForecastUpdate?: boolean;
+}
+
+export interface Project {
+	id: number;
+	actualEnd?: string;
+	actualHours?: number;
+	actualStart?: string;
+	agreement?: ReferenceType;
+	billExpenses?: string;
+	billingAmount?: number;
+	billingAttention?: string;
+	billingMethod?: string;
+	billingRateType?: string;
+	billingTerms?: ReferenceType;
+	billProducts?: string;
+	billProjectAfterClosedFlag?: boolean;
+	billTime?: string;
+	billToCompany?: ReferenceType;
+	billToContact?: ReferenceType;
+	billToSite?: ReferenceType;
+	billUnapprovedTimeAndExpense?: boolean;
+	board?: ReferenceType;
+	budgetAnalysis?: string;
+	budgetFlag?: boolean;
+	budgetHours?: number;
+	company?: ReferenceType;
+	contact?: ReferenceType;
+	customerPO?: string;
+	description?: string;
+	currency?: Currency;
+	downpayment?: number;
+	estimatedEnd?: string;
+	percentComplete?: number;
+	estimatedExpenseRevenue?: number;
+	estimatedHours?: number;
+	estimatedProductRevenue?: number;
+	estimatedStart?: string;
+	estimatedTimeRevenue?: number;
+	expenseApprover?: ReferenceType;
+	includeDependenciesFlag?: boolean;
+	includeEstimatesFlag?: boolean;
+	location?: ReferenceType;
+	department?: ReferenceType;
+	manager?: ReferenceType;
+	name?: string;
+	opportunity?: ReferenceType;
+	projectTemplateId?: number;
+	restrictDownPaymentFlag?: boolean;
+	scheduledEnd?: string;
+	scheduledHours?: number;
+	scheduledStart?: string;
+	shipToCompany?: ReferenceType;
+	shipToContact?: ReferenceType;
+	shipToSite?: ReferenceType;
+	site?: ReferenceType;
+	status?: ReferenceType;
+	closedFlag?: boolean;
+	timeApprover?: ReferenceType;
+	type?: ReferenceType;
+	doNotDisplayInPortalFlag?: boolean;
+	billingStartDate?: string;
+	poAmount?: number;
+	estimatedTimeCost?: number;
+	estimatedExpenseCost?: number;
+	estimatedProductCost?: number;
+	taxCode?: ReferenceType;
+	companyLocation?: ReferenceType;
+}
+
+export interface Invoice {
+	id: number;
+	identifier: string;
+	billingType: string;
+	applyToType: string;
+	invoiceDate: string;
+	chargeFirmFlag: boolean;
+}
+
+export interface Recurring {
+	recurringRevenue: number;
+	recurringCost: number;
+	startDate: string;
+	endDate: string;
+	billCycleId: number;
+	billCycle: ReferenceType;
+	cycles: number;
+	cycleType: string;
+}
+
 export interface ReferenceType {
 	id: number;
+	identifier?: string;
 	name: string;
 }
 
@@ -580,11 +777,6 @@ export interface ServiceLocation {
 }
 
 export interface Source {
-	id: number;
-	name: string;
-}
-
-export interface Opportunity {
 	id: number;
 	name: string;
 }
