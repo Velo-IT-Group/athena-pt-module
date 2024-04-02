@@ -8,8 +8,9 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 
-export function ProposalShare({ proposalId }: { proposalId: string }) {
+export function ProposalShare({ proposalId, origin }: { proposalId: string; origin: string }) {
 	const [hasCopied, setHasCopied] = React.useState(false);
+	console.log(origin);
 
 	React.useEffect(() => {
 		setTimeout(() => {
@@ -33,13 +34,13 @@ export function ProposalShare({ proposalId }: { proposalId: string }) {
 						</Label>
 
 						<div className='flex items-center space-x-2'>
-							<Input id='external_link' defaultValue={`${process.env.NEXT_PUBLIC_LOCAL_URL}/review/${proposalId}`} readOnly className='h-9' />
+							<Input id='external_link' defaultValue={`${origin}/review/${proposalId}`} readOnly className='h-9' />
 							<Button
 								type='submit'
 								size='sm'
 								className='px-3'
 								onClick={() => {
-									navigator.clipboard.writeText(`${process.env.NEXT_PUBLIC_LOCAL_URL}/review/${proposalId}`);
+									navigator.clipboard.writeText(`${origin}/review/${proposalId}`);
 									setHasCopied(true);
 								}}
 							>

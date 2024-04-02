@@ -42,7 +42,7 @@ const Search = ({ baseUrl, placeholder, className, queryParam = 'search' }: Prop
 			console.log(text);
 			router.push(pathname + '?' + createQueryString(queryParam, text.trim()));
 		}
-	}, [baseUrl, createQueryString, pathname, router, text]);
+	}, [baseUrl, createQueryString, pathname, router, text, queryParam]);
 
 	return (
 		<div

@@ -8,14 +8,13 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { createOpportunity, createProject } from '@/lib/functions/create';
+import { createOpportunity, createProject, createProjectPhase } from '@/lib/functions/create';
 import { getOpportunityStatuses, getOpportunityTypes, getProjectBoards, getProjectStatuses } from '@/lib/functions/read';
 import { ServiceTicket } from '@/types/manage';
 import { CheckIcon, CopyIcon } from '@radix-ui/react-icons';
 import { useEffect, useState } from 'react';
 import { toast } from 'sonner';
-
-const billingMethods = ['ActualRates', 'FixedFee', 'NotToExceed', 'OverrideRate'];
+import { convertToManageProject } from '../actions';
 
 export default function ConversionModal({ proposal, ticket }: { proposal: NestedProposal; ticket: ServiceTicket }) {
 	const [selectedTab, setSelectedTab] = useState(proposal.opportunity_id ? 'project' : 'opportunity');
@@ -31,6 +30,8 @@ export default function ConversionModal({ proposal, ticket }: { proposal: Nested
 
 	const [estimatedStart, setEstimatedStart] = useState<Date | undefined>();
 	const [estimatedEnd, setEstimatedEnd] = useState<Date | undefined>();
+
+	const [opportunityId, setOpportunityId] = useState<number | undefined>(proposal?.opportunity_id ?? undefined);
 
 	useEffect(() => {
 		Promise.all([getOpportunityTypes(), getOpportunityStatuses(), getProjectStatuses(), getProjectBoards()]).then(
@@ -57,8 +58,10 @@ export default function ConversionModal({ proposal, ticket }: { proposal: Nested
 							<form
 								action={async () => {
 									try {
-										await createOpportunity(proposal, ticket);
+										const opportunity = await convertToManageProject(proposal, ticket);
 										toast('Opportunity created!');
+										setOpportunityId(opportunity?.id);
+										setSelectedTab('project');
 									} catch (error) {
 										toast('Error creating opportunity...', { description: <p>{JSON.stringify(error, null, 2)}</p> });
 									}
@@ -124,19 +127,24 @@ export default function ConversionModal({ proposal, ticket }: { proposal: Nested
 									console.log(name, status, board);
 
 									try {
-										await createProject(
+										const project = await createProject(
 											{
 												name: `NICK'S TESTING - ${name}`,
 												board: { id: board },
-												status: { id: status },
-												company: { id: ticket.company!.id },
 												estimatedStart: estimatedStart!.toISOString().split('.')[0] + 'Z',
 												estimatedEnd: estimatedEnd!.toISOString().split('.')[0] + 'Z',
 											},
-											proposal.id
+											proposal.id,
+											opportunityId ? opportunityId : 0
 										);
 
 										toast('Project created!');
+
+										if (proposal.phases) {
+											await Promise.all(proposal.phases?.map((phase) => createProjectPhase(project!.id, phase)));
+
+											toast('Phases added');
+										}
 
 										setIsCompleted(true);
 									} catch (error) {

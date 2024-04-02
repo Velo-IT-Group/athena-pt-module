@@ -23,6 +23,7 @@ const ProposalReviewPage = async ({ params }: Props) => {
 
 	const { productTotal, totalPrice, laborTotal, laborHours } = calculateTotals(
 		products,
+		// @ts-ignore
 		proposal.phases,
 		proposal.labor_rate,
 		proposal.management_hours,
@@ -228,7 +229,7 @@ const ProposalReviewPage = async ({ params }: Props) => {
 											</div>
 
 											<ul className='list-disc list-inside px-4'>
-												{phase.tickets.map((ticket) => (
+												{phase.tickets?.map((ticket) => (
 													<li key={ticket.id} className='text-sm'>
 														{ticket.summary}
 													</li>

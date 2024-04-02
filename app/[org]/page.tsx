@@ -3,7 +3,6 @@ import type { Metadata, ResolvingMetadata } from 'next';
 import { getOrganization, getProposals, getTemplates, getTicket, getTickets } from '@/lib/functions/read';
 import { Button } from '@/components/ui/button';
 import { FileTextIcon, PlusIcon } from '@radix-ui/react-icons';
-import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import OrganizationLayout from './organization-layout';
 import { cookies } from 'next/headers';
@@ -14,8 +13,7 @@ import { Dialog, DialogClose, DialogContent, DialogFooter, DialogHeader, DialogT
 import NewProposalForm from '@/components/forms/NewProposalForm';
 import { createProposal } from '@/lib/functions/create';
 import SubmitButton from '@/components/SubmitButton';
-
-export const HOME_SORT_COOKIE = 'homeSort';
+import { cn } from '@/lib/utils';
 
 type Props = {
 	params: { org: string };
@@ -34,7 +32,7 @@ const OverviewPage = async ({ params, searchParams }: Props) => {
 	const [templates, tickets, organization] = await Promise.all([getTemplates(), getTickets(), getOrganization()]);
 	const cookieStore = cookies();
 	const searchText = typeof searchParams.search === 'string' ? String(searchParams.search) : undefined;
-	const homeSort = cookieStore.get(HOME_SORT_COOKIE);
+	const homeSort = cookieStore.get('homeSort');
 	const proposals = await getProposals(homeSort?.value as keyof Proposal, searchText);
 
 	if (!proposals) {
@@ -42,6 +40,21 @@ const OverviewPage = async ({ params, searchParams }: Props) => {
 	}
 
 	if (!proposals) return <div></div>;
+
+	const action = async (data: FormData) => {
+		'use server';
+		const name = data.get('name') as string;
+		const templates_used = parseInt(data.get('templates_used') as string) as unknown as number;
+		const service_ticket = data.get('service_ticket') as unknown as number;
+		console.log(name, templates_used ? [templates_used, organization?.default_template] : [organization?.default_template], service_ticket);
+
+		await createProposal({
+			name,
+			// @ts-ignore
+			templates_used: templates_used ? [templates_used, organization?.default_template] : [organization?.default_template],
+			service_ticket: service_ticket,
+		});
+	};
 
 	return (
 		<OrganizationLayout org={params.org}>
@@ -59,28 +72,7 @@ const OverviewPage = async ({ params, searchParams }: Props) => {
 							<DialogHeader>
 								<DialogTitle>New Proposal</DialogTitle>
 							</DialogHeader>
-							<form
-								id='proposal-creation'
-								name='proposal-creation'
-								action={async (data: FormData) => {
-									'use server';
-									const name = data.get('name') as string;
-									const templates_used = parseInt(data.get('templates_used') as string) as unknown as number;
-									const service_ticket = data.get('service_ticket') as unknown as number;
-									console.log(
-										name,
-										templates_used ? [templates_used, organization?.default_template] : [organization?.default_template],
-										service_ticket
-									);
-
-									await createProposal({
-										name,
-										// @ts-ignore
-										templates_used: templates_used ? [templates_used, organization?.default_template] : [organization?.default_template],
-										service_ticket: service_ticket,
-									});
-								}}
-							>
+							<form id='proposal-creation' name='proposal-creation' action={action}>
 								<NewProposalForm templates={templates ?? []} tickets={tickets ?? []} />
 								<DialogFooter className='justify-between w-full flex-row mt-6'>
 									<DialogClose asChild>
@@ -95,18 +87,36 @@ const OverviewPage = async ({ params, searchParams }: Props) => {
 					</Dialog>
 				</form>
 
-				<div className='grid gap-4' style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(350px, 1fr))' }}>
+				<div className={cn('grid gap-4', !proposals.length && 'grow')} style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(350px, 1fr))' }}>
 					{proposals.length ? (
 						proposals.map((proposal) => <ProposalCard key={proposal.id} proposal={proposal} orgId={params.org} />)
 					) : (
-						<div className='grow flex-1 flex flex-col items-center justify-center'>
-							<FileTextIcon />
-							<h2>No quotes have been created.</h2>
-							<Button asChild>
-								<Link href={`/${params.org}/proposal/new`}>
-									<PlusIcon className='w-4 h-4 mr-2' /> Create one
-								</Link>
-							</Button>
+						<div className='grow flex-1 flex flex-col items-center justify-center space-y-2'>
+							<FileTextIcon className='w-6 h-6' />
+							<h2 className='text-lg font-semibold'> No quotes have been created.</h2>
+							<Dialog>
+								<DialogTrigger asChild>
+									<Button variant='secondary'>
+										<PlusIcon className='w-4 h-4 mr-2' /> Create one
+									</Button>
+								</DialogTrigger>
+								<DialogContent>
+									<DialogHeader>
+										<DialogTitle>New Proposal</DialogTitle>
+									</DialogHeader>
+									<form id='proposal-creation' name='proposal-creation' action={action}>
+										<NewProposalForm templates={templates ?? []} tickets={tickets ?? []} />
+										<DialogFooter className='justify-between w-full flex-row mt-6'>
+											<DialogClose asChild>
+												<Button type='button' variant='secondary'>
+													Close
+												</Button>
+											</DialogClose>
+											<SubmitButton>Submit</SubmitButton>
+										</DialogFooter>
+									</form>
+								</DialogContent>
+							</Dialog>
 						</div>
 					)}
 				</div>

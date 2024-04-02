@@ -82,7 +82,13 @@ export const createTasks = async (tasks: TaskInsert[]) => {
  */
 export const createProposal = async (proposal: ProposalInsert) => {
 	const supabase = createClient();
-	const { data, error } = await supabase.from('proposals').insert(proposal).select('id, organization(slug)').single();
+
+	const { data, error } = await supabase
+		.from('proposals')
+		.insert(proposal)
+		.select('id, organization(slug)')
+		.returns<{ id: string; organization: { slug: string } }[]>()
+		.single();
 
 	if (!data || error) {
 		console.error(error);
@@ -91,7 +97,7 @@ export const createProposal = async (proposal: ProposalInsert) => {
 
 	if (proposal.templates_used && proposal.templates_used.length) {
 		const templates = await Promise.all(proposal.templates_used.map((template) => getTemplate(template)));
-		console.log('TEMPLATES', templates);
+
 		if (templates && templates.length) {
 			await Promise.all(templates.map((template) => newTemplate(data.id, template!, 0)));
 		}
@@ -99,7 +105,6 @@ export const createProposal = async (proposal: ProposalInsert) => {
 
 	revalidateTag('proposals');
 
-	// @ts-ignore
 	redirect(`/${data.organization.slug}/proposal/${data.id}`);
 };
 
@@ -235,10 +240,10 @@ export const signUp = async (formData: FormData) => {
 	});
 
 	if (error) {
-		return redirect('/login?message=Could not authenticate user');
+		throw Error(error.message, { cause: error.cause });
 	}
 
-	return redirect('/login?message=Check email to continue sign in process');
+	// return redirect('/login?message=Check email to continue sign in process');
 };
 
 export const createOpportunity = async (proposal: NestedProposal, ticket: ServiceTicket): Promise<Opportunity | undefined> => {
@@ -286,22 +291,17 @@ export const createOpportunity = async (proposal: NestedProposal, ticket: Servic
 	console.log(config.headers);
 	// console.log(proposal, proposal.created_by, proposal.products);
 
-	try {
-		const response: AxiosResponse<Opportunity, Error> = await axios.request(config);
+	const response: AxiosResponse<Opportunity, Error> = await axios.request(config);
 
-		await updateProposal(proposal.id, { opportunity_id: response.data.id });
+	await updateProposal(proposal.id, { opportunity_id: response.data.id });
 
-		if (proposal.products) {
-			await Promise.all(
-				proposal.products.map((p) =>
-					createManageProduct(response.data.id, { id: p.catalog_item!, productClass: p.product_class! as ProductClass }, p)
-				)
-			);
-		}
-	} catch (error) {
-		console.error(error);
-		return;
+	if (proposal.products) {
+		await Promise.all(
+			proposal.products.map((p) => createManageProduct(response.data.id, { id: p.catalog_item!, productClass: p.product_class! as ProductClass }, p))
+		);
 	}
+
+	return response.data;
 };
 
 export const createManageProduct = async (
@@ -317,7 +317,7 @@ export const createManageProduct = async (
 		},
 		price: isBundle ? null : product.price,
 		cost: isBundle ? null : product.cost,
-		quantity: isBundle ? product.quantity : null,
+		quantity: product.quantity,
 		billableOption: 'Billable',
 		// ...product.overrides,
 		opportunity: {
@@ -353,42 +353,39 @@ export const createManageProduct = async (
 interface ProjectCreate {
 	name: string;
 	board: { id: number };
-	status: { id: number };
-	company: { id: number };
+	// status: { id: number };
+	// company: { id: number };
 	estimatedStart: string;
 	estimatedEnd: string;
 }
 
-export const createProject = async (project: ProjectCreate, proposalId: string): Promise<Project | undefined> => {
+export const createProject = async (project: ProjectCreate, proposalId: string, opportunityId: number): Promise<Project | undefined> => {
 	const supabase = createClient();
 	let config: RequestInit = {
 		method: 'POST',
 		headers: baseHeaders,
 		body: JSON.stringify({
 			...project,
-			billingMethod: 'FixedFee',
+			includeAllNotesFlag: true,
+			includeAllDocumentsFlag: true,
+			includeAllProductsFlag: true,
 		}),
 	};
 
-	console.log(config.body);
+	const response = await fetch(`${process.env.NEXT_PUBLIC_CW_URL}/sales/opportunities/${opportunityId}/convertToProject`, config);
 
-	try {
-		const response = await fetch(`${process.env.NEXT_PUBLIC_CW_URL}`, config);
-		console.log(response);
+	if (response.status !== 201) throw Error('Error creating project', { cause: JSON.stringify(response, null, 2) });
 
-		const data = await response.json();
+	const data = await response.json();
 
-		console.log(data);
+	console.log(data);
 
-		await supabase.from('proposals').update({ project_id: data.id }).eq('id', proposalId);
+	await supabase.from('proposals').update({ project_id: data.id }).eq('id', proposalId);
 
-		return await response.json();
-	} catch (e) {
-		console.error(e);
-	}
+	return data;
 };
 
-export const createProjectPhase = async (projectId: number, phase: Phase): Promise<ProjectPhase | undefined> => {
+export const createProjectPhase = async (projectId: number, phase: NestedPhase): Promise<ProjectPhase | undefined> => {
 	const supabase = createClient();
 	let config: RequestInit = {
 		method: 'POST',
@@ -400,11 +397,24 @@ export const createProjectPhase = async (projectId: number, phase: Phase): Promi
 		} as ProjectPhase),
 	};
 
-	const response = await fetch(`${process.env.NEXT_PUBLIC_CW_URL}`, config);
+	console.log(config.body);
+
+	const response = await fetch(`${process.env.NEXT_PUBLIC_CW_URL}/project/projects/${projectId}/phases`, config);
+
+	if (response.status !== 201) {
+		console.log(response);
+		throw Error('Error creating phase.');
+	}
 
 	const data = await response.json();
 
 	await supabase.from('phases').update({ reference_id: data.id }).eq('id', phase.id);
+
+	if (phase.tickets) {
+		await Promise.all(phase.tickets?.map((ticket) => createProjectTicket(data.id, ticket)));
+	}
+
+	console.log(data.id);
 
 	return data;
 };
@@ -417,7 +427,7 @@ interface ProjectTicketInsert {
 	};
 }
 
-export const createProjectTicket = async (phaseId: number, ticket: Ticket): Promise<ProjectTemplateTicket | undefined> => {
+export const createProjectTicket = async (phaseId: number, ticket: NestedTicket): Promise<ProjectTemplateTicket | undefined> => {
 	const supabase = createClient();
 
 	const { summary, budget_hours: budgetHours } = ticket;
@@ -434,11 +444,22 @@ export const createProjectTicket = async (phaseId: number, ticket: Ticket): Prom
 		} as ProjectTicketInsert),
 	};
 
+	console.log('TICKET', config.body);
+
 	const response = await fetch(`${process.env.NEXT_PUBLIC_CW_URL}/project/tickets`, config);
+
+	if (!response.ok) {
+		// console.log(response);
+		throw Error(response.statusText);
+	}
 
 	const data = await response.json();
 
 	await supabase.from('tickets').update({ reference_id: data.id }).eq('id', ticket.id);
+
+	if (ticket.tasks) {
+		await Promise.all(ticket.tasks?.map((task) => createProjectTask(data.id, task)));
+	}
 
 	return data;
 };

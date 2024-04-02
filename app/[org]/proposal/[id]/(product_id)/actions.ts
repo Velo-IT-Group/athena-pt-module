@@ -13,7 +13,15 @@ import { createClient } from '@/utils/supabase/server';
  */
 export const convertToManageProject = async (proposal: NestedProposal, ticket: ServiceTicket) => {
 	const supabase = createClient();
-	const { products } = proposal;
+	// const { products } = proposal;
+
+	const products = proposal.products?.sort((a, b) => {
+		// First, compare by score in descending order
+		if (Number(a!.created_at) > Number(b!.created_at)) return 1;
+		if (Number(a!.created_at) < Number(b!.created_at)) return -1;
+
+		return -1;
+	});
 
 	// Create opportunity
 	const opportunity = await createOpportunity(proposal, ticket);
@@ -26,40 +34,40 @@ export const convertToManageProject = async (proposal: NestedProposal, ticket: S
 
 	if (!products) throw Error('No products provided...');
 
-	// Create generic products
-	const createdOpportunityProducts = await Promise.all(
-		products.map((product) =>
-			createManageProduct(opportunity.id, { id: product.catalog_item!, productClass: product.product_class! as ProductClass }, product)
-		)
-	);
-
-	if (!createdOpportunityProducts) throw Error('Error creating opportunity products...');
-
 	// Get all products from opportunity
 	const opportunityProducts = await getOpportunityProducts(opportunity.id);
 
 	if (!opportunityProducts) throw Error('No products returned...');
 
+	const flattendProducts = products?.map((product) => product.products).flat();
+
 	// Filter bundled products to update the sub items prices
-	const bundledProducts = opportunityProducts.filter((product) => product && products?.some((p) => p.id === product.catalogItem.id));
+	const bundledProducts = opportunityProducts.filter((product) => product && flattendProducts?.some((p) => p && p.id === product.catalogItem.id));
+
+	console.log('bundledProducts', bundledProducts);
 
 	const bundledChanges = bundledProducts?.map((b) => {
+		const product = flattendProducts.find((product) => product!.id === b.catalogItem.id);
 		return {
-			id: b.id,
+			id: b!.id,
 			values: [
 				{
 					op: 'replace',
 					path: '/price',
-					value: b.price,
+					value: product!.price,
 				},
 				{
 					op: 'replace',
 					path: '/cost',
-					value: b.cost,
+					value: product!.cost,
 				},
 			],
 		} as ManageProductUpdate;
 	});
 
+	console.log('bundledChanges', bundledChanges);
+
 	await Promise.all(bundledChanges.map((product) => updateManageProduct(product)));
+
+	return opportunity;
 };

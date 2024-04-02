@@ -23,6 +23,8 @@ const ProposalPage = async ({ params }: Props) => {
 		getTicket(proposal?.service_ticket ?? 0),
 		// getTicketNotes(proposal?.service_ticket ?? 0)
 	]);
+
+	// @ts-ignore
 	const { totalPrice, laborHours } = calculateTotals(products, proposal.phases, proposal.labor_rate, proposal.management_hours, proposal.sales_hours);
 
 	return (

@@ -9,6 +9,9 @@ import { notFound } from 'next/navigation';
 import ProposalActions from './(product_id)/proposal-actions';
 import { ProposalShare } from './(product_id)/proposal-share';
 import { calculateTotals } from '@/utils/helpers';
+import { headers } from 'next/headers';
+import { createProjectPhase } from '@/lib/functions/create';
+import SubmitButton from '@/components/SubmitButton';
 
 type Props = {
 	params: { org: string; id: string };
@@ -16,8 +19,10 @@ type Props = {
 };
 
 const ProposalIdLayout = async ({ params, children }: Props) => {
+	const origin = headers().get('origin');
 	const { id, org } = params;
 	const [proposal, products, members] = await Promise.all([getProposal(id), getProducts(id), getMembers()]);
+
 	if (!proposal) return notFound();
 
 	const tabs: Tab[] = [
@@ -35,7 +40,7 @@ const ProposalIdLayout = async ({ params, children }: Props) => {
 
 	const { laborTotal, productTotal, recurringTotal, totalPrice } = calculateTotals(
 		products,
-		proposal.phases,
+		proposal.phases ?? [],
 		proposal.labor_rate,
 		proposal.management_hours,
 		proposal.sales_hours
@@ -77,11 +82,13 @@ const ProposalIdLayout = async ({ params, children }: Props) => {
 							</div>
 						</div>
 					</HoverCardContent>
-					<ProposalShare proposalId={proposal.id} />
+					<ProposalShare proposalId={proposal.id} origin={origin ?? ''} />
 					<ProposalActions
 						proposal={proposal}
-						phases={proposal.phases}
-						tickets={proposal.phases.map((p) => p.tickets).flat()}
+						phases={proposal.phases ?? []}
+						// @ts-ignore
+						tickets={proposal.phases?.map((p) => p.tickets)?.flat()}
+						// @ts-ignore
 						tasks={proposal.phases.map((p) => p.tickets.map((t) => t.tasks).flat()).flat()}
 						ticket={serviceTicket}
 					/>

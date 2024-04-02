@@ -472,6 +472,7 @@ export const getProposal = unstable_cache(
 				.select(`*, phases(*, tickets(*, tasks(*))), products(*, products(*)), created_by(*)`)
 				.eq('id', id)
 				.order('order', { referencedTable: 'phases', ascending: true })
+				.returns<NestedProposal[]>()
 				.single();
 
 			type ProposalWithPhases = QueryData<typeof proposalWithPhasesQuery>;
@@ -693,8 +694,8 @@ export const signIn = async (formData: FormData) => {
 
 	if (error) {
 		console.error(error);
-		redirect(`/login?message=${error}`);
-		// throw Error('Error signing in', { cause: error });
+		// redirect(`/login?message=${error}`);
+		throw Error('Error signing in', { cause: error });
 	}
 
 	return redirect('/velo-it-group');
