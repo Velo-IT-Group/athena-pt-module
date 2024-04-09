@@ -21,8 +21,6 @@ const Page = async ({ params }: { params: { org: string } }) => {
 						<Input />
 						<Input />
 						<Input />
-						{/* <DatePicker />
-						<DatePicker /> */}
 					</div>
 
 					<Separator />

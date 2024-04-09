@@ -55,6 +55,20 @@ export const deletePhase = async (id: string) => {
 	revalidateTag('proposals');
 };
 
+export const deleteSection = async (id: string) => {
+	'use server';
+	const supabase = createClient();
+	const { error } = await supabase.from('sections').delete().eq('id', id);
+
+	if (error) {
+		console.error(error);
+		return;
+	}
+
+	revalidateTag('sections');
+	revalidateTag('proposals');
+};
+
 export const deleteTask = async (id: string) => {
 	'use server';
 	const supabase = createClient();

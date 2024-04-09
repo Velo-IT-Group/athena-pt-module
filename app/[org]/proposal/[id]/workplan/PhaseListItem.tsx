@@ -53,6 +53,7 @@ const PhaseListItem = ({ phase, tickets, order, pending, phaseMutation }: Props)
 		budget_hours: 0,
 		created_at: new Date().toISOString(),
 		visible: true,
+		reference_id: null,
 	};
 
 	const action = async (data: FormData) => {

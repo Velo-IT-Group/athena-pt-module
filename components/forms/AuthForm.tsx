@@ -42,7 +42,7 @@ export default function AuthForm({ searchParams }: { searchParams?: { message: s
 				Sign Up
 			</SubmitButton>
 
-			{searchParams?.message && <p className='mt-4 p-4 text-red-500 text-center'>{searchParams.message}</p>}
+			{searchParams?.message && <p className='mt-4 p-4 text-red-600 focus:text-red-600 focus:bg-red-50 text-center'>{searchParams.message}</p>}
 		</form>
 	);
 }

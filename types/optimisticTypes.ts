@@ -16,6 +16,13 @@ export type PhaseState = {
 	pending: boolean;
 };
 
+export type SectionState = {
+	newSection?: Section;
+	updatedSection?: SectionUpdate;
+	deletedSection?: string;
+	pending: boolean;
+};
+
 export type TicketState = {
 	newTicket?: NestedTicket;
 	updatedTicket?: NestedTicket;

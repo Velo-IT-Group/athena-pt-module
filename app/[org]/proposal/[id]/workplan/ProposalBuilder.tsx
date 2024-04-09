@@ -20,9 +20,10 @@ type Props = {
 	id: string;
 	phases: NestedPhase[];
 	templates: ProjectTemplate[];
+	version?: string | null;
 };
 
-const ProposalBuilder = ({ id, phases, templates }: Props) => {
+const ProposalBuilder = ({ id, phases, templates, version }: Props) => {
 	const [isPending, startTransition] = useTransition();
 
 	const [state, mutate] = useOptimistic({ phases, pending: false }, function createReducer(state, newState: PhaseState) {
@@ -57,11 +58,13 @@ const ProposalBuilder = ({ id, phases, templates }: Props) => {
 	const phaseStub: NestedPhase = {
 		description: 'New Phase',
 		hours: 0,
-		order: state.phases.length,
+		order: state.phases?.length ?? 1,
 		id: uuid(),
 		proposal: id,
 		tickets: [],
 		visible: true,
+		version: version || null,
+		reference_id: null,
 	};
 
 	const handleTemplateDrop = (templateIndex: number, destinationIndex: number) => {
@@ -133,7 +136,7 @@ const ProposalBuilder = ({ id, phases, templates }: Props) => {
 
 		startTransition(async () => {
 			mutate({ newPhase, pending: true });
-			console.log(newPhase);
+			// console.log(newPhase);
 			// @ts-ignore
 			delete newPhase['id'];
 			delete newPhase['tickets'];
@@ -176,7 +179,7 @@ const ProposalBuilder = ({ id, phases, templates }: Props) => {
 										ref={provided.innerRef}
 										className={cn('space-y-4 px-2 py-4 flex flex-col rounded-xl h-full min-h-halfScreen', getBackgroundColor(snapshot))}
 									>
-										{sortedPhases.length ? (
+										{sortedPhases?.length ? (
 											sortedPhases.map((phase, index) => (
 												<Draggable key={phase.id} draggableId={phase.id} index={index}>
 													{(provided) => {
@@ -209,7 +212,7 @@ const ProposalBuilder = ({ id, phases, templates }: Props) => {
 												</SubmitButton>
 											</form>
 										)}
-										{sortedPhases.length > 0 && provided.placeholder}
+										{sortedPhases?.length > 0 && provided.placeholder}
 									</div>
 								)}
 							</Droppable>

@@ -13,6 +13,8 @@ export const createNestedPhaseFromTemplate = (workplan: ProjectWorkPlan, proposa
 				order: destinationIndex + index + 1,
 				proposal: proposalId,
 				visible: true,
+				version: null,
+				reference_id: null,
 				tickets: phase.tickets.map((ticket) => {
 					const { budgetHours, wbsCode, summary } = ticket;
 					const ticketId = uuid();
@@ -24,6 +26,7 @@ export const createNestedPhaseFromTemplate = (workplan: ProjectWorkPlan, proposa
 						phase: phaseId,
 						summary,
 						visible: true,
+						reference_id: null,
 						tasks: ticket.tasks?.map((task) => {
 							const { notes, summary, priority } = task;
 							const taskId = uuid();

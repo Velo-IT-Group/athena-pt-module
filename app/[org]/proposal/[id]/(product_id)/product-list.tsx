@@ -2,7 +2,7 @@
 import { DataTableColumnHeader } from '@/components/ui/DataTableColumnHeader';
 import { Button } from '@/components/ui/button';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { Table, TableBody, TableCell, TableHead, TableRow } from '@/components/ui/table';
 import { getCurrencyString } from '@/utils/money';
 import { DotsHorizontalIcon } from '@radix-ui/react-icons';
 import { ColumnDef, ExpandedState, flexRender, getCoreRowModel, getExpandedRowModel, useReactTable } from '@tanstack/react-table';

@@ -1,214 +1,316 @@
-import { getBillingCycles, getCatalogItem, getProduct } from '@/lib/functions/read';
-import { notFound } from 'next/navigation';
-import React from 'react';
-import { Switch } from '@/components/ui/switch';
-import { CubeIcon } from '@radix-ui/react-icons';
-import { Separator } from '@/components/ui/separator';
-import CurrencyInput from '@/components/CurrencyInput';
+import Link from 'next/link';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { updateProduct } from '@/lib/functions/update';
-import BlurInput from './blur-input';
-import { CatalogItem } from '@/types/manage';
-import BillingCycleSelector from './billing-cycle-selector';
-import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
-import SubmitButton from '@/components/SubmitButton';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { Textarea } from '@/components/ui/textarea';
+import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
+import { ChevronLeftIcon, PlusCircledIcon } from '@radix-ui/react-icons';
+import { getCategories, getProduct, getSections } from '@/lib/functions/read';
+import { notFound } from 'next/navigation';
+import ProductDetailsForm from './product-details-form';
 
 type Props = {
 	params: { org: string; id: string; product_id: string };
 };
 
-const ProductPage = async ({ params }: Props) => {
+export default async function Page({ params }: Props) {
 	const product = await getProduct(params.product_id);
+	const categories = await getCategories();
+	const sections = await getSections(params.id);
 
-	const billingCycles = await getBillingCycles();
-
-	let catalogItem = await getCatalogItem(product.id ?? 0);
-
-	const item: CatalogItem = {
-		...catalogItem,
-		...(product.overrides as Record<string, any>),
-		// @ts-ignore
-		...(product.overrides?.recurring as Record<string, any>),
-		// @ts-ignore
-		...(product.overrides?.billingCycle as Record<string, any>),
-	};
-
-	// console.log(item);
-	if (!product) {
-		notFound();
-	}
+	if (!product) return notFound();
 
 	return (
-		<main className='space-y-4'>
-			<header className='flex items-center space-x-4 px-8 pt-4'>
-				<div className='flex items-center justify-center bg-muted rounded-lg h-10 w-10'>
-					<CubeIcon />
+		<main className='grid flex-1 auto-rows-max gap-4 p-6'>
+			<div className='flex items-center gap-4'>
+				<Button variant='outline' size='icon' className='h-7 w-7' asChild>
+					<Link href={`/${params.org}/proposal/${params.id}/products`}>
+						<ChevronLeftIcon className='h-4 w-4' />
+						<span className='sr-only'>Back</span>
+					</Link>
+				</Button>
+
+				<h1 className='flex-1 shrink-0 whitespace-nowrap text-xl font-semibold tracking-tight sm:grow-0'>{product.description}</h1>
+
+				<div className='hidden items-center gap-2 md:ml-auto md:flex'>
+					<Button variant='outline' size='sm'>
+						Discard
+					</Button>
+
+					<Button size='sm'>Save Product</Button>
 				</div>
-				<h1 className='text-lg font-semibold'>{product.description}</h1>
-			</header>
+			</div>
 
-			<Separator />
+			<div className='grid gap-4 md:grid-cols-[1fr_250px] lg:grid-cols-3 lg:gap-8'>
+				<div className='grid auto-rows-max items-start gap-4 lg:col-span-2 lg:gap-8'>
+					<Card x-chunk='dashboard-07-chunk-0'>
+						<CardHeader>
+							<CardTitle>Product Details</CardTitle>
 
-			<section className='grid grid-cols-2 gap-4 px-4'>
-				<Card className='flex flex-col h-full'>
-					<CardHeader>
-						<CardTitle>Content</CardTitle>
-					</CardHeader>
+							<CardDescription>Lipsum dolor sit amet, consectetur adipiscing elit</CardDescription>
+						</CardHeader>
 
-					<CardContent>
-						<div className='grid grid-cols-2 gap-4'>
-							<Label className='space-y-1'>
-								<span>Description</span>
-								<BlurInput
-									placeholder='Product description'
-									defaultValue={product.description ?? item.description}
-									objectId={product.unique_id}
-									objectKey='description'
-									// @ts-ignore
-									overrides={product?.overrides}
-								/>
-							</Label>
+						<ProductDetailsForm product={product} sections={sections} />
 
-							<Label className='space-y-1'>
-								<span>Manufacturer Part Number</span>
-								<BlurInput
-									placeholder='#12345'
-									defaultValue={product.manufacturer_part_number ?? undefined}
-									objectId={product.unique_id}
-									objectKey='manufacturer_part_number'
-								/>
-							</Label>
+						{/* <CardContent>
+							<div className='grid gap-6'>
+								<div className='grid gap-3'>
+									<Label htmlFor='description'>Description</Label>
 
-							<Label className='space-y-1'>
-								<span>Vendor Part Number</span>
-								<BlurInput
-									placeholder='#12345'
-									// @ts-ignore
-									defaultValue={product.vendor_part_number ?? undefined}
-									objectId={product.unique_id}
-									objectKey='vendor_part_number'
-									// @ts-ignore
-									overrides={product.overrides}
-								/>
-							</Label>
-						</div>
-					</CardContent>
+									<Input name='description' type='text' className='w-full' defaultValue={product.description ?? undefined} />
+								</div>
+								<div className='grid gap-3'>
+									<Label htmlFor='notes'>Notes</Label>
 
-					<CardFooter className='bg-muted/50 py-3 mt-auto'>
-						<SubmitButton className='ml-auto'>Save</SubmitButton>
-					</CardFooter>
-				</Card>
+									<Textarea
+										name='notes'
+										placeholder='Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nullam auctor, nisl nec ultricies ultricies, nunc nisl ultricies nunc, nec ultricies nunc nisl nec nunc.'
+										className='min-h-32'
+									/>
+								</div>
 
-				<Card className='flex flex-col h-full'>
-					<CardHeader>
-						<CardTitle>Details</CardTitle>
-					</CardHeader>
+								<div className='grid gap-3'>
+									<Label htmlFor='notes'>Notes</Label>
 
-					<CardContent className='grid grid-cols-3 gap-4'>
-						<Label className='space-y-1'>
-							<span>Quantity</span>
-							<BlurInput
-								placeholder='1'
-								disabled={product.parent !== null}
-								type='number'
-								// @ts-ignore
-								defaultValue={product.parent ? product.parent.quantity : product.quantity}
-								objectId={product.unique_id}
-								objectKey='quantity'
-							/>
-						</Label>
+									<Select defaultValue={product?.section ?? undefined}>
+										<SelectTrigger>
+											<SelectValue placeholder='Select section...' />
+										</SelectTrigger>
 
-						<Label className='space-y-1'>
-							<span>Price</span>
-							<CurrencyInput min='0.00' defaultValue={product.price as number} />
-						</Label>
+										<SelectContent>
+											{sections.map((section) => (
+												<SelectItem key={section.id} value={section.id}>
+													{section.name}
+												</SelectItem>
+											))}
+										</SelectContent>
+									</Select>
+								</div>
+							</div>
+						</CardContent> */}
+					</Card>
 
-						<Label className='space-y-1'>
-							<span>Recurring Amount</span>
+					<Card x-chunk='dashboard-07-chunk-1'>
+						<CardHeader>
+							<CardTitle>Stock</CardTitle>
+							<CardDescription>Lipsum dolor sit amet, consectetur adipiscing elit</CardDescription>
+						</CardHeader>
+						<CardContent>
+							<Table>
+								<TableHeader>
+									<TableRow>
+										<TableHead className='w-[100px]'>SKU</TableHead>
+										<TableHead>Stock</TableHead>
+										<TableHead>Price</TableHead>
+										<TableHead className='w-[100px]'>Size</TableHead>
+									</TableRow>
+								</TableHeader>
+								<TableBody>
+									<TableRow>
+										<TableCell className='font-semibold'>GGPC-001</TableCell>
+										<TableCell>
+											<Label htmlFor='stock-1' className='sr-only'>
+												Stock
+											</Label>
+											<Input id='stock-1' type='number' defaultValue='100' />
+										</TableCell>
+										<TableCell>
+											<Label htmlFor='price-1' className='sr-only'>
+												Price
+											</Label>
+											<Input id='price-1' type='number' defaultValue='99.99' />
+										</TableCell>
+										<TableCell>
+											<ToggleGroup type='single' defaultValue='s' variant='outline'>
+												<ToggleGroupItem value='s'>S</ToggleGroupItem>
+												<ToggleGroupItem value='m'>M</ToggleGroupItem>
+												<ToggleGroupItem value='l'>L</ToggleGroupItem>
+											</ToggleGroup>
+										</TableCell>
+									</TableRow>
+									<TableRow>
+										<TableCell className='font-semibold'>GGPC-002</TableCell>
+										<TableCell>
+											<Label htmlFor='stock-2' className='sr-only'>
+												Stock
+											</Label>
+											<Input id='stock-2' type='number' defaultValue='143' />
+										</TableCell>
+										<TableCell>
+											<Label htmlFor='price-2' className='sr-only'>
+												Price
+											</Label>
+											<Input id='price-2' type='number' defaultValue='99.99' />
+										</TableCell>
+										<TableCell>
+											<ToggleGroup type='single' defaultValue='m' variant='outline'>
+												<ToggleGroupItem value='s'>S</ToggleGroupItem>
+												<ToggleGroupItem value='m'>M</ToggleGroupItem>
+												<ToggleGroupItem value='l'>L</ToggleGroupItem>
+											</ToggleGroup>
+										</TableCell>
+									</TableRow>
+									<TableRow>
+										<TableCell className='font-semibold'>GGPC-003</TableCell>
+										<TableCell>
+											<Label htmlFor='stock-3' className='sr-only'>
+												Stock
+											</Label>
+											<Input id='stock-3' type='number' defaultValue='32' />
+										</TableCell>
+										<TableCell>
+											<Label htmlFor='price-3' className='sr-only'>
+												Stock
+											</Label>
+											<Input id='price-3' type='number' defaultValue='99.99' />
+										</TableCell>
+										<TableCell>
+											<ToggleGroup type='single' defaultValue='s' variant='outline'>
+												<ToggleGroupItem value='s'>S</ToggleGroupItem>
+												<ToggleGroupItem value='m'>M</ToggleGroupItem>
+												<ToggleGroupItem value='l'>L</ToggleGroupItem>
+											</ToggleGroup>
+										</TableCell>
+									</TableRow>
+								</TableBody>
+							</Table>
+						</CardContent>
+						<CardFooter className='justify-center border-t p-4'>
+							<Button size='sm' variant='ghost' className='gap-1'>
+								<PlusCircledIcon className='h-3.5 w-3.5' />
+								Add Variant
+							</Button>
+						</CardFooter>
+					</Card>
 
-							<CurrencyInput min='0.00' defaultValue={item.recurringCost} />
-						</Label>
+					<Card x-chunk='dashboard-07-chunk-2'>
+						<CardHeader>
+							<CardTitle>Product Category</CardTitle>
+						</CardHeader>
+						<CardContent>
+							<div className='grid gap-6 sm:grid-cols-3'>
+								<div className='grid gap-3'>
+									<Label htmlFor='category'>Category</Label>
 
-						<Label className='space-y-1'>
-							<span>Recurring Billing Cycle</span>
+									<Select defaultValue={product.category?.toString()}>
+										<SelectTrigger id='category' aria-label='Select category'>
+											<SelectValue placeholder='Select category' />
+										</SelectTrigger>
 
-							<BillingCycleSelector
-								billingCycles={billingCycles}
-								// @ts-ignore
-								defaultValue={product.overrides?.recurring?.billCycleId?.toString() ?? item.recurringBillCycle?.id.toString()}
-								// @ts-ignore
-								overrides={product.overrides}
-								unique_id={product.unique_id}
-							/>
-						</Label>
+										<SelectContent>
+											{categories.map((category) => (
+												<SelectItem key={category.id.toString()} value={category.id.toString()}>
+													{category.name}
+												</SelectItem>
+											))}
+										</SelectContent>
+									</Select>
+								</div>
+								<div className='grid gap-3'>
+									<Label htmlFor='subcategory'>Subcategory (optional)</Label>
+									<Select>
+										<SelectTrigger id='subcategory' aria-label='Select subcategory'>
+											<SelectValue placeholder='Select subcategory' />
+										</SelectTrigger>
+										<SelectContent>
+											<SelectItem value='t-shirts'>T-Shirts</SelectItem>
+											<SelectItem value='hoodies'>Hoodies</SelectItem>
+											<SelectItem value='sweatshirts'>Sweatshirts</SelectItem>
+										</SelectContent>
+									</Select>
+								</div>
+							</div>
+						</CardContent>
+					</Card>
+				</div>
 
-						<Label className='space-y-1'>
-							<span>Cost</span>
+				<div className='grid auto-rows-max items-start gap-4 lg:gap-8'>
+					<Card x-chunk='dashboard-07-chunk-3'>
+						<CardHeader>
+							<CardTitle>Product Status</CardTitle>
+						</CardHeader>
 
-							<CurrencyInput min='0.00' defaultValue={product.cost as number} />
-						</Label>
+						<CardContent>
+							<div className='grid gap-6'>
+								<div className='grid gap-3'>
+									<Label htmlFor='status'>Status</Label>
 
-						<Label className='space-y-1'>
-							<span>Recurring Cost</span>
+									<Select>
+										<SelectTrigger id='status' aria-label='Select status'>
+											<SelectValue placeholder='Select status' />
+										</SelectTrigger>
 
-							<CurrencyInput min='0.00' defaultValue={product.recurring_cost as number} />
-						</Label>
+										<SelectContent>
+											<SelectItem value='draft'>Draft</SelectItem>
 
-						<div className='grid grid-cols-2 gap-4 h-full'>
-							<Label className='flex flex-col h-full'>
-								<span>Is Taxable?</span>
-								<Switch
-									formAction={async (e) => {
-										'use server';
+											<SelectItem value='published'>Active</SelectItem>
 
-										await updateProduct(product.unique_id, {
-											taxable_flag: e.get('taxable_flag') ? true : false,
-										});
-									}}
-									name='taxable_flag'
-									type='submit'
-									defaultChecked={product.taxable_flag as boolean}
-									className='block my-auto'
-								/>
-							</Label>
+											<SelectItem value='archived'>Archived</SelectItem>
+										</SelectContent>
+									</Select>
+								</div>
+							</div>
+						</CardContent>
+					</Card>
+					<Card className='overflow-hidden' x-chunk='dashboard-07-chunk-4'>
+						<CardHeader>
+							<CardTitle>Vendor Details</CardTitle>
+							<CardDescription>Lipsum dolor sit amet, consectetur adipiscing elit</CardDescription>
+						</CardHeader>
+						<CardContent>
+							<div className='grid gap-2'>
+								{/* <Image alt='Product image' className='aspect-square w-full rounded-md object-cover' height='300' src='/placeholder.svg' width='300' />
+								<div className='grid grid-cols-3 gap-2'>
+									<button>
+										<Image
+											alt='Product image'
+											className='aspect-square w-full rounded-md object-cover'
+											height='84'
+											src='/placeholder.svg'
+											width='84'
+										/>
+									</button>
+									<button>
+										<Image
+											alt='Product image'
+											className='aspect-square w-full rounded-md object-cover'
+											height='84'
+											src='/placeholder.svg'
+											width='84'
+										/>
+									</button>
+									<button className='flex aspect-square w-full items-center justify-center rounded-md border border-dashed'>
+										<UploadIcon className='h-4 w-4 text-muted-foreground' />
+										<span className='sr-only'>Upload</span>
+									</button>
+								</div> */}
+							</div>
+						</CardContent>
+					</Card>
+					<Card x-chunk='dashboard-07-chunk-5'>
+						<CardHeader>
+							<CardTitle>Archive Product</CardTitle>
+							<CardDescription>Lipsum dolor sit amet, consectetur adipiscing elit.</CardDescription>
+						</CardHeader>
+						<CardContent>
+							<div></div>
+							<Button size='sm' variant='secondary'>
+								Archive Product
+							</Button>
+						</CardContent>
+					</Card>
+				</div>
+			</div>
 
-							<Label className='flex flex-col h-full'>
-								<span>Is Recurring?</span>
-								<Switch
-									formAction={async (e) => {
-										'use server';
-
-										await updateProduct(product.unique_id, {
-											recurring_flag: e.get('recurring_flag') ? true : false,
-										});
-									}}
-									name='recurring_flag'
-									type='submit'
-									defaultChecked={product.recurring_flag as boolean}
-									className='block my-auto'
-								/>
-							</Label>
-						</div>
-
-						<Label className='space-y-1'>
-							<span>Recurring Cost</span>
-							<CurrencyInput min='0.01' defaultValue={product.recurring_cost as number} />
-						</Label>
-
-						<Label className='space-y-1'>
-							<span>Recurring Suggested Price</span>
-							{/* @ts-ignore */}
-							<CurrencyInput min='0.01' step={0.01} defaultValue={product.recurring_suggested_price as number} />
-						</Label>
-					</CardContent>
-
-					<CardFooter className='bg-muted/50 py-3 mt-auto'>
-						<SubmitButton className='ml-auto'>Save</SubmitButton>
-					</CardFooter>
-				</Card>
-			</section>
+			<div className='flex items-center justify-center gap-2 md:hidden'>
+				<Button variant='outline' size='sm'>
+					Discard
+				</Button>
+				<Button size='sm'>Save Product</Button>
+			</div>
 		</main>
 	);
-};
-
-export default ProductPage;
+}

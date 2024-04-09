@@ -47,7 +47,7 @@ const ProposalOptions = ({ proposalId, orgId }: { proposalId: string; orgId: str
 					<DropdownMenuSeparator />
 
 					<DialogTrigger asChild>
-						<DropdownMenuItem className='text-red-500'>
+						<DropdownMenuItem className='text-red-600 focus:text-red-600 focus:bg-red-50'>
 							<TrashIcon className='mr-2 h-4 w-4' /> Delete
 						</DropdownMenuItem>
 					</DialogTrigger>

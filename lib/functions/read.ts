@@ -14,7 +14,7 @@ import type {
 } from '@/types/manage';
 import { QueryData } from '@supabase/supabase-js';
 import { createClient } from '@/utils/supabase/server';
-import { baseConfig } from '@/lib/utils';
+import { baseConfig, baseHeaders } from '@/lib/utils';
 import { unstable_cache } from 'next/cache';
 import { redirect } from 'next/navigation';
 
@@ -406,6 +406,27 @@ export const getTicketNotes = async (id: number) => {
 	}
 };
 
+export const getSections = unstable_cache(
+	async (id: string) => {
+		const supabase = createClient();
+
+		const { data: sections, error } = await supabase
+			.from('sections')
+			.select('*, products(*)')
+			.eq('proposal', id)
+			.order('created_at')
+			.returns<Array<Section & { products: Product[] }>>();
+
+		if (!sections || error) {
+			throw Error('Error in getting sections', { cause: error });
+		}
+
+		return sections;
+	},
+	['sections'],
+	{ tags: ['sections'] }
+);
+
 export const getProducts = unstable_cache(
 	async (id: string) => {
 		const supabase = createClient();
@@ -464,26 +485,34 @@ export const getProposal = unstable_cache(
 	async (id: string) => {
 		const supabase = createClient();
 
-		console.log(id);
-
 		try {
 			const proposalWithPhasesQuery = supabase
 				.from('proposals')
-				.select(`*, phases(*, tickets(*, tasks(*))), products(*, products(*)), created_by(*)`)
+				.select('*, sections(*), phases(*, tickets(*, tasks(*))), products(*, products(*)), created_by(*))')
 				.eq('id', id)
+				// .is('phases', null)
 				.order('order', { referencedTable: 'phases', ascending: true })
-				.returns<NestedProposal[]>()
+				.returns<NestedProposal>()
 				.single();
 
 			type ProposalWithPhases = QueryData<typeof proposalWithPhasesQuery>;
 
-			const { data: proposal, error } = await proposalWithPhasesQuery;
+			const { data, error } = await proposalWithPhasesQuery;
 
-			if (!proposal || error) {
+			if (!data || error) {
 				throw Error('Error in getting proposal', { cause: error });
 			}
 
-			return proposal as ProposalWithPhases;
+			const proposal: NestedProposal = {
+				// @ts-ignore
+				...data,
+				// @ts-ignore
+				phases: data.phases?.filter((phase) => phase.version === data.working_version || phase.version === null),
+				// @ts-ignore
+				sections: data.sections?.filter((section) => section.version === data.working_version || section.version === null),
+			};
+
+			return proposal as NestedProposal;
 		} catch (error) {
 			console.error(error);
 		}
@@ -556,46 +585,57 @@ export const getProposals = unstable_cache(
 			throw Error('Error in getting proposals', { cause: error });
 		}
 
-		return proposals as Proposals;
+		return proposals as NestedProposal[];
 	},
 	['proposals'],
 	{ tags: ['proposals'] }
 );
 
-export const getTemplates = unstable_cache(
-	async (): Promise<Array<ProjectTemplate> | undefined> => {
-		let config: AxiosRequestConfig = {
-			...baseConfig,
-			url: '/project/projectTemplates',
-			params: {
-				fields: 'id,name,description',
-				pageSize: 1000,
-				orderBy: 'name',
-			},
-		};
+export const getTemplates = async (): Promise<Array<ProjectTemplate> | undefined> => {
+	try {
+		const projectTemplateResponse = await fetch(
+			`${process.env.NEXT_PUBLIC_CW_URL!}/project/projectTemplates?fields=id,name,description&pageSize=1000&orderBy=name`,
+			{
+				next: {
+					revalidate: 21600,
+					tags: ['templates'],
+				},
+				headers: baseHeaders,
+			}
+		);
 
-		try {
-			const response: AxiosResponse<Array<ProjectTemplate>, Error> = await axios.request(config);
-			const workplans = await Promise.all(
-				response.data.map(({ id }) => axios.request<ProjectWorkPlan>({ ...baseConfig, url: `/project/projectTemplates/${id}/workplan` }))
-			);
-
-			const mappedTemplates = response.data.map((template) => {
-				return {
-					...template,
-					workplan: workplans.find((workplan) => workplan.data.templateId === template.id)?.data,
-				};
-			});
-
-			return mappedTemplates;
-		} catch (error) {
-			console.error(error);
-			return;
+		if (!projectTemplateResponse.ok) {
+			console.error(projectTemplateResponse.statusText);
+			throw Error('Error fetching project templates...', { cause: projectTemplateResponse.statusText });
 		}
-	},
-	['templates'],
-	{ tags: ['templates'] }
-);
+
+		const templates: ProjectTemplate[] = await projectTemplateResponse.json();
+
+		const workplansResponse = await Promise.all(
+			templates.map(({ id }) =>
+				fetch(`${process.env.NEXT_PUBLIC_CW_URL!}/project/projectTemplates/${id}/workplan`, {
+					next: {
+						revalidate: 21600,
+						tags: ['templates'],
+					},
+					headers: baseHeaders,
+				})
+			)
+		);
+
+		const workplans: ProjectWorkPlan[] = await Promise.all(workplansResponse.map((r) => r.json()));
+
+		return templates.map((template) => {
+			return {
+				...template,
+				workplan: workplans.find((workplan) => workplan.templateId === template.id),
+			};
+		});
+	} catch (error) {
+		console.error(error);
+		return;
+	}
+};
 
 export const getTemplate = unstable_cache(
 	async (id: number): Promise<ProjectTemplate | undefined> => {
@@ -755,3 +795,18 @@ export const getSynnexPricing = async () => {
 		});
 	}
 };
+
+export const getVersions = unstable_cache(
+	async (id: string) => {
+		const supabase = createClient();
+		const { data, error } = await supabase.from('versions').select().eq('proposal', id).order('number', { ascending: false });
+
+		if (error || !data) {
+			throw Error("Can't fetch versions...", { cause: error });
+		}
+
+		return data;
+	},
+	['versions'],
+	{ tags: ['versions'] }
+);

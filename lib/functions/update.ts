@@ -20,11 +20,12 @@ export const updateProduct = async (id: string, product: ProductUpdate) => {
 
 	if (error) {
 		console.error(error);
-		return;
+		throw Error('Error updating product...', { cause: error });
 	}
 
 	revalidateTag('proposals');
 	revalidateTag('products');
+	revalidateTag('sections');
 };
 
 /**
@@ -193,4 +194,30 @@ export const updateManageProduct = async (product: ManageProductUpdate): Promise
 	} catch (error) {
 		console.error(error);
 	}
+};
+
+export const updateSection = async (section: SectionUpdate) => {
+	const supabase = createClient();
+	const { error } = await supabase.from('sections').update(section).eq('id', section.id!);
+
+	console.log('SECTION ID', section.id);
+
+	if (error) {
+		throw Error('Error updating section...', { cause: error });
+	}
+
+	revalidateTag('sections');
+};
+
+export const updateVersion = async (version: VersionUpdate) => {
+	const supabase = createClient();
+	const { error } = await supabase.from('versions').update(version).eq('id', version.id!);
+
+	console.log('SECTION ID', version.id);
+
+	if (error) {
+		throw Error('Error updating version...', { cause: error });
+	}
+
+	revalidateTag('versions');
 };

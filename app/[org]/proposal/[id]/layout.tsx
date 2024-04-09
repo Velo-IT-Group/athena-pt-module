@@ -1,6 +1,6 @@
 import React from 'react';
 import Navbar, { Tab } from '@/components/Navbar';
-import { getMembers, getProducts, getProposal, getTicket } from '@/lib/functions/read';
+import { getMembers, getProducts, getProposal, getTicket, getVersions } from '@/lib/functions/read';
 import { getCurrencyString } from '@/utils/money';
 import { HoverCard, HoverCardContent, HoverCardTrigger } from '@/components/ui/hover-card';
 import { Label } from '@/components/ui/label';
@@ -10,8 +10,6 @@ import ProposalActions from './(product_id)/proposal-actions';
 import { ProposalShare } from './(product_id)/proposal-share';
 import { calculateTotals } from '@/utils/helpers';
 import { headers } from 'next/headers';
-import { createProjectPhase } from '@/lib/functions/create';
-import SubmitButton from '@/components/SubmitButton';
 
 type Props = {
 	params: { org: string; id: string };
@@ -21,7 +19,7 @@ type Props = {
 const ProposalIdLayout = async ({ params, children }: Props) => {
 	const origin = headers().get('origin');
 	const { id, org } = params;
-	const [proposal, products, members] = await Promise.all([getProposal(id), getProducts(id), getMembers()]);
+	const [proposal, products, members, versions] = await Promise.all([getProposal(id), getProducts(id), getMembers(), getVersions(params.id)]);
 
 	if (!proposal) return notFound();
 
@@ -45,6 +43,8 @@ const ProposalIdLayout = async ({ params, children }: Props) => {
 		proposal.management_hours,
 		proposal.sales_hours
 	);
+
+	console.log(proposal.phases);
 
 	return (
 		<>
@@ -91,6 +91,7 @@ const ProposalIdLayout = async ({ params, children }: Props) => {
 						// @ts-ignore
 						tasks={proposal.phases.map((p) => p.tickets.map((t) => t.tasks).flat()).flat()}
 						ticket={serviceTicket}
+						versions={versions}
 					/>
 				</HoverCard>
 			</Navbar>

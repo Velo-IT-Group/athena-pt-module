@@ -3,12 +3,13 @@ import { Separator } from '@/components/ui/separator';
 import { Button } from '@/components/ui/button';
 import React from 'react';
 import { Dialog, DialogTrigger } from '@/components/ui/dialog';
-import { getProducts, getProposal, getUser } from '@/lib/functions/read';
+import { getProducts, getProposal, getSections, getUser } from '@/lib/functions/read';
 import { getCurrencyString } from '@/utils/money';
 import Navbar from '@/components/Navbar';
 import { calculateTotals } from '@/utils/helpers';
 import ApprovalForm from './approval-form';
 import { notFound } from 'next/navigation';
+import ProposalBreakdown from './proposal-breakdown';
 
 type Props = {
 	params: { id: string };
@@ -17,7 +18,7 @@ type Props = {
 const ProposalReviewPage = async ({ params }: Props) => {
 	const proposal = await getProposal(params.id);
 	const products = await getProducts(params.id);
-	// const comments = await getComments(params.id);
+	const sections = await getSections(params.id);
 
 	if (!proposal || !products) return notFound();
 
@@ -73,8 +74,8 @@ const ProposalReviewPage = async ({ params }: Props) => {
 										<CardHeader>
 											<CardTitle>Hardware</CardTitle>
 										</CardHeader>
-										<CardContent className='space-y-2.5'>
-											<div className='hidden sm:flex items-center gap-6 justify-between'>
+										<CardContent className='p-6 text-sm'>
+											{/* <div className='hidden sm:flex items-center gap-6 justify-between'>
 												<div className='max-w-96'>
 													<span className='text-sm text-muted-foreground'>Description</span>
 												</div>
@@ -82,8 +83,9 @@ const ProposalReviewPage = async ({ params }: Props) => {
 													<span className='text-sm text-muted-foreground'>Quantity</span>
 													<span className='text-sm text-muted-foreground'>Extended Price</span>
 												</div>
-											</div>
-											{products?.map((hardwareItem) => (
+											</div> */}
+
+											{/* {products?.map((hardwareItem) => (
 												<>
 													<Separator />
 													<div key={hardwareItem.id} className='flex flex-col sm:flex-row sm:items-start gap-6 justify-between'>
@@ -98,10 +100,10 @@ const ProposalReviewPage = async ({ params }: Props) => {
 																</p>
 															</div>
 														</div>
-														{/* <div className='grid gap-2' style={{ gridTemplateColumns: '60px 1fr' }}>
+														<div className='grid gap-2' style={{ gridTemplateColumns: '60px 1fr' }}>
 														<p className='text-sm text-muted-foreground hover:underline line-clamp-1 text-center'>{hardwareItem.quantity}</p>
 														<p className='text-sm text-muted-foreground hover:underline line-clamp-1'>{hardwareItem.description}</p>
-													</div> */}
+													</div>
 														<div className='hidden sm:grid gap-2 sm:grid-cols-[100px_125px]'>
 															<p className='text-sm text-muted-foreground text-right'>{hardwareItem.quantity}</p>
 															<p className='text-sm text-muted-foreground text-right'>
@@ -110,6 +112,28 @@ const ProposalReviewPage = async ({ params }: Props) => {
 														</div>
 													</div>
 												</>
+											))} */}
+
+											{sections?.map((section, index) => (
+												<div className='grid gap-3' key={section.id}>
+													<div className='font-semibold'>{section.name}</div>
+
+													<ul className='grid gap-3'>
+														{section.products.map((product) => (
+															<li key={product.id} className='flex items-center justify-between'>
+																<span className='text-muted-foreground'>
+																	{product.description} x <span>{product.quantity}</span>
+																</span>
+																<span>
+																	{getCurrencyString((product.price || 0) * product.quantity)}
+																	{product.recurring_flag && product.recurring_cycle_type === 'CalendarYear' && '/mo'}
+																</span>
+															</li>
+														))}
+													</ul>
+
+													{sections.length === index - 1 && <Separator className='my-2' />}
+												</div>
 											))}
 										</CardContent>
 										<Separator className='mb-6' />
@@ -129,8 +153,22 @@ const ProposalReviewPage = async ({ params }: Props) => {
 										<CardTitle>Services</CardTitle>
 									</CardHeader>
 
-									<CardContent className='space-y-2'>
-										<div className='flex items-center justify-between'>
+									<CardContent className='space-y-2 text-sm'>
+										<ul className='grid gap-3'>
+											{sections.map((section) => {
+												const totalPrice = section.products.reduce((accumulator, currentValue) => {
+													return (accumulator ?? 0) + (currentValue.price ?? 0);
+												}, 0);
+												return (
+													<li key={section.id} className='flex items-center justify-between'>
+														<span className='text-muted-foreground'>{section.name} Total</span>
+														<span>{getCurrencyString(totalPrice)}</span>
+													</li>
+												);
+											})}
+										</ul>
+
+										{/* <div className='flex items-center justify-between'>
 											<p className='text-sm text-muted-foreground'>Total Labor Hours</p>
 											<p className='text-sm text-muted-foreground text-right font-medium'>{laborHours} hrs</p>
 										</div>
@@ -148,23 +186,35 @@ const ProposalReviewPage = async ({ params }: Props) => {
 										<div className='flex items-center justify-between'>
 											<p className='text-sm text-muted-foreground'>Hours Required</p>
 											<p className='text-sm text-muted-foreground text-right font-medium'>{proposal.hours_required!} hrs</p>
-										</div>
+										</div> */}
 
-										<Separator />
+										<li className='flex items-center justify-between'>
+											<span className='text-muted-foreground'>Labor</span>
+											<span>{getCurrencyString(laborTotal)}</span>
+										</li>
+
+										<li className='flex items-center justify-between font-semibold'>
+											<span className='text-muted-foreground'>Total</span>
+											<span>{getCurrencyString(totalPrice)}</span>
+										</li>
+
+										{/* <Separator />
 
 										<div className='flex items-center justify-between'>
 											<p className='text-sm text-muted-foreground'>Services Subtotal</p>
 											<p className='text-sm text-muted-foreground text-right'>
 												<span className='font-medium'>{getCurrencyString(laborTotal)}</span>
 											</p>
-										</div>
+										</div> */}
 									</CardContent>
 								</Card>
 							</div>
 						</div>
 					</div>
 
-					<Card className='sm:col-span-2'>
+					<ProposalBreakdown className='sm:col-span-2' proposal={proposal} sections={sections ?? []} />
+
+					{/* <Card className='sm:col-span-2'>
 						<CardHeader>
 							<CardTitle>Scope Of Work</CardTitle>
 						</CardHeader>
@@ -172,75 +222,26 @@ const ProposalReviewPage = async ({ params }: Props) => {
 						<CardContent>
 							<div className='space-y-4'>
 								<Separator />
-								{proposal?.phases?.map((phase) => {
-									// const comment = comments.find((c) => c.phase === phase.id);
-									return (
-										<div className='space-y-4' key={phase.id}>
-											<div className='flex items-center gap-2'>
-												<h3 className='font-medium tracking-tight'>
-													{phase.description} - {phase.hours}hrs
-												</h3>
-												{/* <Dialog>
-													<DialogTrigger asChild>
-														<Button
-															size='icon'
-															variant='link'
-															className={(cn('transition-opacity hover:opacity-100'), comment?.text ? 'opacity-100' : 'opacity-0 ')}
-														>
-															<Pencil1Icon className='w-4 h-4' />
-														</Button>
-													</DialogTrigger>
-													<DialogContent>
-														<DialogHeader>
-															<DialogTitle>{phase.description}</DialogTitle>
-														</DialogHeader>
-														<form>
-															<div className='grid w-full items-center gap-4'>
-																<div className='flex flex-col space-y-1.5'>
-																	<Label htmlFor='text'>Comment</Label>
-																	<Textarea
-																		name='text'
-																		placeholder='Add a comment to this section'
-																		defaultValue={comment?.text}
-																		className='min-h-40'
-																	/>
-																</div>
-															</div>
-															<DialogFooter>
-																<SubmitButton
-																	className='mt-4'
-																	formAction={async (data: FormData) => {
-																		'use server';
-																		const text = data.get('text') as string;
-																		console.log(text);
-																		if (comment) {
-																			await updateComment(comment?.id, { text });
-																		} else {
-																			await createComment({ proposal: proposal.id, text, user: user?.id });
-																		}
-																	}}
-																>
-																	{comment ? 'Update' : 'Comment'}
-																</SubmitButton>
-															</DialogFooter>
-														</form>
-													</DialogContent>
-												</Dialog> */}
-											</div>
-
-											<ul className='list-disc list-inside px-4'>
-												{phase.tickets?.map((ticket) => (
-													<li key={ticket.id} className='text-sm'>
-														{ticket.summary}
-													</li>
-												))}
-											</ul>
+								{proposal?.phases?.map((phase) => (
+									<div className='space-y-4' key={phase.id}>
+										<div className='flex items-center gap-2'>
+											<h3 className='font-medium tracking-tight'>
+												{phase.description} - {phase.hours}hrs
+											</h3>
 										</div>
-									);
-								})}
+
+										<ul className='list-disc list-inside px-4'>
+											{phase.tickets?.map((ticket) => (
+												<li key={ticket.id} className='text-sm'>
+													{ticket.summary}
+												</li>
+											))}
+										</ul>
+									</div>
+								))}
 							</div>
 						</CardContent>
-					</Card>
+					</Card> */}
 				</div>
 			</div>
 		</div>

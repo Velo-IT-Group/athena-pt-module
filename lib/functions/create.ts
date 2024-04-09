@@ -359,6 +359,19 @@ interface ProjectCreate {
 	estimatedEnd: string;
 }
 
+export const createSection = async (section: SectionInsert) => {
+	const supabase = createClient();
+	const { error } = await supabase.from('sections').insert(section);
+
+	if (error) {
+		console.error(error);
+		throw Error('Error creating section...', { cause: error.message });
+	}
+
+	revalidateTag('sections');
+	revalidateTag('proposals');
+};
+
 export const createProject = async (project: ProjectCreate, proposalId: string, opportunityId: number): Promise<Project | undefined> => {
 	const supabase = createClient();
 	let config: RequestInit = {
@@ -506,4 +519,16 @@ export const convertOpportunityToProject = async (opportunity: Opportunity, proj
 		},
 		data,
 	};
+};
+
+export const createVersion = async (proposal: string) => {
+	const supabase = createClient();
+
+	const { data, error } = await supabase.from('versions').insert({ proposal }).select('id').single();
+
+	if (error || !data) throw Error("Can't create version...", { cause: error });
+
+	await updateProposal(proposal, { working_version: data.id });
+
+	revalidateTag('versions');
 };

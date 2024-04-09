@@ -2,7 +2,6 @@
 import React from 'react';
 import { DataTableColumnHeader } from '@/components/ui/DataTableColumnHeader';
 import { Button } from '@/components/ui/button';
-import { Checkbox } from '@/components/ui/checkbox';
 import { CatalogItem } from '@/types/manage';
 import { getCurrencyString } from '@/utils/money';
 import { CheckIcon, ChevronDownIcon, ChevronRightIcon, Pencil2Icon, PlusIcon, TrashIcon } from '@radix-ui/react-icons';
@@ -24,7 +23,6 @@ import {
 } from '@/components/ui/alert-dialog';
 import { deleteProduct } from '@/lib/functions/delete';
 import { convertToSnakeCase } from '@/utils/helpers';
-import { ProductState } from '@/types/optimisticTypes';
 import { createProduct } from '@/lib/functions/create';
 import Link from 'next/link';
 import CurrencyInput from '@/components/CurrencyInput';
@@ -35,22 +33,10 @@ declare module '@tanstack/react-table' {
 		updateProduct?: typeof updateProduct;
 		createProduct?: typeof createProduct;
 		productInsert?: (product: ProductInsert, bundledItems?: ProductInsert[]) => Promise<void>;
-		mutate?: (action: ProductState) => void;
 	}
 }
 
 export const columns: ColumnDef<Product>[] = [
-	{
-		id: 'select',
-		header: ({ table }) => (
-			<Checkbox
-				checked={table.getIsAllPageRowsSelected() || (table.getIsSomePageRowsSelected() && 'indeterminate')}
-				onCheckedChange={(value) => table.toggleAllPageRowsSelected(!!value)}
-				aria-label='Select all'
-			/>
-		),
-		cell: ({ row }) => <Checkbox checked={row.getIsSelected()} onCheckedChange={(value) => row.toggleSelected(!!value)} aria-label='Select row' />,
-	},
 	{
 		accessorKey: 'manufacturer_part_number',
 		header: ({ column }) => {
@@ -75,7 +61,7 @@ export const columns: ColumnDef<Product>[] = [
 						</>
 					)}
 
-					<span>{row.getValue('manufacturer_part_number') ?? row.original.identifier}</span>
+					<span className=''>{row.getValue('manufacturer_part_number') ?? row.original.identifier}</span>
 				</div>
 			);
 		},
@@ -83,7 +69,7 @@ export const columns: ColumnDef<Product>[] = [
 	{
 		accessorKey: 'description',
 		header: ({ column }) => {
-			return <DataTableColumnHeader column={column} title='Product Description' />;
+			return <DataTableColumnHeader column={column} title='Product Description' className='w-[500px]' />;
 		},
 		size: 500,
 		cell: ({ row, table }) => {
@@ -91,7 +77,7 @@ export const columns: ColumnDef<Product>[] = [
 				<span>
 					<Input
 						// className='max-w-[500px] truncate font-medium decoration-muted-foreground'
-						className='border border-transparent hover:border-border hover:cursor-default rounded-lg shadow-none px-2 -mx-2 py-2 -my-2 w-full truncate font-medium flex-1'
+						className='w-[500px] border border-transparent hover:border-border hover:cursor-default rounded-lg shadow-none px-2 -mx-2 py-2 -my-2 truncate font-medium flex-1'
 						defaultValue={row.getValue('description')}
 						onBlur={(e) => {
 							if (e.currentTarget.value !== row.getValue('description')) {
@@ -108,8 +94,38 @@ export const columns: ColumnDef<Product>[] = [
 		},
 	},
 	{
+		accessorKey: 'cost',
+		header: ({ column }) => <DataTableColumnHeader column={column} title='Quote Item Cost' className='text-right w-[100px]' />,
+		cell: ({ row, table }) => {
+			const handleUpdate = async (amount: number | null | undefined) => {
+				table.options.meta?.updateProduct && table.options.meta?.updateProduct(row.original.unique_id, { cost: amount });
+			};
+
+			const amount =
+				row.subRows.length > 0
+					? row.subRows.reduce((accumulator, currentValue) => {
+							return (accumulator ?? 0) + (currentValue.original.cost ?? 0);
+					  }, 0)
+					: (row.getValue('cost') as number);
+
+			return (
+				<span className='text-right'>
+					{row.subRows.length > 0 ? (
+						<>{getCurrencyString(amount)}</>
+					) : (
+						<CurrencyInput
+							handleBlurChange={handleUpdate}
+							defaultValue={amount}
+							className='w-[100px] border border-transparent hover:border-border hover:cursor-default rounded-lg shadow-none px-2 -mx-2 py-2 -my-2 truncate font-medium flex-1'
+						/>
+					)}
+				</span>
+			);
+		},
+	},
+	{
 		accessorKey: 'price',
-		header: ({ column }) => <DataTableColumnHeader column={column} title='Quote Item Price' className='text-right' />,
+		header: ({ column }) => <DataTableColumnHeader column={column} title='Quote Item Price' className='text-right w-[100px]' />,
 		cell: ({ row, table }) => {
 			const handleUpdate = async (amount: number | null | undefined) => {
 				table.options.meta?.updateProduct && table.options.meta?.updateProduct(row.original.unique_id, { price: amount });
@@ -130,7 +146,7 @@ export const columns: ColumnDef<Product>[] = [
 						<CurrencyInput
 							handleBlurChange={handleUpdate}
 							defaultValue={amount}
-							className='border border-transparent hover:border-border hover:cursor-default rounded-lg shadow-none px-2 -mx-2 py-2 -my-2 truncate font-medium flex-1'
+							className='w-[100px] border border-transparent hover:border-border hover:cursor-default rounded-lg shadow-none px-2 -mx-2 py-2 -my-2 truncate font-medium flex-1'
 						/>
 					)}
 				</span>
@@ -139,7 +155,7 @@ export const columns: ColumnDef<Product>[] = [
 	},
 	{
 		accessorKey: 'quantity',
-		header: ({ column }) => <DataTableColumnHeader column={column} title='Quantity' />,
+		header: ({ column }) => <DataTableColumnHeader column={column} title='Quantity' className='w-[100px]' />,
 		cell: ({ row, table }) => {
 			return (
 				<span className='text-right justify-self-end'>
@@ -157,7 +173,7 @@ export const columns: ColumnDef<Product>[] = [
 										});
 								}
 							}}
-							className='border border-transparent hover:border-border hover:cursor-default rounded-lg shadow-none px-2 -mx-2 py-2 -my-2 truncate font-medium flex-1'
+							className='w-[100px] border border-transparent hover:border-border hover:cursor-default rounded-lg shadow-none px-2 -mx-2 py-2 -my-2 truncate font-medium flex-1'
 						/>
 					)}
 				</span>
@@ -166,7 +182,7 @@ export const columns: ColumnDef<Product>[] = [
 	},
 	{
 		accessorKey: 'calculated_price',
-		header: ({ column }) => <DataTableColumnHeader column={column} title='Extended Price' />,
+		header: ({ column }) => <DataTableColumnHeader column={column} title='Extended Price' className='w-[100px]' />,
 		cell: ({ row }) => {
 			const calculatedPrice = row.subRows.reduce((accumulator, currentValue) => {
 				return (accumulator ?? 0) + (currentValue.original.price ?? 0);
@@ -175,7 +191,7 @@ export const columns: ColumnDef<Product>[] = [
 			const amount =
 				row.subRows.length > 0 ? calculatedPrice * (row.original.quantity ?? 1) : (row.original.price ?? 0) * (row.original.quantity ?? 1);
 
-			return <span className='text-right font-medium'>{getCurrencyString(amount)}</span>;
+			return <span className='w-[100px] text-right font-medium'>{getCurrencyString(amount)}</span>;
 		},
 	},
 	{
