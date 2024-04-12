@@ -1,5 +1,5 @@
 import { Separator } from '@/components/ui/separator';
-import { getProducts, getProposal, getTicket } from '@/lib/functions/read';
+import { getProducts, getProposal } from '@/lib/functions/read';
 import { relativeDate } from '@/utils/date';
 import { getCurrencyString } from '@/utils/money';
 import { CalendarIcon, FileTextIcon, StopwatchIcon } from '@radix-ui/react-icons';
@@ -7,8 +7,7 @@ import React from 'react';
 import ProductList from './product-list';
 import ExpirationDatePicker from './expiration-date-picker';
 import { calculateTotals } from '@/utils/helpers';
-import { Label } from '@/components/ui/label';
-import BlurredInput from './blurred-input';
+import { getTicket } from '@/utils/manage/read';
 
 type Props = {
 	params: { id: string };
@@ -19,13 +18,15 @@ const ProposalPage = async ({ params }: Props) => {
 
 	if (!proposal) return <div></div>;
 
-	const [ticket] = await Promise.all([
-		getTicket(proposal?.service_ticket ?? 0),
-		// getTicketNotes(proposal?.service_ticket ?? 0)
-	]);
+	const ticket = await getTicket(proposal?.service_ticket ?? 0, ['contactName', 'contactEmailAddress']);
 
-	// @ts-ignore
-	const { totalPrice, laborHours } = calculateTotals(products, proposal.phases, proposal.labor_rate, proposal.management_hours, proposal.sales_hours);
+	const { totalPrice, laborHours } = calculateTotals(
+		products,
+		proposal.working_version.phases,
+		proposal.labor_rate,
+		proposal.management_hours,
+		proposal.sales_hours
+	);
 
 	return (
 		<div className='grid grid-cols-12 flex-1'>
@@ -52,7 +53,7 @@ const ProposalPage = async ({ params }: Props) => {
 						</div>
 					</div>
 
-					<div className='space-y-4'>
+					{/* <div className='space-y-4'>
 						<h2 className='text-xl font-semibold flex items-center justify-between gap-2'>Labor Hours</h2>
 						<div className='grid gap-3'>
 							<div className='grid sm:grid-cols-3 items-center gap-4'>
@@ -65,7 +66,7 @@ const ProposalPage = async ({ params }: Props) => {
 								<BlurredInput defaultValue={proposal.management_hours} proposalKey='management_hours' id={proposal.id} />
 							</div>
 						</div>
-					</div>
+					</div> */}
 				</section>
 
 				<section className='space-y-4'>

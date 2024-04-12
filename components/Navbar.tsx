@@ -6,9 +6,6 @@ import { getOrganization } from '@/lib/functions/read';
 import NavigationTabs from './NavigationTabs';
 import UserNav from './UserNav';
 import { createClient } from '@/utils/supabase/server';
-import { Input } from './ui/input';
-import { updateProposal } from '@/lib/functions/update';
-import BlurInput from '@/app/[org]/proposal/[id]/products/[product_id]/blur-input';
 import NavbarTitleEditor from './navbar-title-editor';
 
 export type Tab = {

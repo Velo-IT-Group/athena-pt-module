@@ -20,8 +20,11 @@ export function ProposalShare({ proposalId, origin }: { proposalId: string; orig
 	return (
 		<Popover>
 			<PopoverTrigger asChild>
-				<Button variant='secondary'>Share</Button>
+				<Button variant='secondary' size='sm'>
+					Share
+				</Button>
 			</PopoverTrigger>
+
 			<PopoverContent align='end' className='w-[520px]'>
 				<div className='flex flex-col text-center sm:text-left'>
 					<h3 className='text-lg font-semibold'>Share proposal</h3>

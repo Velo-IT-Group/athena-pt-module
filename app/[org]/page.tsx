@@ -1,6 +1,6 @@
 import React from 'react';
 import type { Metadata, ResolvingMetadata } from 'next';
-import { getOrganization, getProposals, getTemplates, getTicket, getTickets } from '@/lib/functions/read';
+import { getOrganization, getProposals, getTemplates, getTickets } from '@/lib/functions/read';
 import { Button } from '@/components/ui/button';
 import { FileTextIcon, PlusIcon } from '@radix-ui/react-icons';
 import { notFound } from 'next/navigation';
@@ -8,7 +8,7 @@ import OrganizationLayout from './organization-layout';
 import { cookies } from 'next/headers';
 import SortSelector from './sort-selector';
 import Search from '@/components/Search';
-import { ProposalCard } from './proposal-card';
+import { ProposalCard } from './proposal-card/index';
 import { Dialog, DialogClose, DialogContent, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import NewProposalForm from '@/components/forms/NewProposalForm';
 import { createProposal } from '@/lib/functions/create';
@@ -61,19 +61,24 @@ const OverviewPage = async ({ params, searchParams }: Props) => {
 			<div className='grow flex-1 px-6 py-4 w-full space-y-4 flex flex-col'>
 				<form method='GET' className='flex gap-4 items-center w-full'>
 					<Search baseUrl={`/${params.org}`} placeholder='Search quotes' />
+
 					<SortSelector defaultValue={homeSort?.value} />
+
 					<Dialog>
 						<DialogTrigger asChild>
 							<Button>
 								<PlusIcon className='w-4 h-4 mr-2' /> Add New
 							</Button>
 						</DialogTrigger>
+
 						<DialogContent>
 							<DialogHeader>
 								<DialogTitle>New Proposal</DialogTitle>
 							</DialogHeader>
+
 							<form id='proposal-creation' name='proposal-creation' action={action}>
 								<NewProposalForm templates={templates ?? []} tickets={tickets ?? []} />
+
 								<DialogFooter className='justify-between w-full flex-row mt-6'>
 									<DialogClose asChild>
 										<Button type='button' variant='secondary'>

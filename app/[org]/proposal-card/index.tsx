@@ -3,14 +3,15 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
 import Link from 'next/link';
-import ProposalOptions from './proposal-options';
-import { statuses } from './proposal/[id]/products/data/data';
+import ProposalOptions from '@/app/[org]/proposal-options';
 import { relativeDate } from '@/utils/date';
 import { calculateTotals } from '@/utils/helpers';
 import { getCurrencyString } from '@/utils/money';
+import ProposalCardStatus from './status';
+import { Suspense } from 'react';
+import { Skeleton } from '@/components/ui/skeleton';
 
 export function ProposalCard({ proposal, orgId }: { proposal: NestedProposal; orgId: string }) {
-	const status = statuses.find((status) => status.value === proposal.status);
 	const { totalPrice } = calculateTotals(
 		proposal?.products ?? [],
 		proposal?.phases ?? [],
@@ -39,14 +40,9 @@ export function ProposalCard({ proposal, orgId }: { proposal: NestedProposal; or
 			</CardHeader>
 			<CardContent className='mt-auto'>
 				<div className='flex items-center justify-between space-x-4 text-sm text-muted-foreground'>
-					<div className='flex items-center'>
-						{status && (
-							<>
-								{status.icon && <status.icon className='mr-1 h-3 w-3 text-muted-foreground' />}
-								<span className='whitespace-nowrap'>{status.label}</span>
-							</>
-						)}
-					</div>
+					<Suspense fallback={<Skeleton className='h-5 w-10' />}>
+						<ProposalCardStatus ticketId={proposal.service_ticket} />
+					</Suspense>
 
 					<div className='flex items-center text-muted-foreground text-xs animate-in fade-in truncate capitalize'>
 						Updated {relativeDate(new Date(proposal.updated_at))}

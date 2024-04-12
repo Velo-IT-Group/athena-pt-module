@@ -17,9 +17,9 @@ import { revalidateTag } from 'next/cache';
 import { headers } from 'next/headers';
 import { redirect } from 'next/navigation';
 import { baseConfig, baseHeaders } from '@/lib/utils';
-import { getOpportunityProducts, getTemplate } from './read';
+import { getTemplate } from './read';
 import axios, { AxiosRequestConfig, AxiosResponse } from 'axios';
-import { ManageProductUpdate, updateManageProduct, updateProposal } from './update';
+import { updateProposal } from './update';
 
 /**
  * Creates Phases, Tickets and Tasks In Supabase.
@@ -27,14 +27,14 @@ import { ManageProductUpdate, updateManageProduct, updateProposal } from './upda
  * @param {ProjectTemplate} template - The CW Manage object that will be used to create the phases, tickets and tasks.
  * @param {number} order - The index of the item the first template phase will be added after.
  */
-export const newTemplate = async (proposal: string, template: ProjectTemplate, order: number) => {
+export const newTemplate = async (template: ProjectTemplate, order: number, version: string) => {
 	await Promise.all(
 		template?.workplan?.phases.map((phase: ProjectPhase, index: number) =>
 			createPhase(
 				{
 					order: order + index + 1,
-					proposal,
 					description: phase.description,
+					version,
 				},
 				phase.tickets
 			)
@@ -95,11 +95,13 @@ export const createProposal = async (proposal: ProposalInsert) => {
 		return;
 	}
 
+	const version = await createVersion(data.id);
+
 	if (proposal.templates_used && proposal.templates_used.length) {
 		const templates = await Promise.all(proposal.templates_used.map((template) => getTemplate(template)));
 
 		if (templates && templates.length) {
-			await Promise.all(templates.map((template) => newTemplate(data.id, template!, 0)));
+			await Promise.all(templates.map((template) => newTemplate(template!, 0, version)));
 		}
 	}
 
@@ -531,4 +533,6 @@ export const createVersion = async (proposal: string) => {
 	await updateProposal(proposal, { working_version: data.id });
 
 	revalidateTag('versions');
+
+	return data.id;
 };

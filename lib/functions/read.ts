@@ -433,15 +433,14 @@ export const getProducts = unstable_cache(
 
 		const { data: products, error } = await supabase
 			.from('products')
-			.select('*, products(*)')
-			.eq('proposal', id)
+			.select(`*, products(*)`)
 			.is('parent', null)
 			.order('sequence_number')
 			.order('created_at')
 			.returns<NestedProduct[]>();
 
 		if (!products || error) {
-			throw Error('Error in getting products', { cause: error });
+			throw Error('Error in getting products...', { cause: error });
 		}
 
 		return products;
@@ -457,7 +456,7 @@ export const getProduct = unstable_cache(
 		const { data: product, error } = await supabase.from('products').select('*, parent(*)').eq('unique_id', id).single();
 
 		if (!product || error) {
-			throw Error('Error in getting products', { cause: error });
+			throw Error('Error in getting product...', { cause: error });
 		}
 
 		return product;
@@ -488,11 +487,24 @@ export const getProposal = unstable_cache(
 		try {
 			const proposalWithPhasesQuery = supabase
 				.from('proposals')
-				.select('*, sections(*), phases(*, tickets(*, tasks(*))), products(*, products(*)), created_by(*))')
+				.select(
+					`*,
+						working_version(*,
+							sections(*, products(*)),
+							products(*),
+							phases(*, 
+								tickets(*, 
+									tasks(*)
+								)
+							)
+						),
+						versions:versions!public_version_proposal_fkey(*),
+						created_by(*)
+					)
+				`
+				)
 				.eq('id', id)
-				// .is('phases', null)
-				.order('order', { referencedTable: 'phases', ascending: true })
-				.returns<NestedProposal>()
+				.returns<NestedProposal & { versions: Version[] }>()
 				.single();
 
 			type ProposalWithPhases = QueryData<typeof proposalWithPhasesQuery>;
@@ -503,16 +515,7 @@ export const getProposal = unstable_cache(
 				throw Error('Error in getting proposal', { cause: error });
 			}
 
-			const proposal: NestedProposal = {
-				// @ts-ignore
-				...data,
-				// @ts-ignore
-				phases: data.phases?.filter((phase) => phase.version === data.working_version || phase.version === null),
-				// @ts-ignore
-				sections: data.sections?.filter((section) => section.version === data.working_version || section.version === null),
-			};
-
-			return proposal as NestedProposal;
+			return data as NestedProposal & { versions: Version[] };
 		} catch (error) {
 			console.error(error);
 		}
@@ -569,12 +572,22 @@ export const getProposals = unstable_cache(
 		const proposalsQuery = searchText
 			? supabase
 					.from('proposals')
-					.select('*, phases(*, tickets(*, tasks(*)))')
+					.select('*, phases(*, tickets(*, tasks(*), ticket_hours:budget_hours.sum()))')
 					.order(order ?? 'updated_at', { ascending: false })
 					.like('name', searchText)
 			: supabase
 					.from('proposals')
-					.select('*, phases(*, tickets(*, tasks(*)))')
+					.select(
+						`
+						*,
+						phases(
+							*,
+							tickets(
+								*,
+								tasks(*)
+							)
+						)`
+					)
 					.order(order ?? 'updated_at', { ascending: false });
 
 		type Proposals = QueryData<typeof proposalsQuery>;

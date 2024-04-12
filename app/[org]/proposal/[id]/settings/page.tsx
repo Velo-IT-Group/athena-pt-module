@@ -1,4 +1,3 @@
-import OverridableInput from '@/components/OverridableInput';
 import SubmitButton from '@/components/SubmitButton';
 import TicketSelector from '@/components/TicketSelector';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
@@ -7,7 +6,6 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { deleteProposal } from '@/lib/functions/delete';
 import { getOrganization, getProposal, getTicket, getTickets } from '@/lib/functions/read';
 import { updateProposal } from '@/lib/functions/update';
-import { getCurrencyString, parseAmount } from '@/utils/money';
 import { redirect } from 'next/navigation';
 import React from 'react';
 import { statuses } from '../products/data/data';

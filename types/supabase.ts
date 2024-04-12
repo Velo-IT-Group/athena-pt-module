@@ -196,9 +196,8 @@ export type Database = {
           hours: number
           id: string
           order: number
-          proposal: string | null
           reference_id: number | null
-          version: string | null
+          version: string
           visible: boolean | null
         }
         Insert: {
@@ -206,9 +205,8 @@ export type Database = {
           hours?: number
           id?: string
           order?: number
-          proposal?: string | null
           reference_id?: number | null
-          version?: string | null
+          version: string
           visible?: boolean | null
         }
         Update: {
@@ -216,19 +214,11 @@ export type Database = {
           hours?: number
           id?: string
           order?: number
-          proposal?: string | null
           reference_id?: number | null
-          version?: string | null
+          version?: string
           visible?: boolean | null
         }
         Relationships: [
-          {
-            foreignKeyName: "public_phases_proposal_fkey"
-            columns: ["proposal"]
-            isOneToOne: false
-            referencedRelation: "proposals"
-            referencedColumns: ["id"]
-          },
           {
             foreignKeyName: "public_phases_version_fkey"
             columns: ["version"]
@@ -299,7 +289,6 @@ export type Database = {
           phase_product_flag: boolean | null
           price: number | null
           product_class: string | null
-          proposal: string | null
           quantity: number
           recurring_bill_cycle: number | null
           recurring_cost: number | null
@@ -318,7 +307,7 @@ export type Database = {
           unique_id: string
           unit_of_measure: string | null
           vendor: string | null
-          version: string | null
+          version: string
         }
         Insert: {
           calculated_cost?: number | null
@@ -348,7 +337,6 @@ export type Database = {
           phase_product_flag?: boolean | null
           price?: number | null
           product_class?: string | null
-          proposal?: string | null
           quantity?: number
           recurring_bill_cycle?: number | null
           recurring_cost?: number | null
@@ -367,7 +355,7 @@ export type Database = {
           unique_id?: string
           unit_of_measure?: string | null
           vendor?: string | null
-          version?: string | null
+          version: string
         }
         Update: {
           calculated_cost?: number | null
@@ -397,7 +385,6 @@ export type Database = {
           phase_product_flag?: boolean | null
           price?: number | null
           product_class?: string | null
-          proposal?: string | null
           quantity?: number
           recurring_bill_cycle?: number | null
           recurring_cost?: number | null
@@ -416,7 +403,7 @@ export type Database = {
           unique_id?: string
           unit_of_measure?: string | null
           vendor?: string | null
-          version?: string | null
+          version?: string
         }
         Relationships: [
           {
@@ -425,13 +412,6 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "products"
             referencedColumns: ["unique_id"]
-          },
-          {
-            foreignKeyName: "public_products_2_proposal_fkey"
-            columns: ["proposal"]
-            isOneToOne: false
-            referencedRelation: "proposals"
-            referencedColumns: ["id"]
           },
           {
             foreignKeyName: "public_products_section_fkey"
@@ -642,31 +622,24 @@ export type Database = {
           created_at: string
           id: string
           name: string
-          proposal: string
-          version: string | null
+          order: number
+          version: string
         }
         Insert: {
           created_at?: string
           id?: string
           name: string
-          proposal: string
-          version?: string | null
+          order?: number
+          version: string
         }
         Update: {
           created_at?: string
           id?: string
           name?: string
-          proposal?: string
-          version?: string | null
+          order?: number
+          version?: string
         }
         Relationships: [
-          {
-            foreignKeyName: "public_sections_proposal_fkey"
-            columns: ["proposal"]
-            isOneToOne: false
-            referencedRelation: "proposals"
-            referencedColumns: ["id"]
-          },
           {
             foreignKeyName: "public_sections_version_fkey"
             columns: ["version"]

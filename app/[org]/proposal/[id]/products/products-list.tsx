@@ -108,18 +108,6 @@ const ProductsList = ({ products, proposal, catalogItems, count, page, params }:
 
 	return (
 		<>
-			{/* <div className='w-full space-y-4'>
-				<div className='flex items-center justify-between'>
-					<div className='flex gap-4 items-center'>
-						<h1 className='text-2xl font-medium leading-none'>Products</h1>
-					</div>
-					<CatalogPicker proposal={proposal} catalogItems={catalogItems} count={count} page={page} params={params} />
-				</div>
-			</div>
-			<div className='space-y-4 grow'>
-				<ProductsListToolbar table={table} />
-				<DataTable table={table} />
-			</div> */}
 			<DataTable table={table} />
 		</>
 	);

@@ -2,28 +2,29 @@
 
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogClose, DialogContent, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
-import React, { useCallback, useEffect, useTransition } from 'react';
+import React, { useCallback, useEffect } from 'react';
 import { catalogColumns } from './columns';
 import { CatalogItem } from '@/types/manage';
 import { ExpandedState, getCoreRowModel, getExpandedRowModel, useReactTable } from '@tanstack/react-table';
 import { DataTable } from '@/components/ui/data-table';
 import { createProduct } from '@/lib/functions/create';
 import Search from '@/components/Search';
-import { ProductState } from '@/types/optimisticTypes';
 import { usePagination } from '@/app/hooks/usePagination';
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import { PlusCircledIcon } from '@radix-ui/react-icons';
 
 type Props = {
 	proposal: string;
+	version: string;
 	catalogItems: CatalogItem[];
 	params: { org: string; id: string };
 	page: number;
 	count: number;
 	searchParams?: { [key: string]: string | string[] | undefined };
+	section?: string;
 };
 
-const CatalogPicker = ({ proposal, catalogItems, params, count }: Props) => {
+const CatalogPicker = ({ proposal, version, catalogItems, params, count, section }: Props) => {
 	const [expanded, setExpanded] = React.useState<ExpandedState>({});
 	const [rowSelection, setRowSelection] = React.useState({});
 	const { limit, onPaginationChange, pagination } = usePagination();
@@ -47,7 +48,7 @@ const CatalogPicker = ({ proposal, catalogItems, params, count }: Props) => {
 	}, [createQueryString, pagination, pathname, router, searchParams]);
 
 	const productInsert = async (product: ProductInsert, bundledItems?: ProductInsert[]) => {
-		await createProduct({ ...product, proposal }, bundledItems);
+		await createProduct({ ...product, version, section: section ?? null }, bundledItems);
 	};
 
 	// console.log(catalogItems);

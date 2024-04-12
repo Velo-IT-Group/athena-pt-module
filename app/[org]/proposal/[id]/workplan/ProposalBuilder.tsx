@@ -20,7 +20,7 @@ type Props = {
 	id: string;
 	phases: NestedPhase[];
 	templates: ProjectTemplate[];
-	version?: string | null;
+	version: string;
 };
 
 const ProposalBuilder = ({ id, phases, templates, version }: Props) => {
@@ -60,10 +60,9 @@ const ProposalBuilder = ({ id, phases, templates, version }: Props) => {
 		hours: 0,
 		order: state.phases?.length ?? 1,
 		id: uuid(),
-		proposal: id,
 		tickets: [],
 		visible: true,
-		version: version || null,
+		version,
 		reference_id: null,
 	};
 
@@ -74,7 +73,7 @@ const ProposalBuilder = ({ id, phases, templates, version }: Props) => {
 
 		const { workplan } = template;
 
-		const createdPhases = createNestedPhaseFromTemplate(workplan, id, destinationIndex);
+		const createdPhases = createNestedPhaseFromTemplate(workplan, version, destinationIndex);
 		const slicedPhases = [...state.phases.slice(destinationIndex)];
 		slicedPhases.forEach((phase, index) => (phase.order = createdPhases.length + destinationIndex + index + 1));
 
@@ -86,7 +85,7 @@ const ProposalBuilder = ({ id, phases, templates, version }: Props) => {
 				pending: true,
 			});
 
-			await newTemplate(id, template, destinationIndex ?? 0);
+			await newTemplate(template, destinationIndex ?? 0, version);
 			await Promise.all(slicedPhases.map((phase) => updatePhase(phase.id, { order: phase.order })));
 		});
 	};
@@ -102,6 +101,7 @@ const ProposalBuilder = ({ id, phases, templates, version }: Props) => {
 
 		// handle dropping a template onto proposal
 		if (destination?.droppableId === 'phases' && source.droppableId === 'templates') {
+			console.log(source, destination);
 			handleTemplateDrop(source.index, destination.index);
 			return;
 		}
@@ -136,8 +136,7 @@ const ProposalBuilder = ({ id, phases, templates, version }: Props) => {
 
 		startTransition(async () => {
 			mutate({ newPhase, pending: true });
-			// console.log(newPhase);
-			// @ts-ignore
+			//@ts-ignore
 			delete newPhase['id'];
 			delete newPhase['tickets'];
 			await createPhase(newPhase, []);

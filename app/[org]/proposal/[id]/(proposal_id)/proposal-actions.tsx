@@ -42,12 +42,11 @@ type Props = {
 	proposal: NestedProposal;
 	phases: Phase[];
 	tickets: Ticket[];
-	tasks: Task[];
 	versions: Version[];
 	ticket: ServiceTicket;
 };
 
-const ProposalActions = ({ proposal, phases, tickets, tasks, versions, ticket }: Props) => {
+const ProposalActions = ({ proposal, phases, tickets, versions, ticket }: Props) => {
 	const [open, setIsOpen] = React.useState(false);
 	const [showDeleteDialog, setShowDeleteDialog] = React.useState(false);
 	const [showOpportunityDialog, setShowOpportunityDialog] = React.useState(false);
@@ -59,7 +58,7 @@ const ProposalActions = ({ proposal, phases, tickets, tasks, versions, ticket }:
 		<>
 			<DropdownMenu>
 				<DropdownMenuTrigger asChild>
-					<Button variant='secondary'>
+					<Button variant='secondary' size='sm'>
 						<span className='sr-only'>Actions</span>
 
 						<DotsHorizontalIcon className='h-4 w-4' />
@@ -81,14 +80,14 @@ const ProposalActions = ({ proposal, phases, tickets, tasks, versions, ticket }:
 						<CopyIcon className='w-4 h-4 mr-2' /> Create New Version
 					</DropdownMenuItem>
 
-					{versions && versions.length > 0 && (
+					{versions && versions.length > 1 && (
 						<DropdownMenuSub>
 							<DropdownMenuSubTrigger>
 								<ResetIcon className='w-4 h-4 mr-2' />
 								Revert back
 							</DropdownMenuSubTrigger>
 							<DropdownMenuSubContent className='p-0'>
-								<Command defaultValue={proposal.working_version ?? undefined}>
+								<Command defaultValue={proposal.working_version.id ?? undefined}>
 									<CommandInput placeholder='Filter versions...' autoFocus={true} className='h-9' />
 									<CommandList>
 										<CommandEmpty>No version found.</CommandEmpty>
@@ -97,14 +96,14 @@ const ProposalActions = ({ proposal, phases, tickets, tasks, versions, ticket }:
 												<CommandItem
 													key={version.id}
 													value={version.id}
-													disabled={version.id === proposal.working_version}
+													disabled={version.id === proposal.working_version.id}
 													onSelect={() => {
 														setShowRevertDialog(true);
 														setRevertVersion(version);
 													}}
 												>
 													{`V${version.number}`}
-													{version.id === proposal.working_version && (
+													{version.id === proposal.working_version.id && (
 														<Badge className='ml-2' variant='outline'>
 															Current
 														</Badge>
@@ -251,7 +250,7 @@ const ProposalActions = ({ proposal, phases, tickets, tasks, versions, ticket }:
 							</AccordionContent>
 						</AccordionItem>
 
-						<AccordionItem value='show_tasks'>
+						{/* <AccordionItem value='show_tasks'>
 							<div className='flex items-start space-x-4 pt-3'>
 								<Switch name='show_tasks' id='show_tasks' defaultChecked={true} />
 								<Label className='grid gap-1 font-normal' htmlFor='show_tasks'>
@@ -270,7 +269,7 @@ const ProposalActions = ({ proposal, phases, tickets, tasks, versions, ticket }:
 									</Card>
 								))}
 							</AccordionContent>
-						</AccordionItem>
+						</AccordionItem> */}
 					</Accordion>
 
 					<DialogFooter>

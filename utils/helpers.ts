@@ -1,7 +1,7 @@
 import { CatalogItem, ProjectPhase, ProjectWorkPlan } from '@/types/manage';
 import { v4 as uuid } from 'uuid';
 
-export const createNestedPhaseFromTemplate = (workplan: ProjectWorkPlan, proposalId: string, destinationIndex: number): NestedPhase[] => {
+export const createNestedPhaseFromTemplate = (workplan: ProjectWorkPlan, version: string, destinationIndex: number): NestedPhase[] => {
 	return (
 		workplan?.phases.map((phase: ProjectPhase, index) => {
 			const { description, wbsCode } = phase;
@@ -11,9 +11,8 @@ export const createNestedPhaseFromTemplate = (workplan: ProjectWorkPlan, proposa
 				description: description,
 				hours: 0,
 				order: destinationIndex + index + 1,
-				proposal: proposalId,
 				visible: true,
-				version: null,
+				version,
 				reference_id: null,
 				tickets: phase.tickets.map((ticket) => {
 					const { budgetHours, wbsCode, summary } = ticket;
@@ -135,7 +134,7 @@ export const calculateTotals = (
 	management_hours: number,
 	sales_hours: number
 ): ReturnType => {
-	const ticketHours = phases.map((p) => p.tickets?.map((t) => t.budget_hours).flat()).flat();
+	const ticketHours = phases && phases.length ? phases.map((p) => p.tickets?.map((t) => t.budget_hours).flat()).flat() : [];
 
 	const ticketSum = ticketHours?.reduce((accumulator, currentValue) => {
 		return (accumulator ?? 0) + (currentValue ?? 0);

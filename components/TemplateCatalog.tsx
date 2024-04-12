@@ -19,7 +19,7 @@ const TemplateCatalog = ({ templates }: Props) => {
 				<div className='flex items-center gap-2'>
 					<h2 className='font-semibold text-base'>Project Templates</h2>
 				</div>
-				<div className='grid gap-2 sticky top-2'>
+				{/* <div className='grid gap-2 sticky top-2'>
 					<Label className='sr-only' htmlFor='search'>
 						Search
 					</Label>
@@ -30,7 +30,7 @@ const TemplateCatalog = ({ templates }: Props) => {
 						onChange={(e) => setText(e.target.value)}
 						placeholder='Search templates...'
 					/>
-				</div>
+				</div> */}
 				<TemplatePicker templates={templates?.filter((template) => template.name.toLowerCase().includes(text)) ?? []} />
 			</div>
 		</ScrollArea>

@@ -246,8 +246,8 @@ export const getWorkplan = async (id: number) => {
 	return (await response.json()) as ProjectWorkPlan;
 };
 
-export const getTicket = async (id: number) => {
-	const response = await fetch(`${process.env.NEXT_PUBLIC_CW_URL}/service/tickets/${id}`, { headers: baseHeaders });
+export const getTicket = async (id: number, fields?: Array<keyof ServiceTicket>) => {
+	const response = await fetch(`${process.env.NEXT_PUBLIC_CW_URL}/service/tickets/${id}?fields=${fields?.toString()}`, { headers: baseHeaders });
 
 	if (!response.ok) {
 		throw Error('Error fetching ticket...', { cause: response.statusText });

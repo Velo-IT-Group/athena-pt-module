@@ -6,8 +6,8 @@ import { HoverCard, HoverCardContent, HoverCardTrigger } from '@/components/ui/h
 import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
 import { notFound } from 'next/navigation';
-import ProposalActions from './(product_id)/proposal-actions';
-import { ProposalShare } from './(product_id)/proposal-share';
+import ProposalActions from './(proposal_id)/proposal-actions';
+import { ProposalShare } from './(proposal_id)/proposal-share';
 import { calculateTotals } from '@/utils/helpers';
 import { headers } from 'next/headers';
 
@@ -19,7 +19,7 @@ type Props = {
 const ProposalIdLayout = async ({ params, children }: Props) => {
 	const origin = headers().get('origin');
 	const { id, org } = params;
-	const [proposal, products, members, versions] = await Promise.all([getProposal(id), getProducts(id), getMembers(), getVersions(params.id)]);
+	const proposal = await getProposal(id);
 
 	if (!proposal) return notFound();
 
@@ -36,19 +36,21 @@ const ProposalIdLayout = async ({ params, children }: Props) => {
 		notFound();
 	}
 
+	// console.log(proposal.working_version);
+
 	const { laborTotal, productTotal, recurringTotal, totalPrice } = calculateTotals(
-		products,
-		proposal.phases ?? [],
+		proposal.working_version.products,
+		proposal.working_version.phases,
 		proposal.labor_rate,
 		proposal.management_hours,
 		proposal.sales_hours
 	);
 
-	console.log(proposal.phases);
+	console.log(proposal.versions);
 
 	return (
 		<>
-			<Navbar org={org} title={proposal?.name} titleEditable titleId={id} tabs={tabs}>
+			<Navbar org={org} title={proposal?.name} titleId={id} tabs={tabs}>
 				<HoverCard>
 					<HoverCardTrigger asChild>
 						<Button variant='link' className='text-sm font-medium'>
@@ -57,6 +59,7 @@ const ProposalIdLayout = async ({ params, children }: Props) => {
 							</span>
 						</Button>
 					</HoverCardTrigger>
+
 					<HoverCardContent className='w-80'>
 						<div className='grid gap-4'>
 							<div className='space-y-2'>
@@ -82,22 +85,19 @@ const ProposalIdLayout = async ({ params, children }: Props) => {
 							</div>
 						</div>
 					</HoverCardContent>
+
 					<ProposalShare proposalId={proposal.id} origin={origin ?? ''} />
+
 					<ProposalActions
 						proposal={proposal}
 						phases={proposal.phases ?? []}
-						// @ts-ignore
-						tickets={proposal.phases?.map((p) => p.tickets)?.flat()}
-						// @ts-ignore
-						tasks={proposal.phases.map((p) => p.tickets.map((t) => t.tasks).flat()).flat()}
+						tickets={proposal.working_version?.phases?.map((p) => p.tickets ?? [])?.flat() ?? []}
 						ticket={serviceTicket}
-						versions={versions}
+						versions={proposal.versions}
 					/>
 				</HoverCard>
 			</Navbar>
-			{/* <span className='text-muted-foreground text-xs animate-in fade-in truncate pb-2 capitalize'>
-				Last updated {relativeDate(new Date(proposal.updated_at))}
-			</span> */}
+
 			<div className='min-h-header light:bg-muted/50 flex flex-col'>{children}</div>
 		</>
 	);
