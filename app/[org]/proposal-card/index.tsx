@@ -18,7 +18,7 @@ export function ProposalCard({ proposal, orgId }: { proposal: Proposal; orgId: s
 				</div>
 				<div className='flex items-center space-x-1 rounded-md bg-secondary text-secondary-foreground'>
 					<Button variant='secondary' className='px-3 shadow-none' asChild>
-						<Link href={`/${orgId}/proposal/${proposal.id}`}>
+						<Link href={`/${orgId}/proposal/${proposal.id}/${proposal.working_version}`}>
 							<Pencil1Icon className='mr-2 h-4 w-4' />
 							Edit
 						</Link>
