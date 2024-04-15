@@ -15,12 +15,7 @@ const ProposalWorkplanPage = async ({ params }: Props) => {
 
 	return (
 		<main className='min-h-header bg-background'>
-			<ProposalBuilder
-				phases={proposal?.working_version?.phases ?? []}
-				templates={templates ?? []}
-				id={params.id}
-				version={proposal?.working_version?.id as string}
-			/>
+			<ProposalBuilder phases={proposal?.working_version?.phases ?? []} templates={templates ?? []} id={params.id} version={params.version} />
 		</main>
 	);
 };
