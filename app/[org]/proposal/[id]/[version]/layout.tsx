@@ -50,7 +50,13 @@ const ProposalIdLayout = async ({ params, children }: Props) => {
 
 	return (
 		<>
-			<Navbar org={org} title={proposal?.name} titleId={id} tabs={tabs}>
+			<Navbar
+				org={org}
+				title={proposal?.name}
+				titleId={id}
+				version={proposal.versions.length > 1 && proposal.working_version.number ? proposal.working_version.number : undefined}
+				tabs={tabs}
+			>
 				<HoverCard>
 					<HoverCardTrigger asChild>
 						<Button variant='link' className='text-sm font-medium'>
@@ -94,6 +100,7 @@ const ProposalIdLayout = async ({ params, children }: Props) => {
 						tickets={proposal.working_version?.phases?.map((p) => p.tickets ?? [])?.flat() ?? []}
 						ticket={serviceTicket}
 						versions={proposal.versions}
+						params={params}
 					/>
 				</HoverCard>
 			</Navbar>
