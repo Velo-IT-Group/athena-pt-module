@@ -58,74 +58,55 @@ const OverviewPage = async ({ params, searchParams }: Props) => {
 
 	return (
 		<OrganizationLayout org={params.org}>
-			<div className='grow flex-1 px-6 py-4 w-full space-y-4 flex flex-col'>
-				<form method='GET' className='flex gap-4 items-center w-full'>
-					<Search baseUrl={`/${params.org}`} placeholder='Search quotes' />
+			<Dialog>
+				<div className='grow flex-1 px-6 py-4 w-full space-y-4 flex flex-col'>
+					<form method='GET' className='flex gap-4 items-center w-full'>
+						<Search baseUrl={`/${params.org}`} placeholder='Search quotes' />
 
-					<SortSelector defaultValue={homeSort?.value} />
+						<SortSelector defaultValue={homeSort?.value} />
 
-					<Dialog>
 						<DialogTrigger asChild>
 							<Button>
 								<PlusIcon className='w-4 h-4 mr-2' /> Add New
 							</Button>
 						</DialogTrigger>
+					</form>
 
-						<DialogContent>
-							<DialogHeader>
-								<DialogTitle>New Proposal</DialogTitle>
-							</DialogHeader>
-
-							<form id='proposal-creation' name='proposal-creation' action={action}>
-								<NewProposalForm templates={templates ?? []} tickets={tickets ?? []} />
-
-								<DialogFooter className='justify-between w-full flex-row mt-6'>
-									<DialogClose asChild>
-										<Button type='button' variant='secondary'>
-											Close
-										</Button>
-									</DialogClose>
-									<SubmitButton>Submit</SubmitButton>
-								</DialogFooter>
-							</form>
-						</DialogContent>
-					</Dialog>
-				</form>
-
-				<div className={cn('grid gap-4', !proposals.length && 'grow')} style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(350px, 1fr))' }}>
-					{proposals.length ? (
-						proposals.map((proposal) => <ProposalCard key={proposal.id} proposal={proposal} orgId={params.org} />)
-					) : (
-						<div className='grow flex-1 flex flex-col items-center justify-center space-y-2'>
-							<FileTextIcon className='w-6 h-6' />
-							<h2 className='text-lg font-semibold'> No quotes have been created.</h2>
-							<Dialog>
+					<div className={cn('grid gap-4 grid-cols-1 sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-3', !proposals.length && 'grow')}>
+						{proposals.length ? (
+							proposals.map((proposal) => <ProposalCard key={proposal.id} proposal={proposal} orgId={params.org} />)
+						) : (
+							<div className='grow flex-1 flex flex-col items-center justify-center space-y-2 md:col-span-2 lg:col-span-3'>
+								<FileTextIcon className='w-6 h-6' />
+								<h2 className='text-lg font-semibold'> No quotes have been created.</h2>
 								<DialogTrigger asChild>
 									<Button variant='secondary'>
 										<PlusIcon className='w-4 h-4 mr-2' /> Create one
 									</Button>
 								</DialogTrigger>
-								<DialogContent>
-									<DialogHeader>
-										<DialogTitle>New Proposal</DialogTitle>
-									</DialogHeader>
-									<form id='proposal-creation' name='proposal-creation' action={action}>
-										<NewProposalForm templates={templates ?? []} tickets={tickets ?? []} />
-										<DialogFooter className='justify-between w-full flex-row mt-6'>
-											<DialogClose asChild>
-												<Button type='button' variant='secondary'>
-													Close
-												</Button>
-											</DialogClose>
-											<SubmitButton>Submit</SubmitButton>
-										</DialogFooter>
-									</form>
-								</DialogContent>
-							</Dialog>
-						</div>
-					)}
+							</div>
+						)}
+					</div>
 				</div>
-			</div>
+				<DialogContent>
+					<DialogHeader>
+						<DialogTitle>New Proposal</DialogTitle>
+					</DialogHeader>
+
+					<form id='proposal-creation' name='proposal-creation' action={action}>
+						<NewProposalForm templates={templates ?? []} tickets={tickets ?? []} />
+
+						<DialogFooter className='justify-between w-full flex-row mt-6'>
+							<DialogClose asChild>
+								<Button type='button' variant='secondary'>
+									Close
+								</Button>
+							</DialogClose>
+							<SubmitButton>Submit</SubmitButton>
+						</DialogFooter>
+					</form>
+				</DialogContent>
+			</Dialog>
 		</OrganizationLayout>
 	);
 };
