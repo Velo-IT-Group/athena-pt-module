@@ -15,16 +15,16 @@ import { PlusCircledIcon } from '@radix-ui/react-icons';
 
 type Props = {
 	proposal: string;
-	version: string;
 	catalogItems: CatalogItem[];
-	params: { org: string; id: string };
+	params: { org: string; id: string; version: string };
 	page: number;
 	count: number;
 	searchParams?: { [key: string]: string | string[] | undefined };
 	section?: string;
 };
 
-const CatalogPicker = ({ proposal, version, catalogItems, params, count, section }: Props) => {
+const CatalogPicker = ({ proposal, catalogItems, params, count, section }: Props) => {
+	const { version } = params;
 	const [expanded, setExpanded] = React.useState<ExpandedState>({});
 	const [rowSelection, setRowSelection] = React.useState({});
 	const { limit, onPaginationChange, pagination } = usePagination();
