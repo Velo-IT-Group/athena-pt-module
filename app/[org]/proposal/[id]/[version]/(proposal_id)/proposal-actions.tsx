@@ -45,9 +45,10 @@ type Props = {
 	tickets: Ticket[];
 	versions: Version[];
 	ticket: ServiceTicket;
+	params: { org: string; id: string; version: string };
 };
 
-const ProposalActions = ({ proposal, phases, tickets, versions, ticket }: Props) => {
+const ProposalActions = ({ proposal, phases, tickets, versions, ticket, params }: Props) => {
 	const router = useRouter();
 	const [open, setIsOpen] = React.useState(false);
 	const [showDeleteDialog, setShowDeleteDialog] = React.useState(false);
@@ -134,7 +135,7 @@ const ProposalActions = ({ proposal, phases, tickets, versions, ticket }: Props)
 						className='grid gap-4'
 						action={async () => {
 							const createdVersion = await createVersion(proposal.id);
-							router.push(`/velo-it-group/proposal/07e9534d-b93e-41eb-9e77-928511474773/${createdVersion}/workplan`);
+							router.replace(`/${params.org}/proposals/${params.id}/${createdVersion}`);
 							setShowNewVersionDialog(false);
 						}}
 					>
@@ -159,6 +160,7 @@ const ProposalActions = ({ proposal, phases, tickets, versions, ticket }: Props)
 						className='grid gap-4'
 						action={async () => {
 							await updateProposal(proposal.id, { working_version: revertVersion?.id });
+							router.replace(`/${params.org}/proposals/${params.id}/${revertVersion?.id}`);
 							setShowRevertDialog(false);
 						}}
 					>
