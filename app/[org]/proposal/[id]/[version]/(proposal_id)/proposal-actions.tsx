@@ -37,6 +37,7 @@ import ConversionModal from './conversion-modal';
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from '@/components/ui/command';
 import { createVersion } from '@/lib/functions/create';
 import { Badge } from '@/components/ui/badge';
+import { useRouter } from 'next/navigation';
 
 type Props = {
 	proposal: NestedProposal;
@@ -47,6 +48,7 @@ type Props = {
 };
 
 const ProposalActions = ({ proposal, phases, tickets, versions, ticket }: Props) => {
+	const router = useRouter();
 	const [open, setIsOpen] = React.useState(false);
 	const [showDeleteDialog, setShowDeleteDialog] = React.useState(false);
 	const [showOpportunityDialog, setShowOpportunityDialog] = React.useState(false);
@@ -131,7 +133,8 @@ const ProposalActions = ({ proposal, phases, tickets, versions, ticket }: Props)
 					<form
 						className='grid gap-4'
 						action={async () => {
-							await createVersion(proposal.id);
+							const createdVersion = await createVersion(proposal.id);
+							router.push(`/velo-it-group/proposal/07e9534d-b93e-41eb-9e77-928511474773/${createdVersion}/workplan`);
 							setShowNewVersionDialog(false);
 						}}
 					>
