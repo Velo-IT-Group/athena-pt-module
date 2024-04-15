@@ -497,7 +497,7 @@ export const getProposal = unstable_cache(
 								)
 							)
 						),
-						versions:versions!public_version_proposal_fkey(*),
+						versions:versions!public_versions_proposal_fkey(*),
 						created_by(*)
 					)
 				`
