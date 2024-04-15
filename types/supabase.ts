@@ -9,100 +9,6 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
-      activity_log: {
-        Row: {
-          event_timestamp: string
-          event_type: string | null
-          id: number
-          row_data: Json | null
-          table_name: string | null
-          user: string | null
-        }
-        Insert: {
-          event_timestamp?: string
-          event_type?: string | null
-          id?: number
-          row_data?: Json | null
-          table_name?: string | null
-          user?: string | null
-        }
-        Update: {
-          event_timestamp?: string
-          event_type?: string | null
-          id?: number
-          row_data?: Json | null
-          table_name?: string | null
-          user?: string | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "public_activity_log_user_fkey"
-            columns: ["user"]
-            isOneToOne: false
-            referencedRelation: "profiles"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      comments: {
-        Row: {
-          id: string
-          phase: string | null
-          proposal: string
-          sent_at: string
-          text: string
-          ticket: string | null
-          user: string | null
-        }
-        Insert: {
-          id?: string
-          phase?: string | null
-          proposal: string
-          sent_at?: string
-          text: string
-          ticket?: string | null
-          user?: string | null
-        }
-        Update: {
-          id?: string
-          phase?: string | null
-          proposal?: string
-          sent_at?: string
-          text?: string
-          ticket?: string | null
-          user?: string | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "public_comments_phase_fkey"
-            columns: ["phase"]
-            isOneToOne: false
-            referencedRelation: "phases"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "public_comments_proposal_fkey"
-            columns: ["proposal"]
-            isOneToOne: false
-            referencedRelation: "proposals"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "public_comments_ticket_fkey"
-            columns: ["ticket"]
-            isOneToOne: false
-            referencedRelation: "tickets"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "public_comments_user_fkey"
-            columns: ["user"]
-            isOneToOne: false
-            referencedRelation: "profiles"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
       integrations: {
         Row: {
           auth_type: Database["public"]["Enums"]["auth_type"] | null
@@ -228,65 +134,20 @@ export type Database = {
           },
         ]
       }
-      pricing: {
-        Row: {
-          amount: number
-          description: string | null
-          id: number
-          is_default: boolean
-          organization: string | null
-        }
-        Insert: {
-          amount: number
-          description?: string | null
-          id?: number
-          is_default?: boolean
-          organization?: string | null
-        }
-        Update: {
-          amount?: number
-          description?: string | null
-          id?: number
-          is_default?: boolean
-          organization?: string | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "public_pricing_organization_fkey"
-            columns: ["organization"]
-            isOneToOne: false
-            referencedRelation: "organizations"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
       products: {
         Row: {
+          additional_overrides: Json | null
           calculated_cost: number | null
-          calculated_cost_flag: boolean | null
           calculated_price: number | null
-          calculated_price_flag: boolean | null
           catalog_item: number | null
           category: string | null
           cost: number | null
-          created_at: string | null
-          customer_description: string | null
           description: string | null
-          drop_ship_flag: boolean | null
-          hide_description_flag: boolean | null
-          hide_extended_price_flag: boolean | null
-          hide_item_identifier_flag: boolean | null
-          hide_price_flag: boolean | null
-          hide_quantity_flag: boolean | null
           id: number | null
           identifier: string | null
-          inactive_flag: boolean | null
-          manufacturer: string | null
           manufacturer_part_number: string | null
-          overrides: Json | null
           parent: string | null
           parent_catalog_item: number | null
-          phase_product_flag: boolean | null
           price: number | null
           product_class: string | null
           quantity: number
@@ -294,14 +155,8 @@ export type Database = {
           recurring_cost: number | null
           recurring_cycle_type: string | null
           recurring_flag: boolean | null
-          recurring_one_time_flag: boolean | null
-          recurring_revenue: number | null
           section: string | null
           sequence_number: number | null
-          serialized_cost_flag: boolean | null
-          serialized_flag: boolean | null
-          special_order_flag: boolean | null
-          subcategory: string | null
           taxable_flag: boolean | null
           type: string | null
           unique_id: string
@@ -310,31 +165,18 @@ export type Database = {
           version: string
         }
         Insert: {
+          additional_overrides?: Json | null
           calculated_cost?: number | null
-          calculated_cost_flag?: boolean | null
           calculated_price?: number | null
-          calculated_price_flag?: boolean | null
           catalog_item?: number | null
           category?: string | null
           cost?: number | null
-          created_at?: string | null
-          customer_description?: string | null
           description?: string | null
-          drop_ship_flag?: boolean | null
-          hide_description_flag?: boolean | null
-          hide_extended_price_flag?: boolean | null
-          hide_item_identifier_flag?: boolean | null
-          hide_price_flag?: boolean | null
-          hide_quantity_flag?: boolean | null
           id?: number | null
           identifier?: string | null
-          inactive_flag?: boolean | null
-          manufacturer?: string | null
           manufacturer_part_number?: string | null
-          overrides?: Json | null
           parent?: string | null
           parent_catalog_item?: number | null
-          phase_product_flag?: boolean | null
           price?: number | null
           product_class?: string | null
           quantity?: number
@@ -342,14 +184,8 @@ export type Database = {
           recurring_cost?: number | null
           recurring_cycle_type?: string | null
           recurring_flag?: boolean | null
-          recurring_one_time_flag?: boolean | null
-          recurring_revenue?: number | null
           section?: string | null
           sequence_number?: number | null
-          serialized_cost_flag?: boolean | null
-          serialized_flag?: boolean | null
-          special_order_flag?: boolean | null
-          subcategory?: string | null
           taxable_flag?: boolean | null
           type?: string | null
           unique_id?: string
@@ -358,31 +194,18 @@ export type Database = {
           version: string
         }
         Update: {
+          additional_overrides?: Json | null
           calculated_cost?: number | null
-          calculated_cost_flag?: boolean | null
           calculated_price?: number | null
-          calculated_price_flag?: boolean | null
           catalog_item?: number | null
           category?: string | null
           cost?: number | null
-          created_at?: string | null
-          customer_description?: string | null
           description?: string | null
-          drop_ship_flag?: boolean | null
-          hide_description_flag?: boolean | null
-          hide_extended_price_flag?: boolean | null
-          hide_item_identifier_flag?: boolean | null
-          hide_price_flag?: boolean | null
-          hide_quantity_flag?: boolean | null
           id?: number | null
           identifier?: string | null
-          inactive_flag?: boolean | null
-          manufacturer?: string | null
           manufacturer_part_number?: string | null
-          overrides?: Json | null
           parent?: string | null
           parent_catalog_item?: number | null
-          phase_product_flag?: boolean | null
           price?: number | null
           product_class?: string | null
           quantity?: number
@@ -390,14 +213,8 @@ export type Database = {
           recurring_cost?: number | null
           recurring_cycle_type?: string | null
           recurring_flag?: boolean | null
-          recurring_one_time_flag?: boolean | null
-          recurring_revenue?: number | null
           section?: string | null
           sequence_number?: number | null
-          serialized_cost_flag?: boolean | null
-          serialized_flag?: boolean | null
-          special_order_flag?: boolean | null
-          subcategory?: string | null
           taxable_flag?: boolean | null
           type?: string | null
           unique_id?: string
@@ -477,112 +294,61 @@ export type Database = {
           },
         ]
       }
-      proposal_sharing: {
-        Row: {
-          proposal: string
-          user: string
-        }
-        Insert: {
-          proposal: string
-          user: string
-        }
-        Update: {
-          proposal?: string
-          user?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "public_proposal_sharing_proposal_fkey"
-            columns: ["proposal"]
-            isOneToOne: false
-            referencedRelation: "proposals"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "public_proposal_sharing_user_fkey"
-            columns: ["user"]
-            isOneToOne: false
-            referencedRelation: "profiles"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
       proposals: {
         Row: {
           catalog_items: number[] | null
-          company_name: string | null
           created_at: string
           created_by: string | null
           current_version: string | null
           expiration_date: string | null
-          hours_required: number | null
           id: string
           labor_hours: number
           labor_rate: number
-          management_hours: number
           name: string
           opportunity_id: number | null
           organization: string | null
           project_id: number | null
-          sales_hours: number
           service_ticket: number | null
           status: Database["public"]["Enums"]["status"]
           templates_used: number[] | null
-          total_labor_price: number
-          total_price: number | null
-          total_product_price: number
           updated_at: string
           working_version: string | null
         }
         Insert: {
           catalog_items?: number[] | null
-          company_name?: string | null
           created_at?: string
           created_by?: string | null
           current_version?: string | null
           expiration_date?: string | null
-          hours_required?: number | null
           id?: string
           labor_hours?: number
           labor_rate?: number
-          management_hours?: number
           name: string
           opportunity_id?: number | null
           organization?: string | null
           project_id?: number | null
-          sales_hours?: number
           service_ticket?: number | null
           status?: Database["public"]["Enums"]["status"]
           templates_used?: number[] | null
-          total_labor_price?: number
-          total_price?: number | null
-          total_product_price?: number
           updated_at?: string
           working_version?: string | null
         }
         Update: {
           catalog_items?: number[] | null
-          company_name?: string | null
           created_at?: string
           created_by?: string | null
           current_version?: string | null
           expiration_date?: string | null
-          hours_required?: number | null
           id?: string
           labor_hours?: number
           labor_rate?: number
-          management_hours?: number
           name?: string
           opportunity_id?: number | null
           organization?: string | null
           project_id?: number | null
-          sales_hours?: number
           service_ticket?: number | null
           status?: Database["public"]["Enums"]["status"]
           templates_used?: number[] | null
-          total_labor_price?: number
-          total_price?: number | null
-          total_product_price?: number
           updated_at?: string
           working_version?: string | null
         }
@@ -763,97 +529,9 @@ export type Database = {
           },
         ]
       }
-      workplan_pricing: {
-        Row: {
-          phase: string | null
-          price: number
-          proposal: string
-          ticket: string | null
-        }
-        Insert: {
-          phase?: string | null
-          price: number
-          proposal: string
-          ticket?: string | null
-        }
-        Update: {
-          phase?: string | null
-          price?: number
-          proposal?: string
-          ticket?: string | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "public_workplan_pricing_phase_fkey"
-            columns: ["phase"]
-            isOneToOne: false
-            referencedRelation: "phases"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "public_workplan_pricing_price_fkey"
-            columns: ["price"]
-            isOneToOne: false
-            referencedRelation: "pricing"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "public_workplan_pricing_proposal_fkey"
-            columns: ["proposal"]
-            isOneToOne: false
-            referencedRelation: "proposals"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "public_workplan_pricing_ticket_fkey"
-            columns: ["ticket"]
-            isOneToOne: false
-            referencedRelation: "tickets"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
     }
     Views: {
-      decrypted_organization_integrations: {
-        Row: {
-          client_id: string | null
-          decrypted_secret_key: string | null
-          integration: string | null
-          organization: string | null
-          secret_key: string | null
-        }
-        Insert: {
-          client_id?: string | null
-          decrypted_secret_key?: never
-          integration?: string | null
-          organization?: string | null
-          secret_key?: string | null
-        }
-        Update: {
-          client_id?: string | null
-          decrypted_secret_key?: never
-          integration?: string | null
-          organization?: string | null
-          secret_key?: string | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "public_organization_integrations_integration_fkey"
-            columns: ["integration"]
-            isOneToOne: false
-            referencedRelation: "integrations"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "public_organization_integrations_organization_fkey"
-            columns: ["organization"]
-            isOneToOne: false
-            referencedRelation: "organizations"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
+      [_ in never]: never
     }
     Functions: {
       duplicate_phases: {
