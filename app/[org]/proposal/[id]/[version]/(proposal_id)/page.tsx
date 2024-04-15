@@ -10,11 +10,11 @@ import { calculateTotals } from '@/utils/helpers';
 import { getTicket } from '@/utils/manage/read';
 
 type Props = {
-	params: { id: string };
+	params: { id: string; version: string };
 };
 
 const ProposalPage = async ({ params }: Props) => {
-	const [proposal, products] = await Promise.all([getProposal(params.id), getProducts(params.id)]);
+	const [proposal, products] = await Promise.all([getProposal(params.id, params.version), getProducts(params.id)]);
 
 	if (!proposal) return <div></div>;
 

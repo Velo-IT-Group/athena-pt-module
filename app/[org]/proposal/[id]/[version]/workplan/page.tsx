@@ -4,11 +4,11 @@ import ProposalBuilder from './ProposalBuilder';
 import React from 'react';
 
 type Props = {
-	params: { id: string };
+	params: { id: string; version: string };
 };
 
 const ProposalWorkplanPage = async ({ params }: Props) => {
-	const proposal = await getProposal(params.id);
+	const proposal = await getProposal(params.id, params.version);
 	const templates = await getTemplates();
 
 	if (!proposal) return <div></div>;

@@ -480,7 +480,7 @@ export const getMembers = unstable_cache(
 );
 
 export const getProposal = unstable_cache(
-	async (id: string) => {
+	async (id: string, version: string) => {
 		const supabase = createClient();
 
 		try {
@@ -503,6 +503,7 @@ export const getProposal = unstable_cache(
 				`
 				)
 				.eq('id', id)
+				.eq('working_version', version)
 				.returns<NestedProposal & { versions: Version[] }>()
 				.single();
 

@@ -11,8 +11,8 @@ import React from 'react';
 import { statuses } from '../products/data/data';
 import { Label } from '@/components/ui/label';
 
-const ProposalSettingsPage = async ({ params }: { params: { id: string } }) => {
-	const proposal = await getProposal(params.id);
+const ProposalSettingsPage = async ({ params }: { params: { id: string; version: string } }) => {
+	const proposal = await getProposal(params.id, params.version);
 	const organization = await getOrganization();
 	const tickets = await getTickets();
 

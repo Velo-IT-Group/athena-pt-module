@@ -8,7 +8,7 @@ import CatalogPicker from './catalog-picker';
 import { cookies } from 'next/headers';
 
 type Props = {
-	params: { org: string; id: string };
+	params: { org: string; id: string; version: string };
 	searchParams: { [key: string]: string | string[] | undefined };
 };
 
@@ -18,7 +18,7 @@ const ProposalProductPage = async ({ params, searchParams }: Props) => {
 	const identifier = typeof searchParams.identifier === 'string' ? String(searchParams.identifier) : undefined;
 	const page = typeof searchParams.page === 'string' ? Number(searchParams.page) : 1;
 	const { catalogItems, count } = await getCatalogItems(search, identifier, page);
-	const proposal = await getProposal(params.id);
+	const proposal = await getProposal(params.id, params.version);
 
 	if (!proposal) {
 		return <div></div>;

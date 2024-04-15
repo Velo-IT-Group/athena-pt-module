@@ -19,7 +19,7 @@ type Props = {
 const ProposalIdLayout = async ({ params, children }: Props) => {
 	const origin = headers().get('origin');
 	const { id, org, version } = params;
-	const proposal = await getProposal(id);
+	const proposal = await getProposal(id, version);
 
 	if (!proposal) return notFound();
 

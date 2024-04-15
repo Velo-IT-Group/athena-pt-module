@@ -11,11 +11,11 @@ import ApprovalForm from './approval-form';
 import { notFound } from 'next/navigation';
 
 type Props = {
-	params: { id: string };
+	params: { id: string; version: string };
 };
 
 const ProposalReviewPage = async ({ params }: Props) => {
-	const proposal = await getProposal(params.id);
+	const proposal = await getProposal(params.id, params.version);
 	const products = await getProducts(params.id);
 	const sections = await getSections(params.id);
 	// const comments = await getComments(params.id);
