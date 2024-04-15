@@ -572,22 +572,12 @@ export const getProposals = unstable_cache(
 		const proposalsQuery = searchText
 			? supabase
 					.from('proposals')
-					.select('*, phases(*, tickets(*, tasks(*), ticket_hours:budget_hours.sum()))')
+					.select('*')
 					.order(order ?? 'updated_at', { ascending: false })
-					.like('name', searchText)
+					.ilike('name', searchText)
 			: supabase
 					.from('proposals')
-					.select(
-						`
-						*,
-						phases(
-							*,
-							tickets(
-								*,
-								tasks(*)
-							)
-						)`
-					)
+					.select('*')
 					.order(order ?? 'updated_at', { ascending: false });
 
 		type Proposals = QueryData<typeof proposalsQuery>;
@@ -598,7 +588,7 @@ export const getProposals = unstable_cache(
 			throw Error('Error in getting proposals', { cause: error });
 		}
 
-		return proposals as NestedProposal[];
+		return proposals as Proposals;
 	},
 	['proposals'],
 	{ tags: ['proposals'] }
