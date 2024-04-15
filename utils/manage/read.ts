@@ -2,11 +2,35 @@
 import { baseHeaders } from '@/lib/utils';
 import { CatalogComponent, CatalogItem, Company, Opportunity, ProjectTemplate, ProjectWorkPlan, ServiceTicket, TicketNote } from '@/types/manage';
 
-const catalogItemFields =
-	'calculatedCostFlag,calculatedPriceFlag,calculatedPrice,manufacturerPartNumber,calculatedCost,category/name,cost,customerDescription,parentCatalogItem,description,dropShipFlag,id,identifier,inactiveFlag,manufacturer/name,phaseProductFlag,price,productClass,proposal,recurringBillCycle/id,recurringCost,recurringCycleType,recurringFlag,recurringOneTimeFlag,recurringRevenue,serializedCostFlag,serializedFlag,specialOrderFlag,subcategory/name,taxableFlag,type,uniqueId,unitOfMeasure/id,vendor/name';
+const catalogItemFields: Array<keyof CatalogItem> = [
+	'id',
+	'identifier',
+	'description',
+	'type',
+	'productClass',
+	'unitOfMeasure',
+	'price',
+	'cost',
+	'taxableFlag',
+	'vendor',
+	'recurringFlag',
+	'recurringBillCycle',
+	'recurringCycleType',
+	'category',
+	'manufacturerPartNumber',
+	'calculatedPrice',
+	'calculatedCost',
+];
 
-const catalogComponentFields =
-	'catalogItem,cost,hideDescriptionFlag,hideExtendedPriceFlag,hideItemIdentifierFlag,hidePriceFlag,hideQuantityFlag,id,parentCatalogItem,price,quantity,sequenceNumber';
+const catalogComponentFields: Array<keyof CatalogComponent> = [
+	'catalogItem',
+	'cost',
+	'id',
+	'parentCatalogItem',
+	'price',
+	'quantity',
+	'sequenceNumber',
+];
 
 export const getTemplates = async () => {
 	try {
@@ -158,7 +182,7 @@ export const getTicketNotes = async (id: number) => {
 };
 
 export const getCatalogItemComponents = async (id: number) => {
-	const response = await fetch(`${process.env.NEXT_PUBLIC_CW_URL}/procurement/catalog/${id}/components?fields=${catalogComponentFields}`, {
+	const response = await fetch(`${process.env.NEXT_PUBLIC_CW_URL}/procurement/catalog/${id}/components?fields=${catalogComponentFields.toString()}`, {
 		headers: baseHeaders,
 	});
 
@@ -170,10 +194,10 @@ export const getCatalogItemComponents = async (id: number) => {
 
 	if (!components.length) return;
 
+	const componentString = components.map((c) => c.catalogItem.id).toString();
+
 	const catalogItemsResponse = await fetch(
-		`${process.env.NEXT_PUBLIC_CW_URL}/procurement/catalog/${id}/components?conditions=${`id in (${components
-			.map((c) => c.catalogItem.id)
-			.toString()})`}&fields=${catalogItemFields}`,
+		`${process.env.NEXT_PUBLIC_CW_URL}/procurement/catalog?conditions=id in (${componentString})&fields=${catalogItemFields.toString()}`,
 		{
 			headers: baseHeaders,
 		}
@@ -279,9 +303,11 @@ export const getTickets = async () => {
 
 export const getCatalogItems = async (searchText?: string, identifier?: string, page?: number) => {
 	const catalogItemsResponse = await fetch(
-		`${process.env.NEXT_PUBLIC_CW_URL}/procurement/catalog?conditions=inactiveFlag = false ${
+		`${process.env.NEXT_PUBLIC_CW_URL}/procurement/catalog?conditions=inactiveFlag=false ${
 			searchText ? `and description contains '${searchText}'` : ''
-		} ${identifier ? `and identifier contains '${identifier}'` : ''}&pageSize=10&orderBy=description&page=${page ?? 1}&fields=${catalogItemFields}`,
+		} ${identifier ? `and identifier contains '${identifier}'` : ''}&pageSize=10&orderBy=description&page=${
+			page ?? 1
+		}&fields=${catalogItemFields.toString()}`,
 		{ headers: baseHeaders }
 	);
 
@@ -292,7 +318,9 @@ export const getCatalogItems = async (searchText?: string, identifier?: string, 
 	const catalogItemsCountResponse = await fetch(
 		`${process.env.NEXT_PUBLIC_CW_URL}/procurement/catalog/count?conditions=inactiveFlag = false ${
 			searchText ? `and description contains '${searchText}'` : ''
-		} ${identifier ? `and identifier contains '${identifier}'` : ''}&pageSize=10&orderBy=description&page=${page ?? 1}&fields=${catalogItemFields}`,
+		} ${identifier ? `and identifier contains '${identifier}'` : ''}&pageSize=10&orderBy=description&page=${
+			page ?? 1
+		}&fields=${catalogItemFields.toString()}`,
 		{ headers: baseHeaders }
 	);
 
@@ -301,7 +329,7 @@ export const getCatalogItems = async (searchText?: string, identifier?: string, 
 	const { count }: { count: number } = await catalogItemsCountResponse.json();
 
 	const bundles = catalogItems.filter((item) => item.productClass === 'Bundle');
-	const bItems = (await Promise.all(bundles.map((b) => getCatalogItemComponents(b.id)))).flat();
+	const bItems = (await Promise.all(bundles.map((b) => getCatalogItemComponents(b.id)))).flat().filter((i) => i !== undefined);
 
 	const mappedData = catalogItems.map((item) => {
 		return {
