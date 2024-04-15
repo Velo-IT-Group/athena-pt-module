@@ -436,7 +436,6 @@ export const getProducts = unstable_cache(
 			.select(`*, products(*)`)
 			.is('parent', null)
 			.order('sequence_number')
-			.order('created_at')
 			.returns<NestedProduct[]>();
 
 		if (!products || error) {
