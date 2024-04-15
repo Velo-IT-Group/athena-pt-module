@@ -76,7 +76,7 @@ const CatalogPicker = ({ proposal, catalogItems, params, count, section }: Props
 		},
 	});
 
-	const baseUrl = `/${params.org}/proposal/${params.id}/products`;
+	const baseUrl = `/${params.org}/proposal/${params.id}/${version}/products`;
 
 	return (
 		<Dialog
