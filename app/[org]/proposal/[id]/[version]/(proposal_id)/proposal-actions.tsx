@@ -135,7 +135,7 @@ const ProposalActions = ({ proposal, phases, tickets, versions, ticket, params }
 						className='grid gap-4'
 						action={async () => {
 							const createdVersion = await createVersion(proposal.id);
-							router.replace(`/${params.org}/proposals/${params.id}/${createdVersion}`);
+							router.replace(`/${params.org}/proposal/${params.id}/${createdVersion}`);
 							setShowNewVersionDialog(false);
 						}}
 					>
@@ -160,7 +160,7 @@ const ProposalActions = ({ proposal, phases, tickets, versions, ticket, params }
 						className='grid gap-4'
 						action={async () => {
 							await updateProposal(proposal.id, { working_version: revertVersion?.id });
-							router.replace(`/${params.org}/proposals/${params.id}/${revertVersion?.id}`);
+							router.replace(`/${params.org}/proposal/${params.id}/${revertVersion?.id}`);
 							setShowRevertDialog(false);
 						}}
 					>
