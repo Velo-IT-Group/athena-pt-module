@@ -1,5 +1,6 @@
 import React from 'react';
-import { getCatalogItems, getProposal } from '@/lib/functions/read';
+import { getProposal } from '@/lib/functions/read';
+import { getCatalogItems } from '@/utils/manage/read';
 import ProductsList from './products-list';
 import { Tabs, TabsContent } from '@/components/ui/tabs';
 import SectionTabs from './section-tabs';
@@ -36,7 +37,6 @@ const ProposalProductPage = async ({ params, searchParams }: Props) => {
 
 				<CatalogPicker
 					proposal={proposal.id}
-					version={proposal.working_version.id}
 					catalogItems={catalogItems}
 					count={count}
 					page={page}
