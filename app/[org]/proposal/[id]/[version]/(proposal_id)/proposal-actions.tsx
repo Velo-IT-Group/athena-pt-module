@@ -6,6 +6,7 @@ import { CopyIcon, DotsHorizontalIcon, EnterIcon, MixerHorizontalIcon, ResetIcon
 
 import {
 	AlertDialog,
+	AlertDialogAction,
 	AlertDialogCancel,
 	AlertDialogContent,
 	AlertDialogDescription,
@@ -286,6 +287,12 @@ const ProposalActions = ({ proposal, phases, tickets, versions, ticket, params }
 			</Dialog>
 
 			<AlertDialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
+				<form
+					action={async () => {
+						await deleteProposal(proposal.id);
+						setShowDeleteDialog(false);
+					}}
+				></form>
 				<AlertDialogContent>
 					<AlertDialogHeader>
 						<AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
@@ -295,15 +302,9 @@ const ProposalActions = ({ proposal, phases, tickets, versions, ticket, params }
 					</AlertDialogHeader>
 					<AlertDialogFooter>
 						<AlertDialogCancel>Cancel</AlertDialogCancel>
-						<SubmitButton
-							variant='destructive'
-							formAction={async () => {
-								await deleteProposal('');
-								setShowDeleteDialog(false);
-							}}
-						>
-							Delete proposal
-						</SubmitButton>
+						<AlertDialogAction asChild>
+							<SubmitButton variant='destructive'>Delete proposal</SubmitButton>
+						</AlertDialogAction>
 					</AlertDialogFooter>
 				</AlertDialogContent>
 			</AlertDialog>
