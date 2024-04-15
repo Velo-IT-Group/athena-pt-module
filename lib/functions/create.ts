@@ -107,7 +107,7 @@ export const createProposal = async (proposal: ProposalInsert) => {
 
 	revalidateTag('proposals');
 
-	redirect(`/${data.organization.slug}/proposal/${data.id}`);
+	redirect(`/${data.organization.slug}/proposal/${data.id}/${version}`);
 };
 
 export const createPhase = async (phase: PhaseInsert, tickets: Array<ProjectTemplateTicket>) => {
