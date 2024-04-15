@@ -19,10 +19,11 @@ type Props = {
 	titleId?: string;
 	children?: React.ReactNode;
 	org: string;
+	version?: number;
 	tabs?: Tab[];
 };
 
-const Navbar = async ({ title, titleEditable, titleId, children, org, tabs }: Props) => {
+const Navbar = async ({ title, titleEditable, titleId, children, org, version, tabs }: Props) => {
 	const supabase = createClient();
 	const organization = await getOrganization();
 
@@ -62,6 +63,14 @@ const Navbar = async ({ title, titleEditable, titleId, children, org, tabs }: Pr
 						)}
 					</>
 				)}
+
+				{version && (
+					<>
+						<SlashIcon className='h-4 opacity-15' />
+						<span className='font-semibold'>{`V${version}`}</span>
+					</>
+				)}
+
 				{(children || user) && (
 					<div className='ml-auto flex items-center gap-4'>
 						{children}
