@@ -12,22 +12,22 @@ import { calculateTotals } from '@/utils/helpers';
 import { headers } from 'next/headers';
 
 type Props = {
-	params: { org: string; id: string };
+	params: { org: string; id: string; version: string };
 	children: React.ReactNode;
 };
 
 const ProposalIdLayout = async ({ params, children }: Props) => {
 	const origin = headers().get('origin');
-	const { id, org } = params;
+	const { id, org, version } = params;
 	const proposal = await getProposal(id);
 
 	if (!proposal) return notFound();
 
 	const tabs: Tab[] = [
-		{ name: 'Overview', href: `/${org}/proposal/${id}` },
-		{ name: 'Workplan', href: `/${org}/proposal/${id}/workplan` },
-		{ name: 'Products', href: `/${org}/proposal/${id}/products` },
-		{ name: 'Settings', href: `/${org}/proposal/${id}/settings` },
+		{ name: 'Overview', href: `/${org}/proposal/${id}/${version}` },
+		{ name: 'Workplan', href: `/${org}/proposal/${id}/${version}/workplan` },
+		{ name: 'Products', href: `/${org}/proposal/${id}/${version}/products` },
+		{ name: 'Settings', href: `/${org}/proposal/${id}/${version}/settings` },
 	];
 
 	const serviceTicket = await getTicket(proposal.service_ticket ?? 0);
