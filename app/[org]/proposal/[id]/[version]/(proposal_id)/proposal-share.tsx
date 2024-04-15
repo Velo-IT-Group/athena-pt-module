@@ -9,6 +9,16 @@ import { Label } from '@/components/ui/label';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 
 export function ProposalShare({ proposalId, origin }: { proposalId: string; origin: string }) {
+	const [currentUrl, setCurrentUrl] = React.useState('');
+
+	React.useEffect(() => {
+		// Check if the code is running on the client side
+		if (process) {
+			// Access the current page URL using window.location
+			setCurrentUrl(window.location.origin);
+			console.log(window.location.origin);
+		}
+	}, []);
 	const [hasCopied, setHasCopied] = React.useState(false);
 	console.log(origin);
 
@@ -37,13 +47,13 @@ export function ProposalShare({ proposalId, origin }: { proposalId: string; orig
 						</Label>
 
 						<div className='flex items-center space-x-2'>
-							<Input id='external_link' defaultValue={`${origin}/review/${proposalId}`} readOnly className='h-9' />
+							<Input id='external_link' defaultValue={`${currentUrl}/review/${proposalId}`} readOnly className='h-9' />
 							<Button
 								type='submit'
 								size='sm'
 								className='px-3'
 								onClick={() => {
-									navigator.clipboard.writeText(`${origin}/review/${proposalId}`);
+									navigator.clipboard.writeText(`${currentUrl}/review/${proposalId}`);
 									setHasCopied(true);
 								}}
 							>
