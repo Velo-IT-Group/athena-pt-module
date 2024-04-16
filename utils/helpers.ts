@@ -127,20 +127,14 @@ type ReturnType = {
 	ticketHours?: number;
 };
 
-export const calculateTotals = (
-	products: Product[],
-	phases: NestedPhase[],
-	labor_rate: number,
-	management_hours: number,
-	sales_hours: number
-): ReturnType => {
+export const calculateTotals = (products: Product[], phases: NestedPhase[], labor_rate: number): ReturnType => {
 	const ticketHours = phases && phases.length ? phases.map((p) => p.tickets?.map((t) => t.budget_hours).flat()).flat() : [];
 
 	const ticketSum = ticketHours?.reduce((accumulator, currentValue) => {
 		return (accumulator ?? 0) + (currentValue ?? 0);
 	}, 0);
 
-	const laborHours = management_hours + sales_hours + (ticketSum ?? 0);
+	const laborHours = ticketSum ?? 0;
 
 	const laborTotal = laborHours * labor_rate;
 

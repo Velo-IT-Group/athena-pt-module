@@ -8,7 +8,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 
-export function ProposalShare({ proposalId, origin }: { proposalId: string; origin: string }) {
+export function ProposalShare({ proposalId, versionId }: { proposalId: string; versionId: string }) {
 	const [currentUrl, setCurrentUrl] = React.useState('');
 
 	React.useEffect(() => {
@@ -20,13 +20,13 @@ export function ProposalShare({ proposalId, origin }: { proposalId: string; orig
 		}
 	}, []);
 	const [hasCopied, setHasCopied] = React.useState(false);
-	console.log(origin);
 
 	React.useEffect(() => {
 		setTimeout(() => {
 			setHasCopied(false);
 		}, 2000);
 	}, [hasCopied]);
+
 	return (
 		<Popover>
 			<PopoverTrigger asChild>
@@ -47,13 +47,13 @@ export function ProposalShare({ proposalId, origin }: { proposalId: string; orig
 						</Label>
 
 						<div className='flex items-center space-x-2'>
-							<Input id='external_link' defaultValue={`${currentUrl}/review/${proposalId}`} readOnly className='h-9' />
+							<Input id='external_link' defaultValue={`${currentUrl}/review/${proposalId}/${versionId}`} readOnly className='h-9' />
 							<Button
 								type='submit'
 								size='sm'
 								className='px-3'
 								onClick={() => {
-									navigator.clipboard.writeText(`${currentUrl}/review/${proposalId}`);
+									navigator.clipboard.writeText(`${currentUrl}/review/${proposalId}/${versionId}`);
 									setHasCopied(true);
 								}}
 							>

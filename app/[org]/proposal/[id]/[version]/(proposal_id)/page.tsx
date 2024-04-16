@@ -1,5 +1,5 @@
 import { Separator } from '@/components/ui/separator';
-import { getProducts, getProposal } from '@/lib/functions/read';
+import { getPhases, getProducts, getProposal } from '@/lib/functions/read';
 import { relativeDate } from '@/utils/date';
 import { getCurrencyString } from '@/utils/money';
 import { CalendarIcon, FileTextIcon, StopwatchIcon } from '@radix-ui/react-icons';
@@ -14,19 +14,17 @@ type Props = {
 };
 
 const ProposalPage = async ({ params }: Props) => {
-	const [proposal, products] = await Promise.all([getProposal(params.id, params.version), getProducts(params.id)]);
+	const [proposal, products, phases] = await Promise.all([
+		getProposal(params.id, params.version),
+		getProducts(params.version),
+		getPhases(params.version),
+	]);
 
 	if (!proposal) return <div></div>;
 
 	const ticket = await getTicket(proposal?.service_ticket ?? 0, ['contactName', 'contactEmailAddress']);
 
-	const { totalPrice, laborHours } = calculateTotals(
-		products,
-		proposal.working_version.phases,
-		proposal.labor_rate,
-		proposal.management_hours,
-		proposal.sales_hours
-	);
+	const { totalPrice, laborHours } = calculateTotals(products, phases ?? [], proposal.labor_rate);
 
 	return (
 		<div className='grid grid-cols-12 flex-1'>

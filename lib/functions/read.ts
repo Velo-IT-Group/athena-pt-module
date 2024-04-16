@@ -28,7 +28,7 @@ export const getPhases = unstable_cache(
 	async (id: string): Promise<Array<Phase & { tickets: Array<Ticket & { tasks: Task[] }> }> | undefined> => {
 		const supabase = createClient();
 
-		const { data, error } = await supabase.from('phases').select('*, tickets(*, tasks(*))').eq('proposal', id).order('order');
+		const { data, error } = await supabase.from('phases').select('*, tickets(*, tasks(*))').eq('version', id).order('order');
 
 		if (!data || error) {
 			throw Error('Error in getting phases', { cause: error });
@@ -412,8 +412,8 @@ export const getSections = unstable_cache(
 
 		const { data: sections, error } = await supabase
 			.from('sections')
-			.select('*, products(*)')
-			.eq('proposal', id)
+			.select('*, products(*, products(*))')
+			.eq('version', id)
 			.order('created_at')
 			.returns<Array<Section & { products: Product[] }>>();
 
@@ -427,13 +427,35 @@ export const getSections = unstable_cache(
 	{ tags: ['sections'] }
 );
 
+export const getSection = unstable_cache(
+	async (id: string) => {
+		const supabase = createClient();
+
+		const { data: section, error } = await supabase
+			.from('sections')
+			.select('*, products(*, products(*))')
+			.eq('id', id)
+			.is('products.parent', null)
+			.single();
+
+		if (!section || error) {
+			throw Error('Error in getting sections', { cause: error });
+		}
+
+		return section as Section & { products: Product[] };
+	},
+	['sections'],
+	{ tags: ['sections'] }
+);
+
 export const getProducts = unstable_cache(
 	async (id: string) => {
 		const supabase = createClient();
 
 		const { data: products, error } = await supabase
 			.from('products')
-			.select(`*, products(*)`)
+			.select(`*, products(*, products(*))`)
+			.eq('version', id)
 			.is('parent', null)
 			.order('sequence_number')
 			.returns<NestedProduct[]>();
@@ -484,7 +506,7 @@ export const getProposal = unstable_cache(
 		const supabase = createClient();
 
 		try {
-			const proposalWithPhasesQuery = supabase
+			const { data, error } = await supabase
 				.from('proposals')
 				.select(
 					`*,
@@ -504,18 +526,13 @@ export const getProposal = unstable_cache(
 				)
 				.eq('id', id)
 				.eq('working_version', version)
-				.returns<NestedProposal & { versions: Version[] }>()
 				.single();
-
-			type ProposalWithPhases = QueryData<typeof proposalWithPhasesQuery>;
-
-			const { data, error } = await proposalWithPhasesQuery;
 
 			if (!data || error) {
 				throw Error('Error in getting proposal', { cause: error });
 			}
 
-			return data as NestedProposal & { versions: Version[] };
+			return data as unknown as NestedProposal & { versions: Version[] };
 		} catch (error) {
 			console.error(error);
 		}
