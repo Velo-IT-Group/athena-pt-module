@@ -193,6 +193,7 @@ export const createProduct = async (product: ProductInsert, bundledItems?: Produ
 
 	revalidateTag('products');
 	revalidateTag('proposals');
+	revalidateTag('sections');
 
 	return data;
 };
@@ -209,6 +210,7 @@ export const createProducts = async (product: ProductInsert[], bundledItems?: Ca
 
 	revalidateTag('products');
 	revalidateTag('proposals');
+	revalidateTag('sections');
 };
 
 export const createOrganizationIntegration = async (organization: OrganizationIntegrationInsert) => {
