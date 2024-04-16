@@ -6,10 +6,11 @@ import { toast } from 'sonner';
 
 interface Props extends CurrencyInputProps {
 	handleBlurChange?: (amount?: number | null | undefined) => void;
+	className?: string;
 }
 
-const CurrencyInput = (props: Props) => {
-	const [value, setValue] = useState<string | number | undefined>(props.defaultValue);
+const CurrencyInput = ({ className, defaultValue, handleBlurChange, ...props }: Props) => {
+	const [value, setValue] = useState<string | number | undefined>(defaultValue);
 	const [values, setValues] = useState<CurrencyInputOnChangeValues>();
 
 	/**
@@ -37,14 +38,14 @@ const CurrencyInput = (props: Props) => {
 			onValueChange={handleOnValueChange}
 			onBlur={(e) => {
 				try {
-					props.handleBlurChange && props.handleBlurChange(values?.float);
+					handleBlurChange && handleBlurChange(values?.float);
 				} catch (error) {
 					toast('Error updating ');
 				}
 			}}
 			className={cn(
 				'flex h-9 w-full bg-transparent rounded-md border border-input hover:bg-transparent px-3 py-1 text-sm shadow-sm transition-colors file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50',
-				props.className
+				className
 			)}
 			{...props}
 		/>
