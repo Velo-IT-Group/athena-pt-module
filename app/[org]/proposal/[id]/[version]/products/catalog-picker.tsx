@@ -21,9 +21,10 @@ type Props = {
 	count: number;
 	searchParams?: { [key: string]: string | string[] | undefined };
 	section?: string;
+	url?: string;
 };
 
-const CatalogPicker = ({ proposal, catalogItems, params, count, section }: Props) => {
+const CatalogPicker = ({ proposal, catalogItems, params, count, section, url }: Props) => {
 	const { version } = params;
 	const [expanded, setExpanded] = React.useState<ExpandedState>({});
 	const [rowSelection, setRowSelection] = React.useState({});
@@ -48,7 +49,12 @@ const CatalogPicker = ({ proposal, catalogItems, params, count, section }: Props
 	}, [createQueryString, pagination, pathname, router, searchParams]);
 
 	const productInsert = async (product: ProductInsert, bundledItems?: ProductInsert[]) => {
-		await createProduct({ ...product, version, section: section ?? null }, bundledItems);
+		await createProduct(
+			{ ...product, version, section: section ?? null },
+			bundledItems?.map((item) => {
+				return { ...item, version, section };
+			})
+		);
 	};
 
 	// console.log(catalogItems);
@@ -76,7 +82,7 @@ const CatalogPicker = ({ proposal, catalogItems, params, count, section }: Props
 		},
 	});
 
-	const baseUrl = `/${params.org}/proposal/${params.id}/${version}/products`;
+	const baseUrl = url ?? `/${params.org}/proposal/${params.id}/${version}/products`;
 
 	return (
 		<Dialog
