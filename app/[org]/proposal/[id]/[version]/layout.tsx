@@ -17,11 +17,12 @@ type Props = {
 };
 
 const ProposalIdLayout = async ({ params, children }: Props) => {
-	const origin = headers().get('origin');
 	const { id, org, version } = params;
 	const proposal = await getProposal(id, version);
 
 	if (!proposal) return notFound();
+
+	const versions = await getVersions(proposal.id);
 
 	const tabs: Tab[] = [
 		{ name: 'Overview', href: `/${org}/proposal/${id}/${version}` },
@@ -41,12 +42,10 @@ const ProposalIdLayout = async ({ params, children }: Props) => {
 	const { laborTotal, productTotal, recurringTotal, totalPrice } = calculateTotals(
 		proposal.working_version.products,
 		proposal.working_version.phases,
-		proposal.labor_rate,
-		proposal.management_hours,
-		proposal.sales_hours
+		proposal.labor_rate
 	);
 
-	console.log(proposal.versions);
+	// console.log(proposal.versions);
 
 	return (
 		<>
@@ -92,14 +91,14 @@ const ProposalIdLayout = async ({ params, children }: Props) => {
 						</div>
 					</HoverCardContent>
 
-					<ProposalShare proposalId={proposal.id} origin={origin ?? ''} />
+					<ProposalShare proposalId={proposal.id} versionId={version} />
 
 					<ProposalActions
 						proposal={proposal}
 						phases={proposal.phases ?? []}
 						tickets={proposal.working_version?.phases?.map((p) => p.tickets ?? [])?.flat() ?? []}
 						ticket={serviceTicket}
-						versions={proposal.versions}
+						versions={versions}
 						params={params}
 					/>
 				</HoverCard>
