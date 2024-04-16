@@ -1,9 +1,4 @@
-// import { ChevronLeftIcon, ChevronRightIcon, CopyIcon, CreditCard, DotsVerticalIcon, Truck } from '@radix-ui/react-icons';
-import { CopyIcon, DotsVerticalIcon } from '@radix-ui/react-icons';
-
-import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { Separator } from '@/components/ui/separator';
 import { cn } from '@/lib/utils';
 import { getCurrencyString } from '@/utils/money';

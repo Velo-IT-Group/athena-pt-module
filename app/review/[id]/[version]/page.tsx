@@ -3,7 +3,7 @@ import { Separator } from '@/components/ui/separator';
 import { Button } from '@/components/ui/button';
 import React from 'react';
 import { Dialog, DialogTrigger } from '@/components/ui/dialog';
-import { getProducts, getProposal, getSections, getUser } from '@/lib/functions/read';
+import { getPhases, getProducts, getProposal, getSections, getUser } from '@/lib/functions/read';
 import { getCurrencyString } from '@/utils/money';
 import Navbar from '@/components/Navbar';
 import { calculateTotals } from '@/utils/helpers';
@@ -15,21 +15,17 @@ type Props = {
 };
 
 const ProposalReviewPage = async ({ params }: Props) => {
-	const proposal = await getProposal(params.id, params.version);
-	const products = await getProducts(params.id);
-	const sections = await getSections(params.id);
-	// const comments = await getComments(params.id);
+	console.log(params);
+	const [proposal, products, sections, phases] = await Promise.all([
+		getProposal(params.id, params.version),
+		getProducts(params.id),
+		getSections(params.version),
+		getPhases(params.version),
+	]);
 
-	if (!proposal || !products) return notFound();
+	if (!proposal || !products) return <div>{JSON.stringify(proposal)}</div>;
 
-	const { productTotal, totalPrice, laborTotal, laborHours } = calculateTotals(
-		products,
-		// @ts-ignore
-		proposal.phases,
-		proposal.labor_rate,
-		proposal.management_hours,
-		proposal.sales_hours
-	);
+	const { productTotal, totalPrice, laborTotal, laborHours } = calculateTotals(products, phases ?? [], proposal.labor_rate);
 
 	const user = await getUser();
 
