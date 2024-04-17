@@ -1,6 +1,6 @@
 import React from 'react';
 import Navbar, { Tab } from '@/components/Navbar';
-import { getMembers, getProducts, getProposal, getTicket, getVersions } from '@/lib/functions/read';
+import { getProposal, getTicket, getVersions } from '@/lib/functions/read';
 import { getCurrencyString } from '@/utils/money';
 import { HoverCard, HoverCardContent, HoverCardTrigger } from '@/components/ui/hover-card';
 import { Label } from '@/components/ui/label';
@@ -9,12 +9,20 @@ import { notFound } from 'next/navigation';
 import ProposalActions from './(proposal_id)/proposal-actions';
 import { ProposalShare } from './(proposal_id)/proposal-share';
 import { calculateTotals } from '@/utils/helpers';
-import { headers } from 'next/headers';
+import { Metadata, ResolvingMetadata } from 'next';
 
 type Props = {
 	params: { org: string; id: string; version: string };
 	children: React.ReactNode;
 };
+
+export async function generateMetadata({ params }: Props, parent: ResolvingMetadata): Promise<Metadata> {
+	const { id, version } = params;
+	const proposal = await getProposal(id, version);
+	return {
+		title: proposal?.name,
+	};
+}
 
 const ProposalIdLayout = async ({ params, children }: Props) => {
 	const { id, org, version } = params;

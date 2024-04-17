@@ -9,13 +9,22 @@ import Navbar from '@/components/Navbar';
 import { calculateTotals } from '@/utils/helpers';
 import ApprovalForm from './approval-form';
 import { notFound } from 'next/navigation';
+import { Metadata, ResolvingMetadata } from 'next';
+import { getTicket } from '@/utils/manage/read';
 
 type Props = {
 	params: { id: string; version: string };
 };
 
+export async function generateMetadata({ params }: Props, parent: ResolvingMetadata): Promise<Metadata> {
+	const { id, version } = params;
+	const proposal = await getProposal(id, version);
+	return {
+		title: `Review - ${proposal?.name}`,
+	};
+}
+
 const ProposalReviewPage = async ({ params }: Props) => {
-	console.log(params);
 	const [proposal, products, sections, phases] = await Promise.all([
 		getProposal(params.id, params.version),
 		getProducts(params.id),
@@ -23,9 +32,15 @@ const ProposalReviewPage = async ({ params }: Props) => {
 		getPhases(params.version),
 	]);
 
-	if (!proposal || !products) return <div>{JSON.stringify(proposal)}</div>;
+	if (!proposal || !products) return notFound();
 
-	const { productTotal, totalPrice, laborTotal, laborHours } = calculateTotals(products, phases ?? [], proposal.labor_rate);
+	const ticket = await getTicket(proposal?.service_ticket ?? 0);
+
+	const { productTotal, totalPrice, laborTotal } = calculateTotals(
+		[...products, ...sections.flatMap((s) => s.products)],
+		phases ?? [],
+		proposal.labor_rate
+	);
 
 	const user = await getUser();
 
@@ -43,12 +58,12 @@ const ProposalReviewPage = async ({ params }: Props) => {
 						<Button className='mr-2'>Approve</Button>
 					</DialogTrigger>
 
-					<ApprovalForm id={proposal.id} />
+					<ApprovalForm proposal={proposal} ticket={ticket} />
 				</Dialog>
 			</Navbar>
 
 			<div className='border-t'>
-				<div className='grid gap-6 py-6 sm:grid-cols-5 sm:gap-12 sm:py-12 container'>
+				<div className='grid items-start gap-6 py-6 sm:grid-cols-5 sm:gap-12 sm:py-12 container'>
 					<div className='sm:col-span-3'>
 						<div className='space-y-4'>
 							<h1 className='text-lg font-semibold'>Proposal breakdown</h1>
@@ -58,61 +73,94 @@ const ProposalReviewPage = async ({ params }: Props) => {
 							</p>
 
 							<div className='rounded-xl border bg-neutral-100 p-4 space-y-4'>
-								{proposal.sections?.map((section) => (
-									<Card key={section.id}>
-										<CardHeader>
-											<CardTitle>{section.name}</CardTitle>
-										</CardHeader>
+								{sections?.map((section) => {
+									const sectionProductSubTotal = section.products
+										.filter((p) => !p.recurring_flag)
+										.reduce((accumulator, currentValue) => {
+											const price: number | null = currentValue.product_class === 'Bundle' ? currentValue.calculated_price : currentValue.price;
 
-										<CardContent className='space-y-2.5'>
-											<div className='hidden sm:flex items-center gap-6 justify-between'>
-												<div className='max-w-96'>
-													<span className='text-sm text-muted-foreground'>Description / Unit Price</span>
+											return accumulator + (price ?? 0) * (currentValue?.quantity ?? 0);
+										}, 0);
+
+									const sectionProductRecurringSubTotal = section.products
+										.filter((p) => p.recurring_flag && p.recurring_bill_cycle === 2)
+										.reduce((accumulator, currentValue) => {
+											const price: number | null = currentValue.product_class === 'Bundle' ? currentValue.calculated_price : currentValue.price;
+
+											return accumulator + (price ?? 0) * (currentValue?.quantity ?? 0);
+										}, 0);
+
+									return (
+										<Card key={section.id}>
+											<CardHeader>
+												<CardTitle>{section.name}</CardTitle>
+											</CardHeader>
+
+											<CardContent className='space-y-2.5'>
+												<div className='hidden sm:flex items-center gap-6 justify-between'>
+													<div className='max-w-96'>
+														<span className='text-sm text-muted-foreground'>Description / Unit Price</span>
+													</div>
+													<div className='grid gap-2 justify-items-end grid-cols-[100px_125px]'>
+														<span className='text-sm text-muted-foreground'>Quantity</span>
+														<span className='text-sm text-muted-foreground'>Extended Price</span>
+													</div>
 												</div>
-												<div className='grid gap-2 justify-items-end grid-cols-[100px_125px]'>
-													<span className='text-sm text-muted-foreground'>Quantity</span>
-													<span className='text-sm text-muted-foreground'>Extended Price</span>
-												</div>
-											</div>
-											{section.products?.map((product) => (
-												<>
-													<Separator />
-													<div key={product.id} className='flex flex-col sm:flex-row sm:items-start gap-6 justify-between'>
-														<div className='max-w-96'>
-															<div className='font-medium text-sm line-clamp-1'>{product.description}</div>
-															<div className='flex items-center w-full'>
-																<div className='text-muted-foreground text-sm'>{getCurrencyString(product.price!)} </div>
-																<p className='sm:hidden text-right mx-2'>â€¢</p>
-																<p className='sm:hidden text-sm text-muted-foreground text-right'>{product.quantity}</p>
-																<p className='sm:hidden text-sm text-muted-foreground text-right ml-auto'>
-																	<span className='font-medium'>{getCurrencyString(product.price! * product.quantity!)}</span>
+
+												{section.products?.map((product) => (
+													<>
+														<Separator />
+
+														<div key={product.id} className='flex flex-col sm:flex-row sm:items-start gap-6 justify-between'>
+															<div className='max-w-96'>
+																<div className='font-medium text-sm line-clamp-1'>{product.description}</div>
+																<div className='flex items-center w-full'>
+																	<div className='text-muted-foreground text-sm'>{getCurrencyString(product.price!)} </div>
+																	<p className='sm:hidden text-right mx-2'>â€¢</p>
+																	<p className='sm:hidden text-sm text-muted-foreground text-right'>{product.quantity}</p>
+																	<p className='sm:hidden text-sm text-muted-foreground text-right ml-auto'>
+																		<span className='font-medium'>{getCurrencyString(product.price! * product.quantity!)}</span>
+																	</p>
+																</div>
+															</div>
+
+															<div className='hidden sm:grid gap-2 sm:grid-cols-[100px_125px]'>
+																<p className='text-sm text-muted-foreground text-right'>{product.quantity}</p>
+																<p className='text-sm text-muted-foreground text-right'>
+																	<span className='font-medium'>
+																		{getCurrencyString(product.price! * product.quantity!)}
+																		{product.recurring_bill_cycle === 2 && '/mo'}
+																	</span>
 																</p>
 															</div>
 														</div>
+													</>
+												))}
+											</CardContent>
 
-														<div className='hidden sm:grid gap-2 sm:grid-cols-[100px_125px]'>
-															<p className='text-sm text-muted-foreground text-right'>{product.quantity}</p>
-															<p className='text-sm text-muted-foreground text-right'>
-																<span className='font-medium'>{getCurrencyString(product.price! * product.quantity!)}</span>
-															</p>
-														</div>
+											<Separator className='mb-6' />
+
+											<CardFooter className='grid gap-1.5'>
+												<div className='flex items-center justify-between'>
+													<p className='text-sm text-muted-foreground'>{section.name} Product Subtotal</p>
+													<p className='text-sm text-muted-foreground text-right'>
+														<span className='font-medium'>{getCurrencyString(sectionProductSubTotal)}</span>
+													</p>
+												</div>
+
+												{sectionProductRecurringSubTotal > 0 && (
+													<div className='flex items-center justify-between'>
+														<p className='text-sm text-muted-foreground'>{section.name} Recurring Subtotal</p>
+														<p className='text-sm text-muted-foreground text-right'>
+															<span className='font-medium'>{getCurrencyString(sectionProductRecurringSubTotal)}/mo</span>
+														</p>
 													</div>
-												</>
-											))}
-										</CardContent>
+												)}
+											</CardFooter>
+										</Card>
+									);
+								})}
 
-										<Separator className='mb-6' />
-
-										<CardFooter>
-											<div className='flex items-center justify-between w-full'>
-												<p className='text-sm text-muted-foreground font-bold'>Hardware Subtotal</p>
-												<p className='text-sm text-muted-foreground text-right'>
-													<span className='font-medium'>{getCurrencyString(productTotal)}</span>
-												</p>
-											</div>
-										</CardFooter>
-									</Card>
-								))}
 								{products.length > 0 && (
 									<Card>
 										<CardHeader>
@@ -129,6 +177,7 @@ const ProposalReviewPage = async ({ params }: Props) => {
 													<span className='text-sm text-muted-foreground'>Extended Price</span>
 												</div>
 											</div>
+
 											{products?.map((hardwareItem) => (
 												<>
 													<Separator />
@@ -144,10 +193,7 @@ const ProposalReviewPage = async ({ params }: Props) => {
 																</p>
 															</div>
 														</div>
-														{/* <div className='grid gap-2' style={{ gridTemplateColumns: '60px 1fr' }}>
-														<p className='text-sm text-muted-foreground hover:underline line-clamp-1 text-center'>{hardwareItem.quantity}</p>
-														<p className='text-sm text-muted-foreground hover:underline line-clamp-1'>{hardwareItem.description}</p>
-													</div> */}
+
 														<div className='hidden sm:grid gap-2 sm:grid-cols-[100px_125px]'>
 															<p className='text-sm text-muted-foreground text-right'>{hardwareItem.quantity}</p>
 															<p className='text-sm text-muted-foreground text-right'>
@@ -171,42 +217,47 @@ const ProposalReviewPage = async ({ params }: Props) => {
 										</CardFooter>
 									</Card>
 								)}
+
 								<Card>
 									<CardHeader>
-										<CardTitle>Services</CardTitle>
+										<CardTitle>Overview</CardTitle>
 									</CardHeader>
 
 									<CardContent className='space-y-2'>
-										<div className='flex items-center justify-between'>
-											<p className='text-sm text-muted-foreground'>Total Labor Hours</p>
-											<p className='text-sm text-muted-foreground text-right font-medium'>{laborHours} hrs</p>
-										</div>
+										{sections.map((section) => {
+											const sectionProductSubTotal = section.products
+												.filter((p) => !p.recurring_flag)
+												.reduce((accumulator, currentValue) => {
+													const price: number | null = currentValue.product_class === 'Bundle' ? currentValue.calculated_price : currentValue.price;
 
-										{/* <div className='flex items-center justify-between'>
-											<p className='text-sm text-muted-foreground'>Sales Work</p>
-											<p className='text-sm text-muted-foreground text-right font-medium'>{proposal.sales_hours!} hrs</p>
-										</div>
-
-										<div className='flex items-center justify-between'>
-											<p className='text-sm text-muted-foreground'>Project Management</p>
-											<p className='text-sm text-muted-foreground text-right font-medium'>{proposal.management_hours!} hrs</p>
-										</div>
-
-										<div className='flex items-center justify-between'>
-											<p className='text-sm text-muted-foreground'>Hours Required</p>
-											<p className='text-sm text-muted-foreground text-right font-medium'>{proposal.hours_required!} hrs</p>
-										</div> */}
-
-										<Separator />
+													return accumulator + (price ?? 0) * (currentValue?.quantity ?? 0);
+												}, 0);
+											return (
+												<div key={section.id} className='flex items-center justify-between'>
+													<p className='text-sm text-muted-foreground'>{section.name} Total</p>
+													<p className='text-sm text-muted-foreground text-right font-medium'>{getCurrencyString(sectionProductSubTotal)}</p>
+												</div>
+											);
+										})}
 
 										<div className='flex items-center justify-between'>
-											<p className='text-sm text-muted-foreground'>Services Subtotal</p>
+											<p className='text-sm text-muted-foreground'>Labor</p>
 											<p className='text-sm text-muted-foreground text-right'>
 												<span className='font-medium'>{getCurrencyString(laborTotal)}</span>
 											</p>
 										</div>
+
+										<Separator />
+
+										<div className='flex items-center justify-between'>
+											<p className='text-sm text-muted-foreground'>Total</p>
+											<p className='text-sm text-muted-foreground text-right'>
+												<span className='font-medium'>{getCurrencyString(productTotal)}</span>
+											</p>
+										</div>
 									</CardContent>
 								</Card>
+
 								<div className='flex flex-col items-start sm:flex-row sm:items-center sm:justify-between px-4'>
 									<p className='text-sm text-muted-foreground'>Quote Price</p>
 									<p className='text-sm text-muted-foreground text-right'>
@@ -225,72 +276,23 @@ const ProposalReviewPage = async ({ params }: Props) => {
 						<CardContent>
 							<div className='space-y-4'>
 								<Separator />
-								{proposal?.phases?.map((phase) => {
-									// const comment = comments.find((c) => c.phase === phase.id);
-									return (
-										<div className='space-y-4' key={phase.id}>
-											<div className='flex items-center gap-2'>
-												<h3 className='font-medium tracking-tight'>
-													{phase.description} - {phase.hours}hrs
-												</h3>
-												{/* <Dialog>
-													<DialogTrigger asChild>
-														<Button
-															size='icon'
-															variant='link'
-															className={(cn('transition-opacity hover:opacity-100'), comment?.text ? 'opacity-100' : 'opacity-0 ')}
-														>
-															<Pencil1Icon className='w-4 h-4' />
-														</Button>
-													</DialogTrigger>
-													<DialogContent>
-														<DialogHeader>
-															<DialogTitle>{phase.description}</DialogTitle>
-														</DialogHeader>
-														<form>
-															<div className='grid w-full items-center gap-4'>
-																<div className='flex flex-col space-y-1.5'>
-																	<Label htmlFor='text'>Comment</Label>
-																	<Textarea
-																		name='text'
-																		placeholder='Add a comment to this section'
-																		defaultValue={comment?.text}
-																		className='min-h-40'
-																	/>
-																</div>
-															</div>
-															<DialogFooter>
-																<SubmitButton
-																	className='mt-4'
-																	formAction={async (data: FormData) => {
-																		'use server';
-																		const text = data.get('text') as string;
-																		console.log(text);
-																		if (comment) {
-																			await updateComment(comment?.id, { text });
-																		} else {
-																			await createComment({ proposal: proposal.id, text, user: user?.id });
-																		}
-																	}}
-																>
-																	{comment ? 'Update' : 'Comment'}
-																</SubmitButton>
-															</DialogFooter>
-														</form>
-													</DialogContent>
-												</Dialog> */}
-											</div>
-
-											<ul className='list-disc list-inside px-4'>
-												{phase.tickets?.map((ticket) => (
-													<li key={ticket.id} className='text-sm'>
-														{ticket.summary}
-													</li>
-												))}
-											</ul>
+								{phases?.map((phase) => (
+									<div className='space-y-4' key={phase.id}>
+										<div className='flex items-center gap-2'>
+											<h3 className='font-medium tracking-tight'>
+												{phase.description} - {phase.hours}hrs
+											</h3>
 										</div>
-									);
-								})}
+
+										<ul className='list-disc list-inside px-4'>
+											{phase.tickets?.map((ticket) => (
+												<li key={ticket.id} className='text-sm'>
+													{ticket.summary}
+												</li>
+											))}
+										</ul>
+									</div>
+								))}
 							</div>
 						</CardContent>
 					</Card>

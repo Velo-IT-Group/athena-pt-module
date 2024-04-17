@@ -143,6 +143,8 @@ export type Database = {
           category: string | null
           cost: number | null
           description: string | null
+          extended_cost: number | null
+          extended_price: number | null
           id: number | null
           identifier: string | null
           manufacturer_part_number: string | null
@@ -172,6 +174,8 @@ export type Database = {
           category?: string | null
           cost?: number | null
           description?: string | null
+          extended_cost?: number | null
+          extended_price?: number | null
           id?: number | null
           identifier?: string | null
           manufacturer_part_number?: string | null
@@ -201,6 +205,8 @@ export type Database = {
           category?: string | null
           cost?: number | null
           description?: string | null
+          extended_cost?: number | null
+          extended_price?: number | null
           id?: number | null
           identifier?: string | null
           manufacturer_part_number?: string | null
@@ -521,7 +527,7 @@ export type Database = {
         }
         Relationships: [
           {
-            foreignKeyName: "public_version_proposal_fkey"
+            foreignKeyName: "public_versions_proposal_fkey"
             columns: ["proposal"]
             isOneToOne: false
             referencedRelation: "proposals"
@@ -534,12 +540,94 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      duplicate_phases: {
+      convert_to_manage: {
         Args: {
-          original_id: string
-          new_id: string
+          proposal_id: string
         }
         Returns: undefined
+      }
+      create_manage_opportunity: {
+        Args: {
+          proposal_id: string
+        }
+        Returns: string
+      }
+      create_manage_project: {
+        Args: {
+          opportunity_id: number
+        }
+        Returns: Json
+      }
+      create_new_phase: {
+        Args: {
+          old_phase_id: string
+          new_version_id?: string
+        }
+        Returns: string
+      }
+      create_new_product: {
+        Args: {
+          old_product_id: string
+          new_version: string
+          new_section?: string
+        }
+        Returns: string
+      }
+      create_new_task: {
+        Args: {
+          old_task_id: string
+          new_ticket_id: string
+        }
+        Returns: string
+      }
+      create_new_ticket: {
+        Args: {
+          old_ticket_id: string
+          new_phase_id: string
+        }
+        Returns: string
+      }
+      create_opportunity_products:
+        | {
+            Args: {
+              opportunity_id: number
+            }
+            Returns: Json
+          }
+        | {
+            Args: {
+              opportunity_id: number
+              version_id: string
+            }
+            Returns: Json
+          }
+      create_phase_ticket: {
+        Args: {
+          ticket_id: string
+          phase_id: number
+        }
+        Returns: Json
+      }
+      create_project_phase: {
+        Args: {
+          phase_id: string
+          project_id: number
+        }
+        Returns: string
+      }
+      create_ticket_task: {
+        Args: {
+          task_id: string
+          ticket_id: number
+        }
+        Returns: string
+      }
+      duplicate_phases: {
+        Args: {
+          old_version: string
+          new_version: string
+        }
+        Returns: string[]
       }
       duplicate_products: {
         Args: {
@@ -616,7 +704,7 @@ export type Database = {
       }
     }
     Enums: {
-      auth_type: "OAuth2"
+      auth_type: "OAuth2" | "Basic"
       integration_type: "reseller" | "distribution" | "email"
       status: "building" | "inProgress" | "signed" | "canceled"
     }

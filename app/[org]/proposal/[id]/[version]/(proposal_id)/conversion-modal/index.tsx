@@ -129,7 +129,6 @@ export default function ConversionModal({ proposal, ticket }: { proposal: Nested
 									try {
 										const project = await createProject(
 											{
-												name: `NICK'S TESTING - ${name}`,
 												board: { id: board },
 												estimatedStart: estimatedStart!.toISOString().split('.')[0] + 'Z',
 												estimatedEnd: estimatedEnd!.toISOString().split('.')[0] + 'Z',

@@ -355,7 +355,7 @@ export const createManageProduct = async (
 };
 
 interface ProjectCreate {
-	name: string;
+	// name: string;
 	board: { id: number };
 	// status: { id: number };
 	// company: { id: number };

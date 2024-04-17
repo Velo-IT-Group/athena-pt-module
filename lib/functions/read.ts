@@ -414,8 +414,9 @@ export const getSections = unstable_cache(
 			.from('sections')
 			.select('*, products(*, products(*))')
 			.eq('version', id)
+			.is('products.parent', null)
 			.order('created_at')
-			.returns<Array<Section & { products: Product[] }>>();
+			.returns<Array<Section & { products: NestedProduct[] }>>();
 
 		if (!sections || error) {
 			throw Error('Error in getting sections', { cause: error });

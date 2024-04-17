@@ -33,7 +33,7 @@ const Navbar = async ({ title, titleEditable, titleId, children, org, version, t
 
 	return (
 		<>
-			<nav className='flex items-center gap-4 w-full px-8 h-16 relative bg-background'>
+			<nav className='flex items-center gap-4 w-full px-8 h-16 bg-background'>
 				{org ? (
 					<>
 						<Link href={`/${org}`}>

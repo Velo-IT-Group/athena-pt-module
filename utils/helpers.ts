@@ -1,4 +1,5 @@
 import { CatalogItem, ProjectPhase, ProjectWorkPlan } from '@/types/manage';
+import { productStub } from '@/types/optimisticTypes';
 import { v4 as uuid } from 'uuid';
 
 export const createNestedPhaseFromTemplate = (workplan: ProjectWorkPlan, version: string, destinationIndex: number): NestedPhase[] => {
@@ -116,6 +117,16 @@ export const convertToCamelCase = (item: string | object, flatten: boolean = tru
 	console.log(snakeObject);
 
 	return snakeObject;
+};
+
+export const convertToProduct = (product: ProductInsert) => {
+	const tempObj = {};
+	Object.keys(productStub).map((key: keyof ProductInsert) => {
+		// @ts-expect-error
+		tempObj[key] = product[key];
+	});
+
+	return tempObj;
 };
 
 type ReturnType = {

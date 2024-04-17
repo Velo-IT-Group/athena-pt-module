@@ -1,6 +1,6 @@
 'use server';
 
-import { createManageProduct, createOpportunity } from '@/lib/functions/create';
+import { createManageProduct, createOpportunity, createProject } from '@/lib/functions/create';
 import { getOpportunityProducts } from '@/lib/functions/read';
 import { ManageProductUpdate, updateManageProduct } from '@/lib/functions/update';
 import { ProductClass, ServiceTicket } from '@/types/manage';
@@ -68,6 +68,16 @@ export const convertToManageProject = async (proposal: NestedProposal, ticket: S
 	console.log('bundledChanges', bundledChanges);
 
 	await Promise.all(bundledChanges.map((product) => updateManageProduct(product)));
+
+	await createProject(
+		{
+			board: { id: 51 },
+			estimatedStart: new Date().toISOString().split('.')[0] + 'Z',
+			estimatedEnd: new Date(new Date().setDate(new Date().getDate() + 30)).toISOString().split('.')[0] + 'Z',
+		},
+		proposal.id,
+		opportunity.id
+	);
 
 	return opportunity;
 };

@@ -22,11 +22,12 @@ import {
 	AlertDialogTrigger,
 } from '@/components/ui/alert-dialog';
 import { deleteProduct } from '@/lib/functions/delete';
-import { convertToSnakeCase } from '@/utils/helpers';
+import { convertToProduct, convertToSnakeCase } from '@/utils/helpers';
 import { createProduct } from '@/lib/functions/create';
 import Link from 'next/link';
 import CurrencyInput from '@/components/CurrencyInput';
 import { Input } from '@/components/ui/input';
+import { productStub } from '@/types/optimisticTypes';
 
 declare module '@tanstack/react-table' {
 	interface TableMeta<TData extends RowData> {
@@ -249,16 +250,19 @@ export const catalogColumns: ColumnDef<CatalogItem>[] = [
 						row.toggleSelected(!!!row.getIsSelected());
 						if (!!!row.getIsSelected()) {
 							// @ts-ignore
-							const newProduct: ProductInsert = { ...convertToSnakeCase(row.original) };
-							// @ts-ignore
+							const snakedObj: ProductInsert = { ...convertToSnakeCase(row.original) };
+							const newProduct = convertToProduct(snakedObj);
+
 							const bundledItems = row.original.bundledItems?.map((b) => {
 								// @ts-ignore
 								const snakedObj = convertToSnakeCase(b);
 								// @ts-ignore
-								const snakedFixed = { ...snakedObj, id: b.catalogItem.id };
+								const snakedFixed = { ...snakedObj, id: b.catalogItem.id, version: '' };
+
+								const newObj = convertToProduct(snakedFixed);
 								console.log(snakedFixed);
 								// @ts-ignore
-								return { ...snakedObj, id: b.catalogItem.id };
+								return newObj;
 							});
 
 							// @ts-ignore

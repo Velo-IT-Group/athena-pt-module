@@ -15,6 +15,7 @@ const catalogItemFields: Array<keyof CatalogItem> = [
 	'vendor',
 	'recurringFlag',
 	'recurringBillCycle',
+	'recurringCost',
 	'recurringCycleType',
 	'category',
 	'manufacturerPartNumber',
@@ -196,12 +197,9 @@ export const getCatalogItemComponents = async (id: number) => {
 
 	const componentString = components.map((c) => c.catalogItem.id).toString();
 
-	const catalogItemsResponse = await fetch(
-		`${process.env.NEXT_PUBLIC_CW_URL}/procurement/catalog?conditions=id in (${componentString})&fields=${catalogItemFields.toString()}`,
-		{
-			headers: baseHeaders,
-		}
-	);
+	const catalogItemsResponse = await fetch(`${process.env.NEXT_PUBLIC_CW_URL}/procurement/catalog?conditions=id in (${componentString})`, {
+		headers: baseHeaders,
+	});
 
 	if (!catalogItemsResponse.ok) {
 		throw Error('Error getting catalog items...', { cause: catalogItemsResponse.statusText });
@@ -305,9 +303,7 @@ export const getCatalogItems = async (searchText?: string, identifier?: string, 
 	const catalogItemsResponse = await fetch(
 		`${process.env.NEXT_PUBLIC_CW_URL}/procurement/catalog?conditions=inactiveFlag=false ${
 			searchText ? `and description contains '${searchText}'` : ''
-		} ${identifier ? `and identifier contains '${identifier}'` : ''}&pageSize=10&orderBy=description&page=${
-			page ?? 1
-		}&fields=${catalogItemFields.toString()}`,
+		} ${identifier ? `and identifier contains '${identifier}'` : ''}&pageSize=10&orderBy=description&page=${page ?? 1}`,
 		{ headers: baseHeaders }
 	);
 
