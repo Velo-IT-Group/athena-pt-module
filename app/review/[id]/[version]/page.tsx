@@ -182,7 +182,7 @@ const ProposalReviewPage = async ({ params }: Props) => {
 											<p className='text-sm text-muted-foreground text-right font-medium'>{laborHours} hrs</p>
 										</div>
 
-										<div className='flex items-center justify-between'>
+										{/* <div className='flex items-center justify-between'>
 											<p className='text-sm text-muted-foreground'>Sales Work</p>
 											<p className='text-sm text-muted-foreground text-right font-medium'>{proposal.sales_hours!} hrs</p>
 										</div>
@@ -195,7 +195,7 @@ const ProposalReviewPage = async ({ params }: Props) => {
 										<div className='flex items-center justify-between'>
 											<p className='text-sm text-muted-foreground'>Hours Required</p>
 											<p className='text-sm text-muted-foreground text-right font-medium'>{proposal.hours_required!} hrs</p>
-										</div>
+										</div> */}
 
 										<Separator />
 
