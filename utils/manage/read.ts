@@ -1,6 +1,16 @@
 'use server';
 import { baseHeaders } from '@/lib/utils';
-import { CatalogComponent, CatalogItem, Company, Opportunity, ProjectTemplate, ProjectWorkPlan, ServiceTicket, TicketNote } from '@/types/manage';
+import {
+	CatalogComponent,
+	CatalogItem,
+	Company,
+	Opportunity,
+	ProjectTemplate,
+	ProjectWorkPlan,
+	ServiceTicket,
+	SystemMember,
+	TicketNote,
+} from '@/types/manage';
 
 const catalogItemFields: Array<keyof CatalogItem> = [
 	'id',
@@ -335,4 +345,14 @@ export const getCatalogItems = async (searchText?: string, identifier?: string, 
 	});
 
 	return { catalogItems: mappedData as CatalogItem[], count };
+};
+
+export const getSystemMembers = async (email: string): Promise<SystemMember> => {
+	const response = await fetch(`${process.env.NEXT_PUBLIC_CW_URL}/system/members?conditions=primaryEmail like '${email}'`, {
+		headers: baseHeaders,
+	});
+
+	const data = await response.json();
+
+	return data;
 };

@@ -45,13 +45,13 @@ const ProposalReviewPage = async ({ params }: Props) => {
 	const user = await getUser();
 
 	return (
-		<div className='bg-neutral-50 flex-1 min-h-screen'>
-			<Navbar title={proposal.name} org=''>
-				{user && (
+		<div className='bg-secondary/25 dark:bg-background flex-1 min-h-screen'>
+			<Navbar title={proposal.name} org='' version={proposal.working_version.number ? proposal.working_version.number : undefined}>
+				{/* {user && (
 					<Button className='mr-2' variant='outline'>
 						Revise
 					</Button>
-				)}
+				)} */}
 
 				<Dialog>
 					<DialogTrigger asChild>
@@ -68,11 +68,7 @@ const ProposalReviewPage = async ({ params }: Props) => {
 						<div className='space-y-4'>
 							<h1 className='text-lg font-semibold'>Proposal breakdown</h1>
 
-							<p className='text-sm text-muted-foreground'>
-								Based on your proposal, you can see what you&apos;ll be able to expect as your monthly expense.
-							</p>
-
-							<div className='rounded-xl border bg-neutral-100 p-4 space-y-4'>
+							<div className='rounded-xl border bg-secondary/50 dark:bg-card/50 p-4 space-y-4'>
 								{sections?.map((section) => {
 									const sectionProductSubTotal = section.products
 										.filter((p) => !p.recurring_flag)
@@ -116,7 +112,7 @@ const ProposalReviewPage = async ({ params }: Props) => {
 																<div className='font-medium text-sm line-clamp-1'>{product.description}</div>
 																<div className='flex items-center w-full'>
 																	<div className='text-muted-foreground text-sm'>{getCurrencyString(product.price!)} </div>
-																	<p className='sm:hidden text-right mx-2'>â€¢</p>
+																	<p className='sm:hidden text-right mx-2 text-muted-foreground'>/</p>
 																	<p className='sm:hidden text-sm text-muted-foreground text-right'>{product.quantity}</p>
 																	<p className='sm:hidden text-sm text-muted-foreground text-right ml-auto'>
 																		<span className='font-medium'>{getCurrencyString(product.price! * product.quantity!)}</span>
@@ -141,12 +137,14 @@ const ProposalReviewPage = async ({ params }: Props) => {
 											<Separator className='mb-6' />
 
 											<CardFooter className='grid gap-1.5'>
-												<div className='flex items-center justify-between'>
-													<p className='text-sm text-muted-foreground'>{section.name} Product Subtotal</p>
-													<p className='text-sm text-muted-foreground text-right'>
-														<span className='font-medium'>{getCurrencyString(sectionProductSubTotal)}</span>
-													</p>
-												</div>
+												{sectionProductSubTotal > 0 && (
+													<div className='flex items-center justify-between'>
+														<p className='text-sm text-muted-foreground'>{section.name} Product Subtotal</p>
+														<p className='text-sm text-muted-foreground text-right'>
+															<span className='font-medium'>{getCurrencyString(sectionProductSubTotal)}</span>
+														</p>
+													</div>
+												)}
 
 												{sectionProductRecurringSubTotal > 0 && (
 													<div className='flex items-center justify-between'>
@@ -161,7 +159,7 @@ const ProposalReviewPage = async ({ params }: Props) => {
 									);
 								})}
 
-								{products.length > 0 && (
+								{/* {products.length > 0 && (
 									<Card>
 										<CardHeader>
 											<CardTitle>Hardware</CardTitle>
@@ -216,7 +214,7 @@ const ProposalReviewPage = async ({ params }: Props) => {
 											</div>
 										</CardFooter>
 									</Card>
-								)}
+								)} */}
 
 								<Card>
 									<CardHeader>
@@ -265,6 +263,10 @@ const ProposalReviewPage = async ({ params }: Props) => {
 									</p>
 								</div>
 							</div>
+
+							<p className='text-sm text-muted-foreground pr-4'>
+								Taxes, shipping, handling and other fees may apply. We reserve the right to cancel orders arising from pricing or other errors.
+							</p>
 						</div>
 					</div>
 

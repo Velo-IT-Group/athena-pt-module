@@ -1,12 +1,12 @@
 'use client';
 import React from 'react';
-import { Button } from '@/components/ui/button';
 import { DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { ServiceTicket } from '@/types/manage';
 import { updateProposal } from '@/lib/functions/update';
 import { convertToManageProject } from '@/app/[org]/proposal/[id]/[version]/(proposal_id)/actions';
+import SubmitButton from '@/components/SubmitButton';
 
 type Props = {
 	proposal: NestedProposal;
@@ -39,7 +39,7 @@ const ApprovalForm = ({ proposal, ticket }: Props) => {
 					</div>
 				</div>
 				<DialogFooter>
-					<Button type='submit'>Sign</Button>
+					<SubmitButton>Sign</SubmitButton>
 				</DialogFooter>
 			</DialogContent>
 		</form>

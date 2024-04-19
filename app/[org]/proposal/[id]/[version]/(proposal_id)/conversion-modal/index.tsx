@@ -16,7 +16,7 @@ import { useEffect, useState } from 'react';
 import { toast } from 'sonner';
 import { convertToManageProject } from '../actions';
 
-export default function ConversionModal({ proposal, ticket }: { proposal: NestedProposal; ticket: ServiceTicket }) {
+export default function ConversionModal({ proposal, ticket, phases }: { proposal: NestedProposal; ticket: ServiceTicket; phases: NestedPhase[] }) {
 	const [selectedTab, setSelectedTab] = useState(proposal.opportunity_id ? 'project' : 'opportunity');
 
 	const [statuses, setStatuses] = useState<{ id: number; name: string }[] | undefined>();
@@ -58,7 +58,7 @@ export default function ConversionModal({ proposal, ticket }: { proposal: Nested
 							<form
 								action={async () => {
 									try {
-										const opportunity = await convertToManageProject(proposal, ticket);
+										const opportunity = await convertToManageProject(proposal, ticket, phases);
 										toast('Opportunity created!');
 										setOpportunityId(opportunity?.id);
 										setSelectedTab('project');

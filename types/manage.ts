@@ -176,6 +176,13 @@ export type CatalogComponent = {
 	cost: number;
 };
 
+export interface SystemMember {
+	id: number;
+	identifier: string;
+	firstName: string;
+	lastName: string;
+}
+
 interface QuoteItem {
 	id: string;
 	id_quote: string;

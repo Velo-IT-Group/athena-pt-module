@@ -142,6 +142,7 @@ export type Database = {
           catalog_item: number | null
           category: string | null
           cost: number | null
+          created_at: string | null
           description: string | null
           extended_cost: number | null
           extended_price: number | null
@@ -173,6 +174,7 @@ export type Database = {
           catalog_item?: number | null
           category?: string | null
           cost?: number | null
+          created_at?: string | null
           description?: string | null
           extended_cost?: number | null
           extended_price?: number | null
@@ -204,6 +206,7 @@ export type Database = {
           catalog_item?: number | null
           category?: string | null
           cost?: number | null
+          created_at?: string | null
           description?: string | null
           extended_cost?: number | null
           extended_price?: number | null
@@ -303,9 +306,10 @@ export type Database = {
       proposals: {
         Row: {
           catalog_items: number[] | null
+          company_id: number | null
+          contact_id: number | null
           created_at: string
           created_by: string | null
-          current_version: string | null
           expiration_date: string | null
           id: string
           labor_hours: number
@@ -322,9 +326,10 @@ export type Database = {
         }
         Insert: {
           catalog_items?: number[] | null
+          company_id?: number | null
+          contact_id?: number | null
           created_at?: string
           created_by?: string | null
-          current_version?: string | null
           expiration_date?: string | null
           id?: string
           labor_hours?: number
@@ -341,9 +346,10 @@ export type Database = {
         }
         Update: {
           catalog_items?: number[] | null
+          company_id?: number | null
+          contact_id?: number | null
           created_at?: string
           created_by?: string | null
-          current_version?: string | null
           expiration_date?: string | null
           id?: string
           labor_hours?: number
@@ -371,13 +377,6 @@ export type Database = {
             columns: ["created_by"]
             isOneToOne: false
             referencedRelation: "profiles"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "public_proposals_current_version_fkey"
-            columns: ["current_version"]
-            isOneToOne: false
-            referencedRelation: "versions"
             referencedColumns: ["id"]
           },
           {
@@ -556,7 +555,7 @@ export type Database = {
         Args: {
           opportunity_id: number
         }
-        Returns: Json
+        Returns: string
       }
       create_new_phase: {
         Args: {
@@ -606,7 +605,7 @@ export type Database = {
           ticket_id: string
           phase_id: number
         }
-        Returns: Json
+        Returns: string
       }
       create_project_phase: {
         Args: {
@@ -650,6 +649,15 @@ export type Database = {
         }
         Returns: undefined
       }
+      get_opportunity_products: {
+        Args: {
+          opportunity_id: number
+        }
+        Returns: {
+          id: number
+          catalogitem: number
+        }[]
+      }
       get_organization_from_phase: {
         Args: {
           phase_id: string
@@ -684,6 +692,10 @@ export type Database = {
         }
         Returns: Json
       }
+      phase_loop: {
+        Args: Record<PropertyKey, never>
+        Returns: undefined
+      }
       slugify: {
         Args: {
           value: string
@@ -702,6 +714,24 @@ export type Database = {
         }
         Returns: unknown
       }
+      update_manage_product:
+        | {
+            Args: {
+              o_prod_id: number
+              price: number
+              cost: number
+            }
+            Returns: undefined
+          }
+        | {
+            Args: {
+              o_prod_id: number
+              price: number
+              cost: number
+              quantity: number
+            }
+            Returns: undefined
+          }
     }
     Enums: {
       auth_type: "OAuth2" | "Basic"

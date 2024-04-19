@@ -2,7 +2,7 @@
 
 import * as React from 'react';
 import { Dialog } from '@radix-ui/react-dialog';
-import { CopyIcon, DotsHorizontalIcon, EnterIcon, MixerHorizontalIcon, ResetIcon, TrashIcon } from '@radix-ui/react-icons';
+import { ArrowRightIcon, CopyIcon, DotsHorizontalIcon, EnterIcon, MixerHorizontalIcon, ResetIcon, TrashIcon } from '@radix-ui/react-icons';
 
 import {
 	AlertDialog,
@@ -15,7 +15,7 @@ import {
 	AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
 import { Button } from '@/components/ui/button';
-import { DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { DialogClose, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import {
 	DropdownMenu,
 	DropdownMenuContent,
@@ -36,9 +36,11 @@ import { updatePhase, updateProposal } from '@/lib/functions/update';
 import { ServiceTicket } from '@/types/manage';
 import ConversionModal from './conversion-modal';
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from '@/components/ui/command';
-import { createVersion } from '@/lib/functions/create';
+import { createProjectPhase, createVersion } from '@/lib/functions/create';
 import { Badge } from '@/components/ui/badge';
 import { useRouter } from 'next/navigation';
+import { createClient } from '@/utils/supabase/client';
+import { convertToManageProject } from './actions';
 
 type Props = {
 	proposal: NestedProposal;
@@ -51,6 +53,7 @@ type Props = {
 
 const ProposalActions = ({ proposal, phases, tickets, versions, ticket, params }: Props) => {
 	const router = useRouter();
+	const supabase = createClient();
 	const [open, setIsOpen] = React.useState(false);
 	const [showDeleteDialog, setShowDeleteDialog] = React.useState(false);
 	const [showOpportunityDialog, setShowOpportunityDialog] = React.useState(false);
@@ -182,11 +185,28 @@ const ProposalActions = ({ proposal, phases, tickets, versions, ticket, params }
 
 			<Dialog open={showOpportunityDialog} onOpenChange={setShowOpportunityDialog}>
 				<DialogContent className='max-h-w-padding-padding min-h-0 flex flex-col overflow-auto'>
-					<DialogHeader>
-						<DialogTitle>Transfer To Manage</DialogTitle>
-					</DialogHeader>
+					<form
+						action={async () => {
+							console.log(phases);
+							// await Promise.all(phases.map((phase) => createProjectPhase(1031, phase)));
+							await convertToManageProject(proposal, ticket, phases);
+							// await supabase.rpc('convert_to_manage', { proposal_id: proposal.id });
+							setShowOpportunityDialog(false);
+						}}
+					>
+						<DialogHeader>
+							<DialogTitle>Transfer To Manage</DialogTitle>
+						</DialogHeader>
 
-					<ConversionModal proposal={proposal} ticket={ticket} />
+						<DialogFooter>
+							<DialogClose>Cancel</DialogClose>
+							<SubmitButton>
+								<ArrowRightIcon className='mr-2' /> Transfer
+							</SubmitButton>
+						</DialogFooter>
+
+						{/* <ConversionModal proposal={proposal} ticket={ticket} phases={phases} /> */}
+					</form>
 				</DialogContent>
 			</Dialog>
 

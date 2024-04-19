@@ -437,6 +437,7 @@ export const getSection = unstable_cache(
 			.select('*, products(*, products(*))')
 			.eq('id', id)
 			.is('products.parent', null)
+			.order('created_at', { referencedTable: 'products' })
 			.single();
 
 		if (!section || error) {
@@ -513,7 +514,7 @@ export const getProposal = unstable_cache(
 					`*,
 						working_version(*,
 							sections(*, products(*)),
-							products(*),
+							products(*, products(*)),
 							phases(*, 
 								tickets(*, 
 									tasks(*)

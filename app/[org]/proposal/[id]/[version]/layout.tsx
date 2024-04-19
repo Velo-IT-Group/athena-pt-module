@@ -103,7 +103,7 @@ const ProposalIdLayout = async ({ params, children }: Props) => {
 
 					<ProposalActions
 						proposal={proposal}
-						phases={proposal.phases ?? []}
+						phases={proposal.working_version.phases ?? []}
 						tickets={proposal.working_version?.phases?.map((p) => p.tickets ?? [])?.flat() ?? []}
 						ticket={serviceTicket}
 						versions={versions}
