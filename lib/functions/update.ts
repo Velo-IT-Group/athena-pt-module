@@ -5,6 +5,7 @@ import { cookies } from 'next/headers';
 import axios, { AxiosResponse } from 'axios';
 import { baseConfig } from '../utils';
 import { ProductsItem } from '@/types/manage';
+import { UserMetadata } from '@supabase/supabase-js';
 
 /**
  * Updates Product In Supabase.
@@ -220,4 +221,14 @@ export const updateVersion = async (version: VersionUpdate) => {
 	}
 
 	revalidateTag('versions');
+};
+
+export const updateUserMetadata = async (data: FormData, user_metadata: UserMetadata) => {
+	const supabase = createClient();
+
+	const { error } = await supabase.auth.updateUser({
+		data: { ...user_metadata, first_name: data.get('first_name') as string, last_name: data.get('last_name') as string },
+	});
+
+	if (error) throw Error('Error updating profile', { cause: error.message });
 };

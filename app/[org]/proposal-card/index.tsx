@@ -29,7 +29,7 @@ export function ProposalCard({ proposal, orgId }: { proposal: Proposal; orgId: s
 			</CardHeader>
 			<CardContent className='mt-auto'>
 				<div className='flex items-center justify-between space-x-4 text-sm text-muted-foreground'>
-					<Suspense fallback={<Skeleton className='h-5 w-10' />}>
+					<Suspense fallback={<Skeleton className='h-5 w-40' />}>
 						<ProposalCardStatus ticketId={proposal.service_ticket} />
 					</Suspense>
 

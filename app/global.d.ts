@@ -52,10 +52,10 @@ declare global {
 
 	type DoublyNestedProposal = Proposal & { phases?: Array<NestedProposal> };
 	type NestedProposal = Proposal & {
-		working_version?: Version & { products: Product[]; sections: Array<Section & { products: Product[] }>; phases: NestedPhase[] };
+		working_version?: Version & { products: NestedProduct[]; sections: Array<Section & { products: NestedProduct[] }>; phases: NestedPhase[] };
 		phases?: Array<NestedPhase>;
 		products?: NestedProduct[];
-		sections?: Array<Section & { products?: Product[] }>;
+		sections?: Array<Section & { products?: NestedProduct[] }>;
 	};
 	type NestedProduct = Phase & { tickets?: Array<Ticket & { tasks?: Task[] }> };
 	type NestedTicket = Ticket & { tasks?: Task[] };

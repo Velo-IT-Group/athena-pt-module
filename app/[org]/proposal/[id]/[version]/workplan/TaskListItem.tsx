@@ -56,6 +56,7 @@ const TaskListItem = ({ task, order, pending, taskMutation }: Props) => {
 							}
 						}}
 						className='border border-transparent hover:border-border hover:cursor-default shadow-none px-2'
+						maxLength={100}
 						defaultValue={task.summary}
 					/>
 					<span className='text-muted-foreground line-clamp-1 flex-1 flex-'>{task.summary}</span>

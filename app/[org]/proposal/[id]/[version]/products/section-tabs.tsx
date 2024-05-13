@@ -77,7 +77,7 @@ const SectionTabs = ({ params, sections, version }: Props) => {
 					pathname === `/${params.org}/proposal/${params.id}/${params.version}/products` && 'bg-background text-foreground shadow'
 				)}
 			>
-				All
+				Hardware
 			</Link>
 
 			<DragDropContext onDragEnd={onDragEnd}>

@@ -512,22 +512,23 @@ export const getProposal = unstable_cache(
 				.from('proposals')
 				.select(
 					`*,
-						working_version(*,
-							sections(*, products(*)),
-							products(*, products(*)),
-							phases(*, 
-								tickets(*, 
-									tasks(*)
-								)
+					working_version(*,
+						sections(*, products(*)),
+						products(*, products(*)),
+						phases(*, 
+							tickets(*, 
+								tasks(*)
 							)
-						),
-						versions:versions!public_versions_proposal_fkey(*),
-						created_by(*)
+						)
+					),
+					versions:versions!public_versions_proposal_fkey(*),
+					created_by(*)
 					)
 				`
 				)
 				.eq('id', id)
 				.eq('working_version', version)
+				.is('working_version.products.parent', null)
 				.single();
 
 			if (!data || error) {

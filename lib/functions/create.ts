@@ -20,6 +20,7 @@ import { baseConfig, baseHeaders } from '@/lib/utils';
 import { getTemplate } from './read';
 import axios, { AxiosRequestConfig, AxiosResponse } from 'axios';
 import { updateProposal } from './update';
+import { wait } from '@/utils/helpers';
 
 /**
  * Creates Phases, Tickets and Tasks In Supabase.
@@ -228,7 +229,13 @@ export const createOrganizationIntegration = async (organization: OrganizationIn
 	revalidateTag('proposals');
 };
 
-export const signUp = async (formData: FormData) => {
+interface MetaData {
+	first_name: string;
+	last_name: string;
+	manage_reference_id: number;
+}
+
+export const signUp = async (formData: FormData, data?: MetaData) => {
 	'use server';
 
 	const origin = headers().get('origin');
@@ -241,6 +248,7 @@ export const signUp = async (formData: FormData) => {
 		password,
 		options: {
 			emailRedirectTo: `${origin}/auth/callback`,
+			data,
 		},
 	});
 
@@ -293,7 +301,7 @@ export const createOpportunity = async (proposal: NestedProposal, ticket: Servic
 		data,
 	};
 	//
-	console.log(config.headers);
+	// console.log(config.headers);
 	// console.log(proposal, proposal.created_by, proposal.products);
 
 	const response: AxiosResponse<Opportunity, Error> = await axios.request(config);
@@ -404,6 +412,7 @@ export const createProject = async (project: ProjectCreate, proposalId: string, 
 };
 
 export const createProjectPhase = async (projectId: number, phase: NestedPhase): Promise<ProjectPhase | undefined> => {
+	const supabase = createClient();
 	let config: RequestInit = {
 		method: 'POST',
 		headers: baseHeaders,
@@ -414,27 +423,50 @@ export const createProjectPhase = async (projectId: number, phase: NestedPhase):
 		} as ProjectPhase),
 	};
 
-	console.log(config.body);
+	console.log('TASK BODY', config.body);
 
 	const response = await fetch(`${process.env.NEXT_PUBLIC_CW_URL}/project/projects/${projectId}/phases`, config);
 
-	if (response.status !== 201 && response.statusText === 'Internal Server Error') {
-		setTimeout(async () => {
-			await createProjectPhase(projectId, phase);
-		}, 1000);
-	} else if (response.status !== 201) {
-		throw Error('Error creating phase...', { cause: response.statusText });
+	if (response.status !== 201) {
+		try {
+			console.log('waiting');
+			await wait(1000);
+			console.log('done waiting');
+
+			setTimeout(async () => {
+				const response = await fetch(`${process.env.NEXT_PUBLIC_CW_URL}/project/projects/${projectId}/phases`, config);
+
+				console.log('PHASE BODY', config.body);
+
+				if (response.status !== 201) throw Error(response.statusText);
+
+				const data = await response.json();
+
+				await supabase.from('phases').update({ reference_id: data.id }).eq('id', phase.id);
+
+				if (phase.tickets) {
+					await Promise.all(phase.tickets?.sort((a, b) => a.order - b.order)?.map((ticket) => createProjectTicket(data.id, ticket)));
+				}
+
+				console.log('Phase', phase.description, data.id);
+
+				return data;
+			});
+		} catch (error) {
+			console.error(error);
+			throw Error('Error', { cause: error });
+		}
 	}
 
 	const data = await response.json();
 
-	// await supabase.from('phases').update({ reference_id: data.id }).eq('id', phase.id);
+	await supabase.from('phases').update({ reference_id: data.id }).eq('id', phase.id);
 
 	if (phase.tickets) {
-		await Promise.all(phase.tickets?.map((ticket) => createProjectTicket(data.id, ticket)));
+		await Promise.all(phase.tickets?.sort((a, b) => a.order - b.order)?.map((ticket) => createProjectTicket(data.id, ticket)));
 	}
 
-	console.log(data.id);
+	console.log('Phase', phase.description, data.id);
 
 	return data;
 };
@@ -448,6 +480,7 @@ interface ProjectTicketInsert {
 }
 
 export const createProjectTicket = async (phaseId: number, ticket: NestedTicket): Promise<ProjectTemplateTicket | undefined> => {
+	const supabase = createClient();
 	const { summary, budget_hours: budgetHours } = ticket;
 
 	let config: RequestInit = {
@@ -462,25 +495,46 @@ export const createProjectTicket = async (phaseId: number, ticket: NestedTicket)
 		} as ProjectTicketInsert),
 	};
 
-	console.log('TICKET', config.body);
+	console.log('TICKET BODY', config.body);
 
 	const response = await fetch(`${process.env.NEXT_PUBLIC_CW_URL}/project/tickets`, config);
 
-	if (response.status !== 201 && response.statusText === 'Internal Server Error') {
-		setTimeout(async () => {
-			await createProjectTicket(phaseId, ticket);
-		}, 1000);
-	} else if (response.status !== 201) {
-		throw Error('Error creating ticket...', { cause: response.statusText });
+	if (response.status !== 201) {
+		try {
+			setTimeout(async () => {
+				const response = await fetch(`${process.env.NEXT_PUBLIC_CW_URL}/project/tickets`, config);
+
+				console.log('TICKET BODY', config.body);
+
+				if (response.status !== 201) throw Error(response.statusText);
+
+				const data = await response.json();
+
+				await supabase.from('tickets').update({ reference_id: data.id }).eq('id', ticket.id);
+
+				if (ticket.tasks && ticket.tasks.length) {
+					await Promise.all(ticket.tasks?.sort((a, b) => a.priority - b.priority)?.map((task) => createProjectTask(data.id, task)));
+				}
+
+				console.log('Ticket', summary, data.id);
+
+				return data;
+			}, 1000);
+		} catch (error) {
+			console.error(error);
+			throw Error('Error', { cause: error });
+		}
 	}
 
 	const data = await response.json();
 
-	// await supabase.from('tickets').update({ reference_id: data.id }).eq('id', ticket.id);
+	await supabase.from('tickets').update({ reference_id: data.id }).eq('id', ticket.id);
 
 	if (ticket.tasks && ticket.tasks.length) {
-		await Promise.all(ticket.tasks?.map((task) => createProjectTask(data.id, task)));
+		await Promise.all(ticket.tasks?.sort((a, b) => a.priority - b.priority)?.map((task) => createProjectTask(data.id, task)));
 	}
+
+	console.log('Ticket', summary, data.id);
 
 	return data;
 };
@@ -492,32 +546,52 @@ interface ProjectTaskInsert {
 }
 
 export const createProjectTask = async (ticketId: number, task: Task): Promise<ProjectTemplateTask | undefined> => {
-	const { summary, notes } = task;
-
-	console.log('TASK', summary, notes);
+	const supabase = createClient();
+	const { summary, notes, priority } = task;
+	const body = JSON.stringify({
+		summary: String.raw`${summary}`,
+		notes: String.raw`${notes}`,
+		priority,
+	} as ProjectTaskInsert);
 
 	let config: RequestInit = {
 		method: 'POST',
 		headers: baseHeaders,
-		body: JSON.stringify({
-			summary,
-			notes,
-		} as ProjectTaskInsert),
+		body,
 	};
+
+	console.log('NON ERROR TASK BODY', config.body);
 
 	const response = await fetch(`${process.env.NEXT_PUBLIC_CW_URL}/project/tickets/${ticketId}/tasks`, config);
 
-	if (response.status !== 201 && response.statusText === 'Internal Server Error') {
-		setTimeout(async () => {
-			await createProjectTask(ticketId, task);
-		}, 1000);
-	} else if (response.status !== 201) {
-		throw Error('Error creating task...', { cause: response.statusText });
+	if (response.status !== 201) {
+		try {
+			setTimeout(async () => {
+				const response = await fetch(`${process.env.NEXT_PUBLIC_CW_URL}/project/tickets/${ticketId}/tasks`, config);
+
+				console.log('TASK BODY', config.body);
+
+				if (response.status !== 201) throw Error(response.statusText);
+
+				const data = await response.json();
+
+				await supabase.from('tasks').update({ reference_id: data.id }).eq('id', task.id);
+
+				console.log('TASK', summary, data.id);
+
+				return data;
+			}, 2000);
+		} catch (error) {
+			console.error(error);
+			throw Error('Error', { cause: error });
+		}
 	}
 
 	const data = await response.json();
 
-	// await supabase.from('tasks').update({ reference_id: data.id }).eq('id', task.id);
+	await supabase.from('tasks').update({ reference_id: data.id }).eq('id', task.id);
+
+	console.log('TASK', summary, data.id);
 
 	return data;
 };

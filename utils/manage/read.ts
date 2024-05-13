@@ -347,7 +347,7 @@ export const getCatalogItems = async (searchText?: string, identifier?: string, 
 	return { catalogItems: mappedData as CatalogItem[], count };
 };
 
-export const getSystemMembers = async (email: string): Promise<SystemMember> => {
+export const getSystemMembers = async (email: string): Promise<SystemMember[]> => {
 	const response = await fetch(`${process.env.NEXT_PUBLIC_CW_URL}/system/members?conditions=primaryEmail like '${email}'`, {
 		headers: baseHeaders,
 	});

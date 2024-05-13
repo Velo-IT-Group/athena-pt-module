@@ -11,6 +11,8 @@ import ApprovalForm from './approval-form';
 import { notFound } from 'next/navigation';
 import { Metadata, ResolvingMetadata } from 'next';
 import { getTicket } from '@/utils/manage/read';
+import ProductListItem from './product-list-item';
+import ProductCard from './product-card';
 
 type Props = {
 	params: { id: string; version: string };
@@ -47,12 +49,6 @@ const ProposalReviewPage = async ({ params }: Props) => {
 	return (
 		<div className='bg-secondary/25 dark:bg-background flex-1 min-h-screen'>
 			<Navbar title={proposal.name} org='' version={proposal.working_version.number ? proposal.working_version.number : undefined}>
-				{/* {user && (
-					<Button className='mr-2' variant='outline'>
-						Revise
-					</Button>
-				)} */}
-
 				<Dialog>
 					<DialogTrigger asChild>
 						<Button className='mr-2'>Approve</Button>
@@ -70,151 +66,12 @@ const ProposalReviewPage = async ({ params }: Props) => {
 
 							<div className='rounded-xl border bg-secondary/50 dark:bg-card/50 p-4 space-y-4'>
 								{sections?.map((section) => {
-									const sectionProductSubTotal = section.products
-										.filter((p) => !p.recurring_flag)
-										.reduce((accumulator, currentValue) => {
-											const price: number | null = currentValue.product_class === 'Bundle' ? currentValue.calculated_price : currentValue.price;
-
-											return accumulator + (price ?? 0) * (currentValue?.quantity ?? 0);
-										}, 0);
-
-									const sectionProductRecurringSubTotal = section.products
-										.filter((p) => p.recurring_flag && p.recurring_bill_cycle === 2)
-										.reduce((accumulator, currentValue) => {
-											const price: number | null = currentValue.product_class === 'Bundle' ? currentValue.calculated_price : currentValue.price;
-
-											return accumulator + (price ?? 0) * (currentValue?.quantity ?? 0);
-										}, 0);
-
-									return (
-										<Card key={section.id}>
-											<CardHeader>
-												<CardTitle>{section.name}</CardTitle>
-											</CardHeader>
-
-											<CardContent className='space-y-2.5'>
-												<div className='hidden sm:flex items-center gap-6 justify-between'>
-													<div className='max-w-96'>
-														<span className='text-sm text-muted-foreground'>Description / Unit Price</span>
-													</div>
-													<div className='grid gap-2 justify-items-end grid-cols-[100px_125px]'>
-														<span className='text-sm text-muted-foreground'>Quantity</span>
-														<span className='text-sm text-muted-foreground'>Extended Price</span>
-													</div>
-												</div>
-
-												{section.products?.map((product) => (
-													<>
-														<Separator />
-
-														<div key={product.id} className='flex flex-col sm:flex-row sm:items-start gap-6 justify-between'>
-															<div className='max-w-96'>
-																<div className='font-medium text-sm line-clamp-1'>{product.description}</div>
-																<div className='flex items-center w-full'>
-																	<div className='text-muted-foreground text-sm'>{getCurrencyString(product.price!)} </div>
-																	<p className='sm:hidden text-right mx-2 text-muted-foreground'>/</p>
-																	<p className='sm:hidden text-sm text-muted-foreground text-right'>{product.quantity}</p>
-																	<p className='sm:hidden text-sm text-muted-foreground text-right ml-auto'>
-																		<span className='font-medium'>{getCurrencyString(product.price! * product.quantity!)}</span>
-																	</p>
-																</div>
-															</div>
-
-															<div className='hidden sm:grid gap-2 sm:grid-cols-[100px_125px]'>
-																<p className='text-sm text-muted-foreground text-right'>{product.quantity}</p>
-																<p className='text-sm text-muted-foreground text-right'>
-																	<span className='font-medium'>
-																		{getCurrencyString(product.price! * product.quantity!)}
-																		{product.recurring_bill_cycle === 2 && '/mo'}
-																	</span>
-																</p>
-															</div>
-														</div>
-													</>
-												))}
-											</CardContent>
-
-											<Separator className='mb-6' />
-
-											<CardFooter className='grid gap-1.5'>
-												{sectionProductSubTotal > 0 && (
-													<div className='flex items-center justify-between'>
-														<p className='text-sm text-muted-foreground'>{section.name} Product Subtotal</p>
-														<p className='text-sm text-muted-foreground text-right'>
-															<span className='font-medium'>{getCurrencyString(sectionProductSubTotal)}</span>
-														</p>
-													</div>
-												)}
-
-												{sectionProductRecurringSubTotal > 0 && (
-													<div className='flex items-center justify-between'>
-														<p className='text-sm text-muted-foreground'>{section.name} Recurring Subtotal</p>
-														<p className='text-sm text-muted-foreground text-right'>
-															<span className='font-medium'>{getCurrencyString(sectionProductRecurringSubTotal)}/mo</span>
-														</p>
-													</div>
-												)}
-											</CardFooter>
-										</Card>
-									);
+									return <ProductCard key={section.id} title={section.name} products={section.products} />;
 								})}
 
-								{/* {products.length > 0 && (
-									<Card>
-										<CardHeader>
-											<CardTitle>Hardware</CardTitle>
-										</CardHeader>
-
-										<CardContent className='space-y-2.5'>
-											<div className='hidden sm:flex items-center gap-6 justify-between'>
-												<div className='max-w-96'>
-													<span className='text-sm text-muted-foreground'>Description / Unit Price</span>
-												</div>
-												<div className='grid gap-2 justify-items-end grid-cols-[100px_125px]'>
-													<span className='text-sm text-muted-foreground'>Quantity</span>
-													<span className='text-sm text-muted-foreground'>Extended Price</span>
-												</div>
-											</div>
-
-											{products?.map((hardwareItem) => (
-												<>
-													<Separator />
-													<div key={hardwareItem.id} className='flex flex-col sm:flex-row sm:items-start gap-6 justify-between'>
-														<div className='max-w-96'>
-															<div className='font-medium text-sm line-clamp-1'>{hardwareItem.description}</div>
-															<div className='flex items-center w-full'>
-																<div className='text-muted-foreground text-sm'>{getCurrencyString(hardwareItem.price!)} </div>
-																<p className='sm:hidden text-right mx-2'>â€¢</p>
-																<p className='sm:hidden text-sm text-muted-foreground text-right'>{hardwareItem.quantity}</p>
-																<p className='sm:hidden text-sm text-muted-foreground text-right ml-auto'>
-																	<span className='font-medium'>{getCurrencyString(hardwareItem.price! * hardwareItem.quantity!)}</span>
-																</p>
-															</div>
-														</div>
-
-														<div className='hidden sm:grid gap-2 sm:grid-cols-[100px_125px]'>
-															<p className='text-sm text-muted-foreground text-right'>{hardwareItem.quantity}</p>
-															<p className='text-sm text-muted-foreground text-right'>
-																<span className='font-medium'>{getCurrencyString(hardwareItem.price! * hardwareItem.quantity!)}</span>
-															</p>
-														</div>
-													</div>
-												</>
-											))}
-										</CardContent>
-
-										<Separator className='mb-6' />
-
-										<CardFooter>
-											<div className='flex items-center justify-between w-full'>
-												<p className='text-sm text-muted-foreground font-bold'>Hardware Subtotal</p>
-												<p className='text-sm text-muted-foreground text-right'>
-													<span className='font-medium'>{getCurrencyString(productTotal)}</span>
-												</p>
-											</div>
-										</CardFooter>
-									</Card>
-								)} */}
+								{proposal.working_version.products && proposal.working_version.products.length > 0 && (
+									<ProductCard title={'Miscellanous'} products={proposal.working_version.products?.filter((p) => !!!p.section)} />
+								)}
 
 								<Card>
 									<CardHeader>
