@@ -28,6 +28,7 @@ import Link from 'next/link';
 import CurrencyInput from '@/components/CurrencyInput';
 import { Input } from '@/components/ui/input';
 import { productStub } from '@/types/optimisticTypes';
+import ProductDragHandler from './ProductDragHandler';
 
 declare module '@tanstack/react-table' {
 	interface TableMeta<TData extends RowData> {
@@ -38,6 +39,15 @@ declare module '@tanstack/react-table' {
 }
 
 export const columns: ColumnDef<Product>[] = [
+	{
+		id: 'actions',
+		enableHiding: false,
+		cell: ({ row }) => {
+			const product = row.original;
+
+			return <ProductDragHandler id={product.unique_id} />;
+		},
+	},
 	{
 		accessorKey: 'manufacturer_part_number',
 		header: ({ column }) => {
