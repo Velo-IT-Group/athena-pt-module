@@ -50,6 +50,7 @@ export type PhaseState = {
 export type SectionState = {
 	newSection?: SectionInsert;
 	updatedSection?: SectionUpdate;
+	updatedSections?: Section[];
 	deletedSection?: string;
 	pending: boolean;
 };

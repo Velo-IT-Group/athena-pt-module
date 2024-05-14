@@ -9,11 +9,14 @@ import { cn, getBackgroundColor } from '@/lib/utils';
 import { SectionState } from '@/types/optimisticTypes';
 import { DialogTrigger } from '@radix-ui/react-dialog';
 import { PlusCircledIcon } from '@radix-ui/react-icons';
-import React, { useOptimistic, useState, useTransition } from 'react';
-import { DragDropContext, Draggable, DropResult, Droppable } from 'react-beautiful-dnd';
+import React, { useEffect, useOptimistic, useRef, useState, useTransition } from 'react';
 import { v4 as uuid } from 'uuid';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
+import SectionItem from './section-item';
+import { monitorForElements } from '@atlaskit/pragmatic-drag-and-drop/element/adapter';
+import invariant from 'tiny-invariant';
+import { reorder } from '@/utils/array';
 
 type Props = {
 	params: { org: string; id: string; version: string };
@@ -22,6 +25,17 @@ type Props = {
 };
 
 const SectionTabs = ({ params, sections, version }: Props) => {
+	const ref = useRef<HTMLDivElement | null>(null);
+	const [isDraggingOver, setIsDraggingOver] = useState(false);
+
+	function getColor(isDraggedOver: boolean, isDark: boolean): string {
+		if (isDraggedOver) {
+			return 'bg-blue-100';
+		}
+		return 'bg-muted';
+	}
+
+	const isDark = false;
 	const pathname = usePathname();
 	const [pending, startTransition] = useTransition();
 	const [state, mutate] = useOptimistic({ sections, pending: false }, (state, newState: SectionState) => {
@@ -35,6 +49,11 @@ const SectionTabs = ({ params, sections, version }: Props) => {
 				sections: [...state.sections.filter((f) => f.id !== newState.updatedSection!.id), newState.updatedSection] as Section[],
 				pending: newState.pending,
 			};
+		} else if (newState.updatedSections) {
+			return {
+				sections: state.sections,
+				pending: newState.pending,
+			};
 		} else {
 			return {
 				sections: [...state.sections.filter((f) => f.id !== newState.deletedSection)] as Section[],
@@ -43,33 +62,66 @@ const SectionTabs = ({ params, sections, version }: Props) => {
 		}
 	});
 
+	useEffect(() => {
+		invariant(ref.current);
+		return monitorForElements({
+			onDrop({ source, location }) {
+				console.log(source.data, location.current.dropTargets);
+				const destination = location.current.dropTargets[0];
+				if (!destination) {
+					// if dropped outside of any drop targets
+					return;
+				}
+				const destinationLocation = destination.data.location as number;
+				const sourceLocation = source.data.location as number;
+
+				const piece = state.sections.find((p) => p.id, sourceLocation);
+
+				const updatedSections = reorder(state.sections, sourceLocation, destinationLocation);
+
+				console.log(updatedSections);
+
+				mutate({ updatedSections, pending: true });
+				// const restOfPieces = pieces.filter((p) => p !== piece);
+
+				// if (canMove(sourceLocation, destinationLocation, pieceType, pieces) && piece !== undefined) {
+				// 	// moving the piece!
+				// 	setPieces([{ type: piece.type, location: destinationLocation }, ...restOfPieces]);
+				// }
+			},
+		});
+	}, [mutate, state.sections]);
+
 	// a little function to help us with reordering the result
-	function reorder<T>(list: T[], startIndex: number, endIndex: number) {
-		const result = Array.from(list);
-		const [removed] = result.splice(startIndex, 1);
-		result.splice(endIndex, 0, removed);
+	// function reorder<T>(list: T[], startIndex: number, endIndex: number) {
+	// 	const result = Array.from(list);
+	// 	const [removed] = result.splice(startIndex, 1);
+	// 	result.splice(endIndex, 0, removed);
 
-		console.log(removed, result, startIndex, endIndex);
+	// 	console.log(removed, result, startIndex, endIndex);
 
-		return result;
-	}
+	// 	return result;
+	// }
 
-	async function onDragEnd(result: DropResult) {
-		const { destination, source } = result;
+	// async function onDragEnd(result: DropResult) {
+	// 	const { destination, source } = result;
 
-		// handle dropping a template onto proposal
-		if (!destination) return;
+	// 	// handle dropping a template onto proposal
+	// 	if (!destination) return;
 
-		// if dropped on the same list and has same index then do nothing
-		if (source.droppableId === destination?.droppableId && source.index === destination?.index) return;
+	// 	// if dropped on the same list and has same index then do nothing
+	// 	if (source.droppableId === destination?.droppableId && source.index === destination?.index) return;
 
-		reorder(state.sections, source.index, destination.index);
+	// 	reorder(state.sections, source.index, destination.index);
 
-		// handle dropping a template onto proposal
-	}
+	// 	// handle dropping a template onto proposal
+	// }
 
 	return (
-		<div className='inline-flex h-9 items-center justify-center rounded-lg bg-muted p-1 text-muted-foreground'>
+		<div
+			className={cn('inline-flex h-9 items-center justify-center rounded-lg p-1 text-muted-foreground', getColor(isDraggingOver, isDark))}
+			ref={ref}
+		>
 			<Link
 				href={`/${params.org}/proposal/${params.id}/${params.version}/products`}
 				className={cn(
@@ -80,34 +132,21 @@ const SectionTabs = ({ params, sections, version }: Props) => {
 				Hardware
 			</Link>
 
-			<DragDropContext onDragEnd={onDragEnd}>
-				<Droppable droppableId='phases' direction='horizontal'>
-					{(provided, snapshot) => (
-						<div {...provided.droppableProps} ref={provided.innerRef} className={cn('inline-flex items-center', getBackgroundColor(snapshot))}>
-							{state.sections.map((section, index) => {
-								const href = `/${params.org}/proposal/${params.id}/${params.version}/products/section/${section.id}`;
-								return (
-									<Link
-										href={href}
-										key={section.id}
-										className={cn(
-											'inline-flex items-center justify-center whitespace-nowrap rounded-md px-3 py-1 text-sm font-medium ring-offset-background transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow',
-											pathname === href && 'bg-background text-foreground shadow'
-										)}
-									>
-										<Draggable key={section.id} draggableId={section.id} index={index}>
-											{(provided) => {
-												return (
-													<div ref={provided.innerRef} {...provided.draggableProps} {...provided.dragHandleProps}>
-														{section.name}
-													</div>
-												);
-											}}
-										</Draggable>
-									</Link>
-								);
-							})}
-							{/* {state.sections.map((section, index) => (
+			<div className={cn('inline-flex items-center')}>
+				{state.sections.map((section, index) => {
+					const href = `/${params.org}/proposal/${params.id}/${params.version}/products/section/${section.id}`;
+					return (
+						<SectionItem
+							key={section.id}
+							section={section}
+							href={href}
+							isCurrent={pathname === href}
+							isDraggingOver={isDraggingOver}
+							setIsDraggingOver={setIsDraggingOver}
+						/>
+					);
+				})}
+				{/* {state.sections.map((section, index) => (
 								<Draggable key={section.id} draggableId={section.id} index={index}>
 									{(provided) => {
 										return (
@@ -189,11 +228,7 @@ const SectionTabs = ({ params, sections, version }: Props) => {
 								// 	</DialogContent>
 								// </Dialog>
 							))} */}
-							{provided.placeholder}
-						</div>
-					)}
-				</Droppable>
-			</DragDropContext>
+			</div>
 
 			<Separator orientation='vertical' className='h-4' />
 
