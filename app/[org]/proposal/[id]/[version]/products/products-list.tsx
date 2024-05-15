@@ -1,7 +1,6 @@
 'use client';
 import React, { useOptimistic } from 'react';
 import { columns } from './columns';
-
 import {
 	ColumnFiltersState,
 	ExpandedState,
@@ -17,21 +16,13 @@ import {
 } from '@tanstack/react-table';
 import { DataTable } from '@/components/ui/data-table';
 import { updateProduct } from '@/lib/functions/update';
-import { ProductsListToolbar } from './products-list-toolbar';
 import { ProductState } from '@/types/optimisticTypes';
-import CatalogPicker from './catalog-picker';
-import { CatalogItem } from '@/types/manage';
 
 type Props = {
 	products: NestedProduct[];
-	proposal: string;
-	catalogItems: CatalogItem[];
-	count: number;
-	page: number;
-	params: { org: string; id: string };
 };
 
-const ProductsList = ({ products, proposal, catalogItems, count, page, params }: Props) => {
+const ProductsList = ({ products }: Props) => {
 	const [sorting, setSorting] = React.useState<SortingState>([]);
 	const [expanded, setExpanded] = React.useState<ExpandedState>({});
 	const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([]);
