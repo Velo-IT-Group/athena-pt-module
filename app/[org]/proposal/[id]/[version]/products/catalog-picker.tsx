@@ -11,7 +11,7 @@ import { createProduct } from '@/lib/functions/create';
 import Search from '@/components/Search';
 import { usePagination } from '@/app/hooks/usePagination';
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
-import { PlusCircledIcon } from '@radix-ui/react-icons';
+import { PlusIcon } from '@radix-ui/react-icons';
 
 type Props = {
 	proposal: string;
@@ -24,7 +24,7 @@ type Props = {
 	url?: string;
 };
 
-const CatalogPicker = ({ proposal, catalogItems, params, count, section, url }: Props) => {
+const CatalogPicker = ({ catalogItems, params, count, section, url }: Props) => {
 	const { version } = params;
 	const [expanded, setExpanded] = React.useState<ExpandedState>({});
 	const [rowSelection, setRowSelection] = React.useState({});
@@ -56,8 +56,6 @@ const CatalogPicker = ({ proposal, catalogItems, params, count, section, url }: 
 			})
 		);
 	};
-
-	// console.log(catalogItems);
 
 	const table = useReactTable<CatalogItem>({
 		data: catalogItems,
@@ -94,8 +92,8 @@ const CatalogPicker = ({ proposal, catalogItems, params, count, section, url }: 
 			}}
 		>
 			<DialogTrigger asChild>
-				<Button size='sm'>
-					<PlusCircledIcon className='h-4 w-4 mr-2' /> Add Product
+				<Button size='sm' variant='link' className='px-0 h-auto'>
+					<PlusIcon className='h-4 w-4 mr-2' /> Add Product
 				</Button>
 			</DialogTrigger>
 
