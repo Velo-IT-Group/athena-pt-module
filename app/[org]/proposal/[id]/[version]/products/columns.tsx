@@ -40,7 +40,7 @@ declare module '@tanstack/react-table' {
 
 export const columns: ColumnDef<Product>[] = [
 	{
-		id: 'actions',
+		id: 'drag',
 		enableHiding: false,
 		cell: ({ row }) => {
 			const product = row.original;
