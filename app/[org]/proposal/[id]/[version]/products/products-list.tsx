@@ -1,7 +1,6 @@
 'use client';
 import React, { useOptimistic } from 'react';
 import { columns } from './columns';
-
 import {
 	ColumnFiltersState,
 	ExpandedState,
@@ -15,12 +14,10 @@ import {
 	getSortedRowModel,
 	useReactTable,
 } from '@tanstack/react-table';
-import { DataTable } from '@/components/ui/data-table';
 import { updateProduct } from '@/lib/functions/update';
-import { ProductsListToolbar } from './products-list-toolbar';
 import { ProductState } from '@/types/optimisticTypes';
-import CatalogPicker from './catalog-picker';
 import { CatalogItem } from '@/types/manage';
+import { DraggableDataTable } from '@/components/ui/draggable-data-table';
 
 type Props = {
 	products: NestedProduct[];
@@ -108,7 +105,7 @@ const ProductsList = ({ products, proposal, catalogItems, count, page, params }:
 
 	return (
 		<>
-			<DataTable table={table} />
+			<DraggableDataTable table={table} />
 		</>
 	);
 };

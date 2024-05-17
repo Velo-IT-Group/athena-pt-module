@@ -94,7 +94,7 @@ const CatalogPicker = ({ proposal, catalogItems, params, count, section, url }: 
 			}}
 		>
 			<DialogTrigger asChild>
-				<Button size='sm'>
+				<Button size='sm' variant='link' className='px-0 h-auto'>
 					<PlusCircledIcon className='h-4 w-4 mr-2' /> Add Product
 				</Button>
 			</DialogTrigger>

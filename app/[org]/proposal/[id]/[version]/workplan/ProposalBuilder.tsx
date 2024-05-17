@@ -1,20 +1,20 @@
 'use client';
-import React, { useOptimistic, useTransition } from 'react';
-import { DragDropContext, Draggable, DropResult, Droppable } from 'react-beautiful-dnd';
+import React, { useEffect, useOptimistic, useRef, useState, useTransition } from 'react';
 import TemplateCatalog from '@/components/TemplateCatalog';
 import { ProjectTemplate } from '@/types/manage';
 import { v4 as uuid } from 'uuid';
-import { FileTextIcon, PlusCircledIcon, PlusIcon } from '@radix-ui/react-icons';
-import SubmitButton from '@/components/SubmitButton';
+import { PlusCircledIcon } from '@radix-ui/react-icons';
 import { PhaseState } from '@/types/optimisticTypes';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import PhaseListItem from './PhaseListItem';
-import { cn, getBackgroundColor } from '@/lib/utils';
-import { reorder } from '@/utils/array';
+import invariant from 'tiny-invariant';
 import { updatePhase, updateTicket } from '@/lib/functions/update';
 import { createPhase, newTemplate } from '@/lib/functions/create';
 import { createNestedPhaseFromTemplate } from '@/utils/helpers';
 import { Button } from '@/components/ui/button';
+import { dropTargetForElements } from '@atlaskit/pragmatic-drag-and-drop/element/adapter';
+import { reorder } from '@atlaskit/pragmatic-drag-and-drop/reorder';
+import { attachClosestEdge, Edge, extractClosestEdge } from '@atlaskit/pragmatic-drag-and-drop-hitbox/closest-edge';
 
 type Props = {
 	id: string;
@@ -24,7 +24,17 @@ type Props = {
 };
 
 const ProposalBuilder = ({ id, phases, templates, version }: Props) => {
+	const ref = useRef<HTMLDivElement>(null);
 	const [isPending, startTransition] = useTransition();
+	const [isDraggingOver, setIsDraggingOver] = useState(false);
+	const [closestEdge, setClosestEdge] = useState<Edge | null>(null);
+
+	function getColor(isDraggedOver: boolean): string {
+		if (isDraggedOver) {
+			return 'bg-accent/75';
+		}
+		return 'bg-background';
+	}
 
 	const [state, mutate] = useOptimistic({ phases, pending: false }, function createReducer(state, newState: PhaseState) {
 		if (newState.newPhase) {
@@ -54,6 +64,53 @@ const ProposalBuilder = ({ id, phases, templates, version }: Props) => {
 			};
 		}
 	});
+
+	useEffect(() => {
+		invariant(ref.current);
+
+		return dropTargetForElements({
+			element: ref.current,
+			getData: ({ input, element }) => {
+				const data = {
+					id,
+				};
+				return attachClosestEdge(data, {
+					input,
+					element,
+					allowedEdges: ['top', 'bottom'],
+				});
+			},
+			onDragEnter: (args) => {
+				setIsDraggingOver(true);
+				setClosestEdge(extractClosestEdge(args.self.data));
+			},
+			onDrag: (args) => {
+				setClosestEdge(extractClosestEdge(args.self.data));
+			},
+			onDragLeave: () => {
+				setClosestEdge(null);
+				setIsDraggingOver(false);
+			},
+			onDrop: (e) => {
+				setClosestEdge(null);
+				const reordered = reorder({
+					list: state.phases,
+					startIndex: 0,
+					finishIndex: 1,
+				});
+
+				startTransition(async () => {
+					mutate({
+						updatedPhases: reordered,
+						pending: true,
+					});
+				});
+
+				setIsDraggingOver(false);
+			},
+			onDragStart: () => setIsDraggingOver(true),
+		});
+	}, [mutate, state.phases, id]);
 
 	const phaseStub: NestedPhase = {
 		description: 'New Phase',
@@ -154,88 +211,39 @@ const ProposalBuilder = ({ id, phases, templates, version }: Props) => {
 	});
 
 	return (
-		<DragDropContext onDragEnd={onDragEnd}>
-			<div className='grid grid-cols-[288px_1fr]'>
-				<div className='border-r relative'>
-					<TemplateCatalog templates={templates ?? []} />
-				</div>
-				<ScrollArea className='h-header'>
-					<div className='flex flex-col flex-grow py-8 px-2'>
-						<div className='w-full px-2 flex justify-between items-center'>
-							<h1 className='text-2xl font-semibold'>Workplan</h1>
-							<form action={action}>
-								<Button size='sm' variant='secondary'>
-									<PlusCircledIcon className='w-4 h-4 mr-2' /> Add Phase
-								</Button>
-							</form>
-						</div>
-
-						<div className='w-full'>
-							<Droppable droppableId='phases' type='group'>
-								{(provided, snapshot) => (
-									<div
-										{...provided.droppableProps}
-										ref={provided.innerRef}
-										className={cn('space-y-4 px-2 py-4 flex flex-col rounded-xl h-full min-h-halfScreen', getBackgroundColor(snapshot))}
-									>
-										{sortedPhases?.length ? (
-											sortedPhases.map((phase, index) => (
-												<Draggable key={phase.id} draggableId={phase.id} index={index}>
-													{(provided) => {
-														return (
-															<div ref={provided.innerRef} {...provided.draggableProps} {...provided.dragHandleProps}>
-																{
-																	<PhaseListItem
-																		order={index + 1}
-																		pending={state.pending}
-																		phase={phase}
-																		phaseMutation={mutate}
-																		tickets={phase?.tickets ?? []}
-																	/>
-																}
-															</div>
-														);
-													}}
-												</Draggable>
-											))
-										) : (
-											<form action={action} className='flex-1 border border-dotted flex flex-col justify-center items-center gap-4 rounded-xl'>
-												<div className=' p-6 bg-muted rounded-full'>
-													<FileTextIcon className='h-8 w-8' />
-												</div>
-
-												<h3 className='text-lg font-medium'>Nothing to show yet</h3>
-												<span className='text-muted-foreground'>Drag a template from the left sidebar to begin.</span>
-												<SubmitButton>
-													<PlusIcon className='w-4 h-4 mr-2' /> Add Section
-												</SubmitButton>
-											</form>
-										)}
-										{sortedPhases?.length > 0 && provided.placeholder}
-									</div>
-								)}
-							</Droppable>
-						</div>
-						{/* {sortedPhases.length ? ( 
-							
-						) : (
-							<form action={action} className='h-full border border-dotted flex flex-col justify-center items-center gap-4 rounded-xl'>
-								<div className=' p-6 bg-muted rounded-full'>
-									<FileTextIcon className='h-8 w-8' />
-								</div>
-
-								<h3 className='text-lg font-medium'>Nothing to show yet</h3>
-								<span className='text-muted-foreground'>Drag a template from the left sidebar to begin.</span>
-								<SubmitButton>
-									<PlusIcon className='w-4 h-4 mr-2' /> Add Section
-								</SubmitButton>
-							</form>
-						)
-					} */}
-					</div>
-				</ScrollArea>
+		<div className='grid grid-cols-[288px_1fr]'>
+			<div className='border-r relative'>
+				<TemplateCatalog templates={templates ?? []} />
 			</div>
-		</DragDropContext>
+
+			<ScrollArea className='h-header'>
+				<div className='flex flex-col flex-grow my-8 mx-2 relative'>
+					<div className='w-full px-2 flex justify-between items-center'>
+						<h1 className='text-2xl font-semibold'>Workplan</h1>
+
+						<form action={action}>
+							<Button size='sm' variant='secondary'>
+								<PlusCircledIcon className='w-4 h-4 mr-2' /> Add Phase
+							</Button>
+						</form>
+					</div>
+
+					{sortedPhases.map((phase, index) => (
+						<div key={phase.id} ref={ref}>
+							<PhaseListItem
+								order={index + 1}
+								pending={state.pending}
+								phase={phase}
+								phaseMutation={mutate}
+								tickets={phase?.tickets ?? []}
+								isDraggingOver={isDraggingOver}
+								setIsDraggingOver={setIsDraggingOver}
+							/>
+						</div>
+					))}
+				</div>
+			</ScrollArea>
+		</div>
 	);
 };
 

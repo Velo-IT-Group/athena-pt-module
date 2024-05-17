@@ -35,7 +35,6 @@ const ProposalProductPage = async ({ params, searchParams }: Props) => {
 				<Card>
 					<CardHeader>
 						<CardTitle>Hardware</CardTitle>
-						{/* <CardDescription>Manage your products and view their sales performance.</CardDescription> */}
 					</CardHeader>
 					<CardContent>
 						<ProductsList products={products} proposal={params.id} catalogItems={catalogItems} count={count} page={page} params={params} />
