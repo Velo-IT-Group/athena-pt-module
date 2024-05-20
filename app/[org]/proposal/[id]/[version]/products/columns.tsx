@@ -4,7 +4,7 @@ import { DataTableColumnHeader } from '@/components/ui/DataTableColumnHeader';
 import { Button } from '@/components/ui/button';
 import { CatalogItem } from '@/types/manage';
 import { getCurrencyString } from '@/utils/money';
-import { CheckIcon, ChevronDownIcon, ChevronRightIcon, Pencil2Icon, PlusIcon, TrashIcon } from '@radix-ui/react-icons';
+import { CheckIcon, ChevronDownIcon, ChevronRightIcon, DragHandleDots2Icon, Pencil2Icon, PlusIcon, TrashIcon } from '@radix-ui/react-icons';
 import { ColumnDef, RowData } from '@tanstack/react-table';
 import { HoverCard, HoverCardTrigger } from '@/components/ui/hover-card';
 import IntegrationPricingCard from '@/components/IntegrationPricingCard';
@@ -27,7 +27,6 @@ import { createProduct } from '@/lib/functions/create';
 import Link from 'next/link';
 import CurrencyInput from '@/components/CurrencyInput';
 import { Input } from '@/components/ui/input';
-import { productStub } from '@/types/optimisticTypes';
 
 declare module '@tanstack/react-table' {
 	interface TableMeta<TData extends RowData> {
@@ -38,6 +37,11 @@ declare module '@tanstack/react-table' {
 }
 
 export const columns: ColumnDef<Product>[] = [
+	{
+		id: 'drag',
+		enableHiding: false,
+		cell: () => <DragHandleDots2Icon className='w-4 h-4' />,
+	},
 	{
 		accessorKey: 'manufacturer_part_number',
 		header: ({ column }) => {
