@@ -71,19 +71,19 @@ export const convertToManageProject = async (proposal: NestedProposal, ticket: S
 
 	await Promise.all(bundledChanges.map((product) => updateManageProduct(product)));
 
-	// const project = await createProject(
-	// 	{
-	// 		board: { id: 51 },
-	// 		estimatedStart: new Date().toISOString().split('.')[0] + 'Z',
-	// 		estimatedEnd: new Date(new Date().setDate(new Date().getDate() + 30)).toISOString().split('.')[0] + 'Z',
-	// 	},
-	// 	proposal.id,
-	// 	opportunity.id
-	// );
+	const project = await createProject(
+		{
+			board: { id: 51 },
+			estimatedStart: new Date().toISOString().split('.')[0] + 'Z',
+			estimatedEnd: new Date(new Date().setDate(new Date().getDate() + 30)).toISOString().split('.')[0] + 'Z',
+		},
+		proposal.id,
+		opportunity.id
+	);
 
 	// if (!project) throw Error('Error creating project...', { cause: project });
 
-	// await Promise.all(phases.sort((a, b) => a.order - b.order).map((phase) => createProjectPhase(project!.id, phase)));
+	await Promise.all(phases.sort((a, b) => a.order - b.order).map((phase) => createProjectPhase(project!.id, phase)));
 
 	return opportunity.id;
 };

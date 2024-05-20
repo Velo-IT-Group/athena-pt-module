@@ -544,15 +544,15 @@ export const createProjectTicket = async (phaseId: number, ticket: NestedTicket)
 interface ProjectTaskInsert {
 	// ticketId: number;
 	notes?: string;
-	summary: string;
+	// summary: string;
+	priority: number;
 }
 
 export const createProjectTask = async (ticketId: number, task: Task): Promise<ProjectTemplateTask | undefined> => {
 	const supabase = createClient();
 	const { summary, notes, priority } = task;
 	const body = JSON.stringify({
-		summary: String.raw`${summary}`,
-		notes: String.raw`${notes}`,
+		notes: summary,
 		priority,
 	} as ProjectTaskInsert);
 
