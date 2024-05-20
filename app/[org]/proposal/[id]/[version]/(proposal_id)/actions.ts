@@ -78,7 +78,10 @@ export const convertToManageProject = async (proposal: NestedProposal, ticket: S
 			estimatedEnd: new Date(new Date().setDate(new Date().getDate() + 30)).toISOString().split('.')[0] + 'Z',
 		},
 		proposal.id,
-		opportunity.id
+		opportunity.id,
+		proposal.working_version.phases.reduce((acc, current) => {
+			return acc + current.hours;
+		}, 0)
 	);
 
 	// if (!project) throw Error('Error creating project...', { cause: project });

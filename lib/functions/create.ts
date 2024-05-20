@@ -387,7 +387,12 @@ export const createSection = async (section: SectionInsert) => {
 	revalidateTag('proposals');
 };
 
-export const createProject = async (project: ProjectCreate, proposalId: string, opportunityId: number): Promise<Project | undefined> => {
+export const createProject = async (
+	project: ProjectCreate,
+	proposalId: string,
+	opportunityId: number,
+	estimatedHours: number
+): Promise<Project | undefined> => {
 	const supabase = createClient();
 	let config: RequestInit = {
 		method: 'POST',
@@ -397,6 +402,10 @@ export const createProject = async (project: ProjectCreate, proposalId: string, 
 			includeAllNotesFlag: true,
 			includeAllDocumentsFlag: true,
 			includeAllProductsFlag: true,
+			billProjectAfterClosedFlag: true,
+			budgetFlag: true,
+			estimatedHours,
+			billingMethod: 'FixedFee',
 		}),
 	};
 
