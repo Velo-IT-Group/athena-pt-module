@@ -97,6 +97,8 @@ export const createProposal = async (proposal: ProposalInsert) => {
 	}
 
 	const version = await createVersion(data.id);
+	await createSection({ name: 'Hardware', version });
+	await createSection({ name: 'Services', version });
 
 	if (proposal.templates_used && proposal.templates_used.length) {
 		const templates = await Promise.all(proposal.templates_used.map((template) => getTemplate(template)));
