@@ -38,8 +38,10 @@ const ProposalReviewPage = async ({ params }: Props) => {
 
 	const ticket = await getTicket(proposal?.service_ticket ?? 0);
 
-	const { productTotal, totalPrice, laborTotal } = calculateTotals(
-		[...products, ...sections.flatMap((s) => s.products)],
+	console.log(sections.flatMap((s) => s.products));
+
+	const { productTotal, recurringTotal } = calculateTotals(
+		sections.flatMap((s) => s.products),
 		phases ?? [],
 		proposal.labor_rate
 	);
@@ -47,7 +49,14 @@ const ProposalReviewPage = async ({ params }: Props) => {
 	const user = await getUser();
 
 	return (
-		<div className='bg-secondary/25 dark:bg-background flex-1 min-h-screen'>
+		<div className='relative bg-secondary/25 dark:bg-background flex-1 min-h-screen'>
+			<div className='absolute p-4 z-50 grid place-items-center bg-black/25 h-screen w-screen backdrop-blur-md sm:hidden'>
+				<div className='bg-card p-4 rounded-md text-center'>
+					<h1 className='text-lg font-semibold'>Please use computer browser</h1>
+					<p>Please use a screen that&apos;s bigger than 450px.</p>
+				</div>
+			</div>
+
 			<Navbar title={proposal.name} org='' version={proposal.working_version.number ? proposal.working_version.number : undefined}>
 				<Dialog>
 					<DialogTrigger asChild>
@@ -69,56 +78,70 @@ const ProposalReviewPage = async ({ params }: Props) => {
 									return <ProductCard key={section.id} title={section.name} products={section.products} />;
 								})}
 
-								{proposal.working_version.products && proposal.working_version.products.length > 0 && (
-									<ProductCard title={'Miscellanous'} products={proposal.working_version.products?.filter((p) => !!!p.section)} />
-								)}
-
 								<Card>
 									<CardHeader>
 										<CardTitle>Overview</CardTitle>
 									</CardHeader>
 
-									<CardContent className='space-y-2'>
+									<CardContent className='space-y-2.5'>
+										<div className='grid gap-2 grid-cols-7'>
+											<div className='max-w-96 col-span-4'>
+												<span className='text-sm text-muted-foreground'>Description / Unit Price</span>
+											</div>
+											<div className='grid gap-2 justify-items-end grid-cols-5 col-span-3'>
+												<span className='text-sm text-muted-foreground text-right col-span-2'>Recurring Cost</span>
+												<span className='text-sm text-muted-foreground col-span-3 text-right whitespace-nowrap'>Non-Recurring Cost</span>
+											</div>
+										</div>
 										{sections.map((section) => {
-											const sectionProductSubTotal = section.products
-												.filter((p) => !p.recurring_flag)
-												.reduce((accumulator, currentValue) => {
-													const price: number | null = currentValue.product_class === 'Bundle' ? currentValue.calculated_price : currentValue.price;
+											const { productTotal: sectionProductSubTotal, recurringTotal: sectionRecurringProductSubTotal } = calculateTotals(
+												section.products,
+												[],
+												250
+											);
+											// const sectionProductSubTotal = section.products
+											// 	.filter((p) => !p.recurring_flag || p.recurring_bill_cycle !== 2)
+											// 	.reduce((accumulator, currentValue) => {
+											// 		const price: number | null = currentValue.product_class === 'Bundle' ? currentValue.calculated_price : currentValue.price;
 
-													return accumulator + (price ?? 0) * (currentValue?.quantity ?? 0);
-												}, 0);
+											// 		return accumulator + (price ?? 0) * (currentValue?.quantity ?? 0);
+											// 	}, 0);
 											return (
-												<div key={section.id} className='flex items-center justify-between'>
-													<p className='text-sm text-muted-foreground'>{section.name} Total</p>
-													<p className='text-sm text-muted-foreground text-right font-medium'>{getCurrencyString(sectionProductSubTotal)}</p>
-												</div>
+												<>
+													<Separator />
+
+													<div className='grid gap-2 grid-cols-7'>
+														<div className='font-medium text-sm col-span-4'>{section.name} Total</div>
+
+														<div className='grid gap-2 justify-items-end grid-cols-3 col-span-3'>
+															<p className='text-sm text-muted-foreground text-right'>
+																<span className='font-medium'>
+																	{getCurrencyString(sectionRecurringProductSubTotal)}
+																	/mo
+																</span>
+															</p>
+															<p className='text-sm text-muted-foreground text-right col-span-2'>{getCurrencyString(sectionProductSubTotal)}</p>
+														</div>
+													</div>
+												</>
 											);
 										})}
 
-										<div className='flex items-center justify-between'>
-											<p className='text-sm text-muted-foreground'>Labor</p>
-											<p className='text-sm text-muted-foreground text-right'>
-												<span className='font-medium'>{getCurrencyString(laborTotal)}</span>
-											</p>
-										</div>
-
 										<Separator />
 
-										<div className='flex items-center justify-between'>
-											<p className='text-sm text-muted-foreground'>Total</p>
-											<p className='text-sm text-muted-foreground text-right'>
-												<span className='font-medium'>{getCurrencyString(productTotal)}</span>
-											</p>
+										<div className='grid gap-2 grid-cols-7'>
+											<p className='text-sm text-muted-foreground col-span-4'>Total</p>
+											<div className='grid gap-2 justify-items-end grid-cols-3 col-span-3'>
+												<p className='text-sm text-muted-foreground text-right'>
+													<span className='font-medium'>{getCurrencyString(recurringTotal)}/mo</span>
+												</p>
+												<p className='text-sm text-muted-foreground text-right col-span-2'>
+													<span className='font-medium'>{getCurrencyString(productTotal)}</span>
+												</p>
+											</div>
 										</div>
 									</CardContent>
 								</Card>
-
-								<div className='flex flex-col items-start sm:flex-row sm:items-center sm:justify-between px-4'>
-									<p className='text-sm text-muted-foreground'>Quote Price</p>
-									<p className='text-sm text-muted-foreground text-right'>
-										<span className='font-medium'>{getCurrencyString(totalPrice!)}</span>
-									</p>
-								</div>
 							</div>
 
 							<p className='text-sm text-muted-foreground pr-4'>

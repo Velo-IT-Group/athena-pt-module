@@ -154,17 +154,19 @@ export const calculateTotals = (products: Product[], phases: NestedPhase[], labo
 
 	const laborTotal = laborHours * labor_rate;
 
-	const productTotal = products.reduce((accumulator, currentValue) => {
-		const price: number | null = currentValue.product_class === 'Bundle' ? currentValue.calculated_price : currentValue.price;
+	const productTotal = products
+		.filter((p) => !p.recurring_flag || p.recurring_bill_cycle !== 2)
+		.reduce((accumulator, currentValue) => {
+			const price: number | null = currentValue.product_class === 'Bundle' ? currentValue.calculated_price : currentValue.price;
 
-		return accumulator + (price ?? 0) * (currentValue?.quantity ?? 0);
-	}, 0);
+			return accumulator + (price ?? 0) * (currentValue?.quantity ?? 0);
+		}, 0);
 
 	const recurringTotal = products
 		?.filter((product) => product.recurring_flag)
 		.reduce((accumulator, currentValue) => accumulator + (currentValue?.price ?? 0) * (currentValue?.quantity ?? 0), 0);
 
-	const totalPrice = laborTotal + productTotal;
+	const totalPrice = laborTotal;
 
 	return {
 		laborTotal,
