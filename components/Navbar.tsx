@@ -25,11 +25,13 @@ type Props = {
 
 const Navbar = async ({ title, titleEditable, titleId, children, org, version, tabs }: Props) => {
 	const supabase = createClient();
-	const organization = await getOrganization();
 
-	const {
-		data: { user },
-	} = await supabase.auth.getUser();
+	const [
+		organization,
+		{
+			data: { user },
+		},
+	] = await Promise.all([getOrganization(), supabase.auth.getUser()]);
 
 	return (
 		<>
