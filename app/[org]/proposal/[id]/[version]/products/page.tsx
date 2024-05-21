@@ -1,15 +1,6 @@
 import React from 'react';
 import { getProducts, getProposal } from '@/lib/functions/read';
 import { getCatalogItems } from '@/utils/manage/read';
-import ProductsList from './products-list';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import CatalogPicker from './catalog-picker';
-import SubmitButton from '@/components/SubmitButton';
-import { Button } from '@/components/ui/button';
-import { Dialog, DialogClose, DialogContent, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { Input } from '@/components/ui/input';
-import ProductSection from './product-section';
-import { createSection } from '@/lib/functions/create';
 import SectionTabs from './section-tabs';
 
 type Props = {

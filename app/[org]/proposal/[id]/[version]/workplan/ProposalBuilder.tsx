@@ -12,9 +12,9 @@ import { updatePhase, updateTicket } from '@/lib/functions/update';
 import { createPhase, newTemplate } from '@/lib/functions/create';
 import { createNestedPhaseFromTemplate } from '@/utils/helpers';
 import { Button } from '@/components/ui/button';
-import { dropTargetForElements } from '@atlaskit/pragmatic-drag-and-drop/element/adapter';
-import { reorder } from '@atlaskit/pragmatic-drag-and-drop/reorder';
-import { attachClosestEdge, Edge, extractClosestEdge } from '@atlaskit/pragmatic-drag-and-drop-hitbox/closest-edge';
+import { DragDropContext, DropResult, Droppable } from 'react-beautiful-dnd';
+import { reorder } from '@/utils/array';
+import { cn, getBackgroundColor } from '@/lib/utils';
 
 type Props = {
 	id: string;
@@ -24,10 +24,7 @@ type Props = {
 };
 
 const ProposalBuilder = ({ id, phases, templates, version }: Props) => {
-	const ref = useRef<HTMLDivElement>(null);
 	const [isPending, startTransition] = useTransition();
-	const [isDraggingOver, setIsDraggingOver] = useState(false);
-	const [closestEdge, setClosestEdge] = useState<Edge | null>(null);
 
 	function getColor(isDraggedOver: boolean): string {
 		if (isDraggedOver) {
@@ -64,53 +61,6 @@ const ProposalBuilder = ({ id, phases, templates, version }: Props) => {
 			};
 		}
 	});
-
-	useEffect(() => {
-		invariant(ref.current);
-
-		return dropTargetForElements({
-			element: ref.current,
-			getData: ({ input, element }) => {
-				const data = {
-					id,
-				};
-				return attachClosestEdge(data, {
-					input,
-					element,
-					allowedEdges: ['top', 'bottom'],
-				});
-			},
-			onDragEnter: (args) => {
-				setIsDraggingOver(true);
-				setClosestEdge(extractClosestEdge(args.self.data));
-			},
-			onDrag: (args) => {
-				setClosestEdge(extractClosestEdge(args.self.data));
-			},
-			onDragLeave: () => {
-				setClosestEdge(null);
-				setIsDraggingOver(false);
-			},
-			onDrop: (e) => {
-				setClosestEdge(null);
-				const reordered = reorder({
-					list: state.phases,
-					startIndex: 0,
-					finishIndex: 1,
-				});
-
-				startTransition(async () => {
-					mutate({
-						updatedPhases: reordered,
-						pending: true,
-					});
-				});
-
-				setIsDraggingOver(false);
-			},
-			onDragStart: () => setIsDraggingOver(true),
-		});
-	}, [mutate, state.phases, id]);
 
 	const phaseStub: NestedPhase = {
 		description: 'New Phase',
@@ -211,39 +161,51 @@ const ProposalBuilder = ({ id, phases, templates, version }: Props) => {
 	});
 
 	return (
-		<div className='grid grid-cols-[288px_1fr]'>
-			<div className='border-r relative'>
-				<TemplateCatalog templates={templates ?? []} />
-			</div>
-
-			<ScrollArea className='h-header'>
-				<div className='flex flex-col flex-grow my-8 mx-2 relative'>
-					<div className='w-full px-2 flex justify-between items-center'>
-						<h1 className='text-2xl font-semibold'>Workplan</h1>
-
-						<form action={action}>
-							<Button size='sm' variant='secondary'>
-								<PlusCircledIcon className='w-4 h-4 mr-2' /> Add Phase
-							</Button>
-						</form>
-					</div>
-
-					{sortedPhases.map((phase, index) => (
-						<div key={phase.id} ref={ref}>
-							<PhaseListItem
-								order={index + 1}
-								pending={state.pending}
-								phase={phase}
-								phaseMutation={mutate}
-								tickets={phase?.tickets ?? []}
-								isDraggingOver={isDraggingOver}
-								setIsDraggingOver={setIsDraggingOver}
-							/>
-						</div>
-					))}
+		<DragDropContext onDragEnd={onDragEnd}>
+			<div className='grid grid-cols-[288px_1fr]'>
+				<div className='border-r relative'>
+					<TemplateCatalog templates={templates ?? []} />
 				</div>
-			</ScrollArea>
-		</div>
+
+				<ScrollArea className='h-header'>
+					<div className='flex flex-col flex-grow my-8 mx-2 relative'>
+						<div className='w-full px-2 flex justify-between items-center'>
+							<h1 className='text-2xl font-semibold'>Workplan</h1>
+
+							<form action={action}>
+								<Button size='sm' variant='secondary'>
+									<PlusCircledIcon className='w-4 h-4 mr-2' /> Add Phase
+								</Button>
+							</form>
+						</div>
+
+						<div className='w-full'>
+							<Droppable droppableId='phases' type='group'>
+								{(provided, snapshot) => (
+									<div
+										{...provided.droppableProps}
+										ref={provided.innerRef}
+										className={cn('space-y-4 px-2 py-4 flex flex-col rounded-xl h-full min-h-halfScreen', getBackgroundColor(snapshot))}
+									>
+										{sortedPhases.map((phase, index) => (
+											<div key={phase.id}>
+												<PhaseListItem
+													order={index + 1}
+													pending={state.pending}
+													phase={phase}
+													phaseMutation={mutate}
+													tickets={phase?.tickets ?? []}
+												/>
+											</div>
+										))}
+									</div>
+								)}
+							</Droppable>
+						</div>
+					</div>
+				</ScrollArea>
+			</div>
+		</DragDropContext>
 	);
 };
 

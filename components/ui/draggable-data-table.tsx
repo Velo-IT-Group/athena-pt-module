@@ -33,12 +33,13 @@ export function DraggableDataTable<TData>({ table, hideHeader = false }: DataTab
 						))}
 					</TableHeader>
 				)}
-				<Droppable droppableId='products' type='group'>
+
+				<Droppable droppableId='products' type='products'>
 					{(provided, snapshot) => (
 						<TableBody {...provided.droppableProps} ref={provided.innerRef} className={cn(getBackgroundColor(snapshot))}>
 							{table.getRowModel().rows?.length ? (
 								table.getRowModel().rows.map((row, index) => (
-									<Draggable key={row.id} draggableId={String(row.id)} index={index}>
+									<Draggable draggableId={`${index}_${row.original.unique_id}`} key={row.original.unique_id} index={index}>
 										{(provided) => (
 											<DataTableRow key={row.id} row={row} ref={provided.innerRef} {...provided.draggableProps} {...provided.dragHandleProps} />
 										)}
@@ -51,6 +52,7 @@ export function DraggableDataTable<TData>({ table, hideHeader = false }: DataTab
 									</TableCell>
 								</TableRow>
 							)}
+							{provided.placeholder}
 						</TableBody>
 					)}
 				</Droppable>
