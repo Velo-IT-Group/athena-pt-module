@@ -356,3 +356,13 @@ export const getSystemMembers = async (email: string): Promise<SystemMember[]> =
 
 	return data;
 };
+
+export const getSystemMemberImage = async (id: number): Promise<Blob> => {
+	const response = await fetch(`${process.env.NEXT_PUBLIC_CW_URL}/system/members/${id}/image`, {
+		headers: baseHeaders,
+	});
+
+	const blob = new Blob([await response.blob()], { type: 'image/png' });
+
+	return blob;
+};
