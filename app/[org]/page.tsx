@@ -1,6 +1,6 @@
 import React from 'react';
 import type { Metadata, ResolvingMetadata } from 'next';
-import { getOrganization, getProposals, getTemplates, getTickets } from '@/lib/functions/read';
+import { getOrganization, getProposals, getTemplates, getTickets, getUsers } from '@/lib/functions/read';
 import { Button } from '@/components/ui/button';
 import { FileTextIcon, PlusIcon } from '@radix-ui/react-icons';
 import { notFound } from 'next/navigation';
@@ -14,6 +14,7 @@ import NewProposalForm from '@/components/forms/NewProposalForm';
 import { createProposal } from '@/lib/functions/create';
 import SubmitButton from '@/components/SubmitButton';
 import { cn } from '@/lib/utils';
+import UserSelector from './user-selector';
 
 type Props = {
 	params: { org: string };
@@ -29,11 +30,14 @@ export async function generateMetadata({ params, searchParams }: Props, parent: 
 }
 
 const OverviewPage = async ({ params, searchParams }: Props) => {
-	const [templates, tickets, organization] = await Promise.all([getTemplates(), getTickets(), getOrganization()]);
+	const [templates, tickets, organization, users] = await Promise.all([getTemplates(), getTickets(), getOrganization(), getUsers()]);
 	const cookieStore = cookies();
 	const searchText = typeof searchParams.search === 'string' ? String(searchParams.search) : undefined;
 	const homeSort = cookieStore.get('homeSort');
-	const proposals = await getProposals(homeSort?.value as keyof Proposal, searchText);
+	const myProposalsCookie = cookieStore.get('myProposals');
+	const myProposalsArray: string[] = myProposalsCookie?.value ? JSON.parse(myProposalsCookie?.value) : [];
+	const myProposalsValues: string[] = Array.from(myProposalsArray);
+	const proposals = await getProposals(homeSort?.value as keyof Proposal, searchText, myProposalsValues);
 
 	if (!proposals) {
 		notFound();
@@ -62,6 +66,8 @@ const OverviewPage = async ({ params, searchParams }: Props) => {
 				<div className='grow flex-1 px-6 py-4 w-full space-y-4 flex flex-col'>
 					<form method='GET' className='flex gap-4 items-center w-full'>
 						<Search baseUrl={`/${params.org}`} placeholder='Search quotes' />
+
+						<UserSelector defaultValue={myProposalsValues} users={users as Member[]} />
 
 						<SortSelector defaultValue={homeSort?.value} />
 

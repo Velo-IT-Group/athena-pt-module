@@ -24,11 +24,13 @@ export function relativeDate(date: Date) {
 	} else if (diff < day * 2) {
 		return 'yesterday';
 	} else if (diff < week) {
-		return week + ' days ago';
+		const dayAmount = Math.floor(diff / day);
+		return `${dayAmount} ${dayAmount > 1 ? ' days ago' : 'day ago'}`;
 	} else if (diff < month) {
 		return Math.floor(diff / week) + ' weeks ago';
-	} else if (diff < year) {
-		return Math.floor(diff / month) + ' months ago';
+	} else if (diff < year && diff < year) {
+		const monthAmount = Math.floor(diff / month);
+		return `${monthAmount} ${monthAmount > 1 ? ' months ago' : ' month ago'}`;
 	} else {
 		return Math.floor(diff / year) + ' years ago';
 	}
