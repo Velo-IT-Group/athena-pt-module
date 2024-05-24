@@ -16,13 +16,12 @@ import {
 	AlertDialogHeader,
 	AlertDialogTitle,
 } from '../ui/alert-dialog';
-import { createClient } from '@/utils/supabase/client';
 import { getSystemMembers } from '@/utils/manage/read';
 import { SystemMember } from '@/types/manage';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../ui/select';
 
 export default function AuthForm({ searchParams }: { searchParams?: { message: string } }) {
-	const [showAlertDialog, setShowAlertDialog] = useState(true);
+	const [showAlertDialog, setShowAlertDialog] = useState(false);
 	const [possibleMembers, setPossibleMembers] = useState<SystemMember[]>([]);
 	const [credentials, setCredentials] = useState<FormData>(new FormData());
 
