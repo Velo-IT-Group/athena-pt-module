@@ -151,9 +151,18 @@ export const updateOrganizationIntegration = async (id: string, orgIntegration: 
 };
 
 export const updateHomeSortCookie = (sort: string) => {
-	console.log('updating home cookie', sort);
 	const cookieStore = cookies();
-	cookieStore.set('homeSort', sort);
+	revalidateTag('proposals');
+};
+
+export const updateMyProposalsCookie = (ids: string[]) => {
+	const cookieStore = cookies();
+
+	if (ids.length) {
+		cookieStore.set('myProposals', JSON.stringify(ids));
+	} else {
+		cookieStore.delete('myProposals');
+	}
 	revalidateTag('proposals');
 };
 
@@ -208,6 +217,7 @@ export const updateSection = async (section: SectionUpdate) => {
 	}
 
 	revalidateTag('sections');
+	revalidateTag('proposals');
 };
 
 export const updateVersion = async (version: VersionUpdate) => {

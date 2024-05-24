@@ -60,4 +60,5 @@ declare global {
 	type NestedProduct = Phase & { tickets?: Array<Ticket & { tasks?: Task[] }> };
 	type NestedTicket = Ticket & { tasks?: Task[] };
 	type NestedPhase = Phase & { tickets?: NestedTicket[] };
+	type NestedSection = Section & { products?: NestedProduct[] };
 }

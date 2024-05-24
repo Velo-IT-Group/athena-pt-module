@@ -3,25 +3,34 @@ import SubmitButton from '@/components/SubmitButton';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogClose, DialogContent, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
-import { Separator } from '@/components/ui/separator';
 import { createSection } from '@/lib/functions/create';
-import { cn, getBackgroundColor } from '@/lib/utils';
 import { SectionState } from '@/types/optimisticTypes';
 import { DialogTrigger } from '@radix-ui/react-dialog';
-import { PlusCircledIcon } from '@radix-ui/react-icons';
-import React, { useOptimistic, useState, useTransition } from 'react';
-import { DragDropContext, Draggable, DropResult, Droppable } from 'react-beautiful-dnd';
+import React, { useOptimistic, useTransition } from 'react';
+import { DragDropContext, DropResult, Droppable } from 'react-beautiful-dnd';
 import { v4 as uuid } from 'uuid';
-import Link from 'next/link';
+import { CatalogItem } from '@/types/manage';
+import SectionItem from './section-item';
 import { usePathname } from 'next/navigation';
+import { Separator } from '@/components/ui/separator';
+import { updateSection } from '@/lib/functions/update';
+import { reorder } from '@/utils/array';
 
 type Props = {
 	params: { org: string; id: string; version: string };
-	sections: Section[];
+	sections: NestedSection[];
 	version: string;
+	page: number;
+	count: number;
+	proposal: string;
+	catalogItems: CatalogItem[];
+	searchParams?: { [key: string]: string | string[] | undefined };
+	section?: string;
+	url?: string;
 };
 
 const SectionTabs = ({ params, sections, version }: Props) => {
+	const isDark = false;
 	const pathname = usePathname();
 	const [pending, startTransition] = useTransition();
 	const [state, mutate] = useOptimistic({ sections, pending: false }, (state, newState: SectionState) => {
@@ -35,6 +44,11 @@ const SectionTabs = ({ params, sections, version }: Props) => {
 				sections: [...state.sections.filter((f) => f.id !== newState.updatedSection!.id), newState.updatedSection] as Section[],
 				pending: newState.pending,
 			};
+		} else if (newState.updatedSections) {
+			return {
+				sections: state.sections,
+				pending: newState.pending,
+			};
 		} else {
 			return {
 				sections: [...state.sections.filter((f) => f.id !== newState.deletedSection)] as Section[],
@@ -44,18 +58,17 @@ const SectionTabs = ({ params, sections, version }: Props) => {
 	});
 
 	// a little function to help us with reordering the result
-	function reorder<T>(list: T[], startIndex: number, endIndex: number) {
-		const result = Array.from(list);
-		const [removed] = result.splice(startIndex, 1);
-		result.splice(endIndex, 0, removed);
+	// function reorder<T>(list: T[], startIndex: number, endIndex: number) {
+	// 	const result = Array.from(list);
+	// 	const [removed] = result.splice(startIndex, 1);
+	// 	result.splice(endIndex, 0, removed);
 
-		console.log(removed, result, startIndex, endIndex);
-
-		return result;
-	}
+	// 	return result;
+	// }
 
 	async function onDragEnd(result: DropResult) {
-		const { destination, source } = result;
+		const { destination, source, type, draggableId } = result;
+		console.log(result);
 
 		// handle dropping a template onto proposal
 		if (!destination) return;
@@ -63,51 +76,55 @@ const SectionTabs = ({ params, sections, version }: Props) => {
 		// if dropped on the same list and has same index then do nothing
 		if (source.droppableId === destination?.droppableId && source.index === destination?.index) return;
 
-		reorder(state.sections, source.index, destination.index);
+		if (type === 'products') {
+			const idSplit = draggableId.split('_');
+			console.log(idSplit);
+			const section = parseInt(idSplit[0]);
+		}
+
+		const updatedSections = reorder(state.sections, source.index, destination.index);
+
+		console.log(updatedSections);
+
+		startTransition(async () => {
+			mutate({ updatedSections, pending: true });
+			await Promise.all(updatedSections.map(({ id, order }) => updateSection({ id, order })));
+		});
 
 		// handle dropping a template onto proposal
 	}
 
-	return (
-		<div className='inline-flex h-9 items-center justify-center rounded-lg bg-muted p-1 text-muted-foreground'>
-			<Link
-				href={`/${params.org}/proposal/${params.id}/${params.version}/products`}
-				className={cn(
-					'inline-flex items-center justify-center whitespace-nowrap rounded-md px-3 py-1 text-sm font-medium ring-offset-background transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow',
-					pathname === `/${params.org}/proposal/${params.id}/${params.version}/products` && 'bg-background text-foreground shadow'
-				)}
-			>
-				Hardware
-			</Link>
+	const orderedSections = state.sections?.sort((a, b) => {
+		// First, compare by score in descending order
+		if (Number(a.order) > Number(b.order)) return 1;
+		if (Number(a.order) < Number(b.order)) return -1;
 
+		// If scores are equal, then sort by created_at in ascending order
+		return Number(a.id) - Number(b.id);
+		// return new Date(a.=).getTime() - new Date(b.created_at).getTime();
+	});
+
+	return (
+		<>
 			<DragDropContext onDragEnd={onDragEnd}>
-				<Droppable droppableId='phases' direction='horizontal'>
-					{(provided, snapshot) => (
-						<div {...provided.droppableProps} ref={provided.innerRef} className={cn('inline-flex items-center', getBackgroundColor(snapshot))}>
-							{state.sections.map((section, index) => {
+				<Droppable droppableId='sections' type='sections'>
+					{(provided) => (
+						<div {...provided.droppableProps} ref={provided.innerRef} className='space-y-3'>
+							{orderedSections.map((section, index) => {
 								const href = `/${params.org}/proposal/${params.id}/${params.version}/products/section/${section.id}`;
-								return (
-									<Link
-										href={href}
-										key={section.id}
-										className={cn(
-											'inline-flex items-center justify-center whitespace-nowrap rounded-md px-3 py-1 text-sm font-medium ring-offset-background transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow',
-											pathname === href && 'bg-background text-foreground shadow'
-										)}
-									>
-										<Draggable key={section.id} draggableId={section.id} index={index}>
-											{(provided) => {
-												return (
-													<div ref={provided.innerRef} {...provided.draggableProps} {...provided.dragHandleProps}>
-														{section.name}
-													</div>
-												);
-											}}
-										</Draggable>
-									</Link>
-								);
+								return <SectionItem key={section.id} index={index} section={section} href={href} isCurrent={pathname === href} />;
 							})}
-							{/* {state.sections.map((section, index) => (
+							{provided.placeholder}
+						</div>
+					)}
+				</Droppable>
+			</DragDropContext>
+			{/* <div className={cn('inline-flex items-center')}>
+				{state.sections.map((section, index) => {
+					const href = `/${params.org}/proposal/${params.id}/${params.version}/products/section/${section.id}`;
+					return <SectionItem key={section.id} section={section} href={href} isCurrent={pathname === href} />;
+				})}
+				{state.sections.map((section, index) => (
 								<Draggable key={section.id} draggableId={section.id} index={index}>
 									{(provided) => {
 										return (
@@ -188,24 +205,12 @@ const SectionTabs = ({ params, sections, version }: Props) => {
 								// 		</form>
 								// 	</DialogContent>
 								// </Dialog>
-							))} */}
-							{provided.placeholder}
-						</div>
-					)}
-				</Droppable>
-			</DragDropContext>
-
-			<Separator orientation='vertical' className='h-4' />
+							))}
+			</div> */}
 
 			<Dialog>
 				<DialogTrigger asChild>
-					<Button
-						variant='ghost'
-						size='sm'
-						className='inline-flex items-center justify-center whitespace-nowrap rounded-md px-3 py-1 text-sm font-medium ring-offset-background transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow'
-					>
-						<PlusCircledIcon />
-					</Button>
+					<Button variant='outline'>Add Section</Button>
 				</DialogTrigger>
 
 				<DialogContent>
@@ -254,7 +259,7 @@ const SectionTabs = ({ params, sections, version }: Props) => {
 					</form>
 				</DialogContent>
 			</Dialog>
-		</div>
+		</>
 	);
 };
 

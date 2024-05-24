@@ -586,19 +586,24 @@ export const getActivity = async () => {
 };
 
 export const getProposals = unstable_cache(
-	async (order?: keyof Proposal, searchText?: string) => {
+	async (order?: keyof Proposal, searchText?: string, userFilters: string[] = []) => {
 		const supabase = createClient();
 
-		const proposalsQuery = searchText
-			? supabase
-					.from('proposals')
-					.select('*')
-					.order(order ?? 'updated_at', { ascending: false })
-					.ilike('name', searchText)
-			: supabase
-					.from('proposals')
-					.select('*')
-					.order(order ?? 'updated_at', { ascending: false });
+		const proposalsQuery = supabase
+			.from('proposals')
+			.select('*')
+			.order(order ?? 'updated_at', { ascending: false });
+
+		if (searchText) {
+			proposalsQuery.ilike('name', searchText);
+		}
+
+		if (userFilters.length) {
+			proposalsQuery.in(
+				'created_by',
+				userFilters.map((u) => u)
+			);
+		}
 
 		type Proposals = QueryData<typeof proposalsQuery>;
 
@@ -832,4 +837,21 @@ export const getVersions = unstable_cache(
 	},
 	['versions'],
 	{ tags: ['versions'] }
+);
+
+export const getUsers = unstable_cache(
+	async () => {
+		const supabase = createClient();
+		const { data, error } = await supabase.from('profiles').select('id, first_name, last_name').order('first_name', { ascending: false });
+		// .order('last_name', { ascending: false });
+
+		if (error || !data) {
+			console.log(error);
+			throw Error("Can't fetch users...", { cause: error });
+		}
+
+		return data;
+	},
+	['users'],
+	{ tags: ['users'] }
 );
