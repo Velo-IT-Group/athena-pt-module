@@ -7,7 +7,7 @@ import { createSection } from '@/lib/functions/create';
 import { SectionState } from '@/types/optimisticTypes';
 import { DialogTrigger } from '@radix-ui/react-dialog';
 import React, { useOptimistic, useTransition } from 'react';
-import { DragDropContext, DropResult, Droppable } from 'react-beautiful-dnd';
+import { DragDropContext, Draggable, DropResult, Droppable } from 'react-beautiful-dnd';
 import { v4 as uuid } from 'uuid';
 import { CatalogItem } from '@/types/manage';
 import SectionItem from './section-item';
@@ -107,106 +107,23 @@ const SectionTabs = ({ params, sections, version }: Props) => {
 	return (
 		<>
 			<DragDropContext onDragEnd={onDragEnd}>
-				<Droppable droppableId='sections' type='sections'>
+				<Droppable droppableId='sections'>
 					{(provided) => (
-						<div {...provided.droppableProps} ref={provided.innerRef} className='space-y-3'>
-							{orderedSections.map((section, index) => {
-								const href = `/${params.org}/proposal/${params.id}/${params.version}/products/section/${section.id}`;
-								return <SectionItem key={section.id} index={index} section={section} href={href} isCurrent={pathname === href} />;
-							})}
+						<div ref={provided.innerRef} className='space-y-3'>
+							{orderedSections.map((section, index) => (
+								<Draggable key={section.id} draggableId={`section-${section.id}`} index={index}>
+									{(provided) => (
+										<div ref={provided.innerRef} {...provided.draggableProps}>
+											<SectionItem key={section.id} section={section} dragHandleProps={provided.dragHandleProps} />
+										</div>
+									)}
+								</Draggable>
+							))}
 							{provided.placeholder}
 						</div>
 					)}
 				</Droppable>
 			</DragDropContext>
-			{/* <div className={cn('inline-flex items-center')}>
-				{state.sections.map((section, index) => {
-					const href = `/${params.org}/proposal/${params.id}/${params.version}/products/section/${section.id}`;
-					return <SectionItem key={section.id} section={section} href={href} isCurrent={pathname === href} />;
-				})}
-				{state.sections.map((section, index) => (
-								<Draggable key={section.id} draggableId={section.id} index={index}>
-									{(provided) => {
-										return (
-											<div ref={provided.innerRef} {...provided.draggableProps} {...provided.dragHandleProps}>
-												<TabsTrigger value={section.id} className='flex items-center gap-2'>
-													{section.name}
-												</TabsTrigger>
-											</div>
-										);
-									}}
-								</Draggable>
-								// <Dialog key={section.id}>
-
-								// 	<ContextMenu>
-								// 		<ContextMenuTrigger>
-
-								// 		</ContextMenuTrigger>
-
-								// 		<ContextMenuContent>
-								// 			<ContextMenuItem>
-								// 				<DialogTrigger>Rename</DialogTrigger>
-								// 			</ContextMenuItem>
-
-								// 			<ContextMenuItem
-								// 				onSelect={() => {
-								// 					startTransition(async () => {
-								// 						mutate({ deletedSection: section.id, pending: true });
-								// 						await deleteSection(section.id);
-								// 					});
-								// 				}}
-								// 				className='text-red-600 focus:text-red-600 focus:bg-red-50'
-								// 			>
-								// 				Delete
-								// 			</ContextMenuItem>
-								// 		</ContextMenuContent>
-								// 	</ContextMenu>
-
-								// 	<DialogContent>
-								// 		<form
-								// 			className='grid gap-4'
-								// 			action={(data: FormData) => {
-								// 				console.log('hi');
-								// 				startTransition(async () => {
-								// 					console.log('running');
-								// 					const updatedSection: SectionUpdate = {
-								// 						...section,
-								// 						name: data.get('name') as string,
-								// 					};
-
-								// 					mutate({
-								// 						updatedSection,
-								// 						pending: true,
-								// 					});
-
-								// 					try {
-								// 						await updateSection(updatedSection);
-								// 					} catch (error) {
-								// 						console.error(error);
-								// 					}
-								// 				});
-								// 			}}
-								// 		>
-								// 			<DialogHeader>
-								// 				<DialogTitle>Add section</DialogTitle>
-								// 			</DialogHeader>
-
-								// 			<Input placeholder='Section name' name='name' defaultValue={section.name} />
-
-								// 			<DialogFooter>
-								// 				<DialogClose asChild>
-								// 					<Button variant='secondary'>Close</Button>
-								// 				</DialogClose>
-
-								// 				<DialogClose asChild>
-								// 					<SubmitButton>Save</SubmitButton>
-								// 				</DialogClose>
-								// 			</DialogFooter>
-								// 		</form>
-								// 	</DialogContent>
-								// </Dialog>
-							))}
-			</div> */}
 
 			<Dialog>
 				<DialogTrigger asChild>

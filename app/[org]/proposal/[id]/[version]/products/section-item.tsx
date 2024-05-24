@@ -2,17 +2,15 @@
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { DraggableDataTable } from '@/components/ui/draggable-data-table';
 import { getCoreRowModel, useReactTable } from '@tanstack/react-table';
-import { Draggable } from 'react-beautiful-dnd';
+import { Draggable, DraggableProvidedDragHandleProps } from 'react-beautiful-dnd';
 import { columns } from './columns';
 
 type Props = {
 	section: NestedSection;
-	href: string;
-	isCurrent: boolean;
-	index: number;
+	dragHandleProps: DraggableProvidedDragHandleProps | null | undefined;
 };
 
-const SectionItem = ({ section, href, isCurrent, index }: Props) => {
+const SectionItem = ({ section, dragHandleProps }: Props) => {
 	const table = useReactTable({
 		data: section?.products ?? [],
 		columns,
@@ -20,18 +18,14 @@ const SectionItem = ({ section, href, isCurrent, index }: Props) => {
 	});
 
 	return (
-		<Draggable draggableId={`section-${section.id}`} index={index}>
-			{(provided) => (
-				<Card ref={provided.innerRef} {...provided.draggableProps} {...provided.dragHandleProps}>
-					<CardHeader>
-						<CardTitle>{section.name}</CardTitle>
-					</CardHeader>
-					<CardContent>
-						<DraggableDataTable table={table}></DraggableDataTable>
-					</CardContent>
-				</Card>
-			)}
-		</Draggable>
+		<Card>
+			<CardHeader>
+				<CardTitle {...dragHandleProps}>{section.name}</CardTitle>
+			</CardHeader>
+			<CardContent>
+				<DraggableDataTable table={table} type={section.id} />
+			</CardContent>
+		</Card>
 	);
 };
 
