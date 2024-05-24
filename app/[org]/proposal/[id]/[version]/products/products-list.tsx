@@ -21,14 +21,9 @@ import { DraggableDataTable } from '@/components/ui/draggable-data-table';
 
 type Props = {
 	products: NestedProduct[];
-	proposal: string;
-	catalogItems: CatalogItem[];
-	count: number;
-	page: number;
-	params: { org: string; id: string };
 };
 
-const ProductsList = ({ products, proposal, catalogItems, count, page, params }: Props) => {
+const ProductsList = ({ products }: Props) => {
 	const [sorting, setSorting] = React.useState<SortingState>([]);
 	const [expanded, setExpanded] = React.useState<ExpandedState>({});
 	const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([]);

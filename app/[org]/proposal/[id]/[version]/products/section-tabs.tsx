@@ -6,15 +6,19 @@ import { Input } from '@/components/ui/input';
 import { createSection } from '@/lib/functions/create';
 import { SectionState } from '@/types/optimisticTypes';
 import { DialogTrigger } from '@radix-ui/react-dialog';
-import React, { useOptimistic, useState, useTransition } from 'react';
-import { DragDropContext, Draggable, DropResult, Droppable } from 'react-beautiful-dnd';
+import React, { useOptimistic, useTransition } from 'react';
+import { DragDropContext, DropResult, Droppable } from 'react-beautiful-dnd';
 import { v4 as uuid } from 'uuid';
-import ProductSection from './product-section';
 import { CatalogItem } from '@/types/manage';
+import SectionItem from './section-item';
+import { usePathname } from 'next/navigation';
+import { Separator } from '@/components/ui/separator';
+import { updateSection } from '@/lib/functions/update';
+import { reorder } from '@/utils/array';
 
 type Props = {
 	params: { org: string; id: string; version: string };
-	sections: Section[];
+	sections: NestedSection[];
 	version: string;
 	page: number;
 	count: number;
@@ -25,7 +29,9 @@ type Props = {
 	url?: string;
 };
 
-const SectionTabs = ({ params, sections, version, catalogItems, count, page, proposal, searchParams, section, url }: Props) => {
+const SectionTabs = ({ params, sections, version }: Props) => {
+	const isDark = false;
+	const pathname = usePathname();
 	const [pending, startTransition] = useTransition();
 	const [state, mutate] = useOptimistic({ sections, pending: false }, (state, newState: SectionState) => {
 		if (newState.newSection) {
@@ -38,6 +44,11 @@ const SectionTabs = ({ params, sections, version, catalogItems, count, page, pro
 				sections: [...state.sections.filter((f) => f.id !== newState.updatedSection!.id), newState.updatedSection] as Section[],
 				pending: newState.pending,
 			};
+		} else if (newState.updatedSections) {
+			return {
+				sections: state.sections,
+				pending: newState.pending,
+			};
 		} else {
 			return {
 				sections: [...state.sections.filter((f) => f.id !== newState.deletedSection)] as Section[],
@@ -47,18 +58,17 @@ const SectionTabs = ({ params, sections, version, catalogItems, count, page, pro
 	});
 
 	// a little function to help us with reordering the result
-	function reorder<T>(list: T[], startIndex: number, endIndex: number) {
-		const result = Array.from(list);
-		const [removed] = result.splice(startIndex, 1);
-		result.splice(endIndex, 0, removed);
+	// function reorder<T>(list: T[], startIndex: number, endIndex: number) {
+	// 	const result = Array.from(list);
+	// 	const [removed] = result.splice(startIndex, 1);
+	// 	result.splice(endIndex, 0, removed);
 
-		console.log(removed, result, startIndex, endIndex);
-
-		return result;
-	}
+	// 	return result;
+	// }
 
 	async function onDragEnd(result: DropResult) {
-		const { destination, source } = result;
+		const { destination, source, type, draggableId } = result;
+		console.log(result);
 
 		// handle dropping a template onto proposal
 		if (!destination) return;
@@ -66,34 +76,137 @@ const SectionTabs = ({ params, sections, version, catalogItems, count, page, pro
 		// if dropped on the same list and has same index then do nothing
 		if (source.droppableId === destination?.droppableId && source.index === destination?.index) return;
 
-		reorder(state.sections, source.index, destination.index);
+		if (type === 'products') {
+			const idSplit = draggableId.split('_');
+			console.log(idSplit);
+			const section = parseInt(idSplit[0]);
+		}
+
+		const updatedSections = reorder(state.sections, source.index, destination.index);
+
+		console.log(updatedSections);
+
+		startTransition(async () => {
+			mutate({ updatedSections, pending: true });
+			await Promise.all(updatedSections.map(({ id, order }) => updateSection({ id, order })));
+		});
 
 		// handle dropping a template onto proposal
 	}
 
+	const orderedSections = state.sections?.sort((a, b) => {
+		// First, compare by score in descending order
+		if (Number(a.order) > Number(b.order)) return 1;
+		if (Number(a.order) < Number(b.order)) return -1;
+
+		// If scores are equal, then sort by created_at in ascending order
+		return Number(a.id) - Number(b.id);
+		// return new Date(a.=).getTime() - new Date(b.created_at).getTime();
+	});
+
 	return (
-		<div className='space-y-4'>
+		<>
 			<DragDropContext onDragEnd={onDragEnd}>
-				<Droppable droppableId='phases' direction='horizontal'>
-					{(provided, snapshot) => (
-						<div>
-							{sections?.map((section) => (
-								<section key={section.id} className='relative'>
-									<ProductSection
-										section={section}
-										catalogItems={catalogItems}
-										count={count}
-										page={page}
-										params={params}
-										searchParams={searchParams}
-										url={url}
-									/>
-								</section>
-							))}
+				<Droppable droppableId='sections' type='sections'>
+					{(provided) => (
+						<div {...provided.droppableProps} ref={provided.innerRef} className='space-y-3'>
+							{orderedSections.map((section, index) => {
+								const href = `/${params.org}/proposal/${params.id}/${params.version}/products/section/${section.id}`;
+								return <SectionItem key={section.id} index={index} section={section} href={href} isCurrent={pathname === href} />;
+							})}
+							{provided.placeholder}
 						</div>
 					)}
 				</Droppable>
 			</DragDropContext>
+			{/* <div className={cn('inline-flex items-center')}>
+				{state.sections.map((section, index) => {
+					const href = `/${params.org}/proposal/${params.id}/${params.version}/products/section/${section.id}`;
+					return <SectionItem key={section.id} section={section} href={href} isCurrent={pathname === href} />;
+				})}
+				{state.sections.map((section, index) => (
+								<Draggable key={section.id} draggableId={section.id} index={index}>
+									{(provided) => {
+										return (
+											<div ref={provided.innerRef} {...provided.draggableProps} {...provided.dragHandleProps}>
+												<TabsTrigger value={section.id} className='flex items-center gap-2'>
+													{section.name}
+												</TabsTrigger>
+											</div>
+										);
+									}}
+								</Draggable>
+								// <Dialog key={section.id}>
+
+								// 	<ContextMenu>
+								// 		<ContextMenuTrigger>
+
+								// 		</ContextMenuTrigger>
+
+								// 		<ContextMenuContent>
+								// 			<ContextMenuItem>
+								// 				<DialogTrigger>Rename</DialogTrigger>
+								// 			</ContextMenuItem>
+
+								// 			<ContextMenuItem
+								// 				onSelect={() => {
+								// 					startTransition(async () => {
+								// 						mutate({ deletedSection: section.id, pending: true });
+								// 						await deleteSection(section.id);
+								// 					});
+								// 				}}
+								// 				className='text-red-600 focus:text-red-600 focus:bg-red-50'
+								// 			>
+								// 				Delete
+								// 			</ContextMenuItem>
+								// 		</ContextMenuContent>
+								// 	</ContextMenu>
+
+								// 	<DialogContent>
+								// 		<form
+								// 			className='grid gap-4'
+								// 			action={(data: FormData) => {
+								// 				console.log('hi');
+								// 				startTransition(async () => {
+								// 					console.log('running');
+								// 					const updatedSection: SectionUpdate = {
+								// 						...section,
+								// 						name: data.get('name') as string,
+								// 					};
+
+								// 					mutate({
+								// 						updatedSection,
+								// 						pending: true,
+								// 					});
+
+								// 					try {
+								// 						await updateSection(updatedSection);
+								// 					} catch (error) {
+								// 						console.error(error);
+								// 					}
+								// 				});
+								// 			}}
+								// 		>
+								// 			<DialogHeader>
+								// 				<DialogTitle>Add section</DialogTitle>
+								// 			</DialogHeader>
+
+								// 			<Input placeholder='Section name' name='name' defaultValue={section.name} />
+
+								// 			<DialogFooter>
+								// 				<DialogClose asChild>
+								// 					<Button variant='secondary'>Close</Button>
+								// 				</DialogClose>
+
+								// 				<DialogClose asChild>
+								// 					<SubmitButton>Save</SubmitButton>
+								// 				</DialogClose>
+								// 			</DialogFooter>
+								// 		</form>
+								// 	</DialogContent>
+								// </Dialog>
+							))}
+			</div> */}
 
 			<Dialog>
 				<DialogTrigger asChild>
@@ -146,7 +259,7 @@ const SectionTabs = ({ params, sections, version, catalogItems, count, page, pro
 					</form>
 				</DialogContent>
 			</Dialog>
-		</div>
+		</>
 	);
 };
 

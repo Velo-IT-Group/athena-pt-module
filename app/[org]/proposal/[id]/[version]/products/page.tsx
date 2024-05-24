@@ -1,10 +1,7 @@
 import React from 'react';
 import { getProducts, getProposal } from '@/lib/functions/read';
 import { getCatalogItems } from '@/utils/manage/read';
-import ProductsList from './products-list';
 import SectionTabs from './section-tabs';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import CatalogPicker from './catalog-picker';
 
 type Props = {
 	params: { org: string; id: string; version: string };
@@ -24,23 +21,16 @@ const ProposalProductPage = async ({ params, searchParams }: Props) => {
 	}
 
 	return (
-		<main className='grow px-6 py-4 w-full space-y-4 flex flex-col theme-zinc bg-muted/40'>
-			<header className='flex items-center justify-between'>
-				<SectionTabs sections={proposal.working_version.sections ?? []} version={proposal.working_version.id} params={params} />
-
-				<CatalogPicker proposal={proposal.id} catalogItems={catalogItems} count={count} page={page} params={params} />
-			</header>
-
-			<section>
-				<Card>
-					<CardHeader>
-						<CardTitle>Hardware</CardTitle>
-					</CardHeader>
-					<CardContent>
-						<ProductsList products={products} proposal={params.id} catalogItems={catalogItems} count={count} page={page} params={params} />
-					</CardContent>
-				</Card>
-			</section>
+		<main className='grow px-6 py-4 w-full space-y-4 flex flex-col bg-muted/40'>
+			<SectionTabs
+				params={params}
+				sections={proposal.working_version.sections}
+				version={proposal.working_version.id}
+				proposal={proposal.id}
+				catalogItems={catalogItems}
+				count={count}
+				page={page}
+			/>
 		</main>
 	);
 };

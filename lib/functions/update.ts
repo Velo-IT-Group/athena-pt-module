@@ -217,6 +217,7 @@ export const updateSection = async (section: SectionUpdate) => {
 	}
 
 	revalidateTag('sections');
+	revalidateTag('proposals');
 };
 
 export const updateVersion = async (version: VersionUpdate) => {
