@@ -16,7 +16,6 @@ import {
 } from '@tanstack/react-table';
 import { updateProduct } from '@/lib/functions/update';
 import { ProductState } from '@/types/optimisticTypes';
-import { CatalogItem } from '@/types/manage';
 import { DraggableDataTable } from '@/components/ui/draggable-data-table';
 
 type Props = {
@@ -100,7 +99,7 @@ const ProductsList = ({ products }: Props) => {
 
 	return (
 		<>
-			<DraggableDataTable table={table} />
+			<DraggableDataTable table={table} type='Product' />
 		</>
 	);
 };

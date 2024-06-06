@@ -28,7 +28,11 @@ export const getPhases = unstable_cache(
 	async (id: string): Promise<Array<Phase & { tickets: Array<Ticket & { tasks: Task[] }> }> | undefined> => {
 		const supabase = createClient();
 
-		const { data, error } = await supabase.from('phases').select('*, tickets(*, tasks(*))').eq('version', id).order('order');
+		const { data, error } = await supabase
+			.from('phases')
+			.select('*, tickets(*, tasks(*))')
+			.eq('version', id)
+			.order('order');
 
 		if (!data || error) {
 			throw Error('Error in getting phases', { cause: error });
@@ -79,7 +83,10 @@ export const getTicket = async (id: number): Promise<ServiceTicket | undefined> 
 		},
 	};
 
-	const response = await fetch(`https://manage.velomethod.com/v4_6_release/apis/3.0/service/tickets/${id}`, requestOptions);
+	const response = await fetch(
+		`https://manage.velomethod.com/v4_6_release/apis/3.0/service/tickets/${id}`,
+		requestOptions
+	);
 
 	return await response.json();
 };
@@ -98,7 +105,10 @@ export const getCompany = async (id: number): Promise<ServiceTicket | undefined>
 		},
 	};
 
-	const response = await fetch(`https://manage.velomethod.com/v4_6_release/apis/3.0/service/tickets/${id}`, requestOptions);
+	const response = await fetch(
+		`https://manage.velomethod.com/v4_6_release/apis/3.0/service/tickets/${id}`,
+		requestOptions
+	);
 
 	return await response.json();
 };
@@ -204,7 +214,10 @@ export const getCatalogItem = async (id: number) => {
 		headers.append('clientId', '9762e3fa-abbd-4179-895e-ca7b0e015ab2');
 		headers.append('Authorization', 'Basic dmVsbytYMzJMQjRYeDVHVzVNRk56Olhjd3Jmd0dwQ09EaFNwdkQ=');
 
-		const response = await fetch(`${process.env.NEXT_PUBLIC_CW_URL!}/procurement/catalog/${id}`, { method: 'GET', headers });
+		const response = await fetch(`${process.env.NEXT_PUBLIC_CW_URL!}/procurement/catalog/${id}`, {
+			method: 'GET',
+			headers,
+		});
 
 		const data = await response.json();
 
@@ -415,7 +428,7 @@ export const getSections = unstable_cache(
 			.select('*, products(*, products(*))')
 			.eq('version', id)
 			.is('products.parent', null)
-			.order('created_at')
+			.order('order')
 			.returns<Array<Section & { products: NestedProduct[] }>>();
 
 		if (!sections || error) {
@@ -476,7 +489,11 @@ export const getProduct = unstable_cache(
 	async (id: string) => {
 		const supabase = createClient();
 
-		const { data: product, error } = await supabase.from('products').select('*, parent(*)').eq('unique_id', id).single();
+		const { data: product, error } = await supabase
+			.from('products')
+			.select('*, parent(*)')
+			.eq('unique_id', id)
+			.single();
 
 		if (!product || error) {
 			throw Error('Error in getting product...', { cause: error });
@@ -548,7 +565,10 @@ export const getOrganization = unstable_cache(
 	async () => {
 		'use server';
 		const supabase = createClient();
-		const { data, error } = await supabase.from('organizations').select('*, organization_integrations(*, integration(*))').single();
+		const { data, error } = await supabase
+			.from('organizations')
+			.select('*, organization_integrations(*, integration(*))')
+			.single();
 
 		if (!data || error) {
 			throw Error('Error in getting organization', { cause: error });
@@ -595,7 +615,7 @@ export const getProposals = unstable_cache(
 			.order(order ?? 'updated_at', { ascending: false });
 
 		if (searchText) {
-			proposalsQuery.ilike('name', searchText);
+			proposalsQuery.textSearch('name', searchText, { type: 'plain', config: 'english' });
 		}
 
 		if (userFilters.length) {
@@ -622,7 +642,8 @@ export const getProposals = unstable_cache(
 export const getTemplates = async (): Promise<Array<ProjectTemplate> | undefined> => {
 	try {
 		const projectTemplateResponse = await fetch(
-			`${process.env.NEXT_PUBLIC_CW_URL!}/project/projectTemplates?fields=id,name,description&pageSize=1000&orderBy=name`,
+			`${process.env
+				.NEXT_PUBLIC_CW_URL!}/project/projectTemplates?fields=id,name,description&pageSize=1000&orderBy=name`,
 			{
 				next: {
 					revalidate: 21600,
@@ -675,7 +696,10 @@ export const getTemplate = unstable_cache(
 		try {
 			const response: AxiosResponse<ProjectTemplate, Error> = await axios.request(config);
 			// console.log(response.data);
-			const workplan = await axios.request<ProjectWorkPlan>({ ...baseConfig, url: `/project/projectTemplates/${response.data.id}/workplan` });
+			const workplan = await axios.request<ProjectWorkPlan>({
+				...baseConfig,
+				url: `/project/projectTemplates/${response.data.id}/workplan`,
+			});
 			// console.log(workplan.data);
 
 			return { ...response.data, workplan: workplan?.data ?? [] };
@@ -707,11 +731,17 @@ export const getOpportunityProducts = async (id: number): Promise<ProductsItem[]
 export const getOpportunityTypes = async (): Promise<{ id: number; description: string }[] | undefined> => {
 	const headers = new Headers();
 	headers.set('clientId', process.env.NEXT_PUBLIC_CW_CLIENT_ID!);
-	headers.set('Authorization', 'Basic ' + btoa(process.env.NEXT_PUBLIC_CW_USERNAME! + ':' + process.env.NEXT_PUBLIC_CW_PASSWORD!));
+	headers.set(
+		'Authorization',
+		'Basic ' + btoa(process.env.NEXT_PUBLIC_CW_USERNAME! + ':' + process.env.NEXT_PUBLIC_CW_PASSWORD!)
+	);
 
-	const response = await fetch(`${process.env.NEXT_PUBLIC_CW_URL}/sales/opportunities/types?fields=id,description&orderBy=description`, {
-		headers,
-	});
+	const response = await fetch(
+		`${process.env.NEXT_PUBLIC_CW_URL}/sales/opportunities/types?fields=id,description&orderBy=description`,
+		{
+			headers,
+		}
+	);
 
 	return await response.json();
 };
@@ -719,9 +749,15 @@ export const getOpportunityTypes = async (): Promise<{ id: number; description: 
 export const getOpportunityStatuses = async (): Promise<{ id: number; name: string }[] | undefined> => {
 	const headers = new Headers();
 	headers.set('clientId', process.env.NEXT_PUBLIC_CW_CLIENT_ID!);
-	headers.set('Authorization', 'Basic ' + btoa(process.env.NEXT_PUBLIC_CW_USERNAME! + ':' + process.env.NEXT_PUBLIC_CW_PASSWORD!));
+	headers.set(
+		'Authorization',
+		'Basic ' + btoa(process.env.NEXT_PUBLIC_CW_USERNAME! + ':' + process.env.NEXT_PUBLIC_CW_PASSWORD!)
+	);
 
-	const response = await fetch(`${process.env.NEXT_PUBLIC_CW_URL}/sales/opportunities/statuses?fields=id,name&orderBy=name`, { headers });
+	const response = await fetch(
+		`${process.env.NEXT_PUBLIC_CW_URL}/sales/opportunities/statuses?fields=id,name&orderBy=name`,
+		{ headers }
+	);
 
 	return await response.json();
 };
@@ -729,9 +765,14 @@ export const getOpportunityStatuses = async (): Promise<{ id: number; name: stri
 export const getProjectStatuses = async () => {
 	const headers = new Headers();
 	headers.set('clientId', process.env.NEXT_PUBLIC_CW_CLIENT_ID!);
-	headers.set('Authorization', 'Basic ' + btoa(process.env.NEXT_PUBLIC_CW_USERNAME! + ':' + process.env.NEXT_PUBLIC_CW_PASSWORD!));
+	headers.set(
+		'Authorization',
+		'Basic ' + btoa(process.env.NEXT_PUBLIC_CW_USERNAME! + ':' + process.env.NEXT_PUBLIC_CW_PASSWORD!)
+	);
 
-	const response = await fetch(`${process.env.NEXT_PUBLIC_CW_URL}/project/statuses?fields=id,name&orderBy=name`, { headers });
+	const response = await fetch(`${process.env.NEXT_PUBLIC_CW_URL}/project/statuses?fields=id,name&orderBy=name`, {
+		headers,
+	});
 
 	return await response.json();
 };
@@ -739,11 +780,17 @@ export const getProjectStatuses = async () => {
 export const getProjectBoards = async () => {
 	const headers = new Headers();
 	headers.set('clientId', process.env.NEXT_PUBLIC_CW_CLIENT_ID!);
-	headers.set('Authorization', 'Basic ' + btoa(process.env.NEXT_PUBLIC_CW_USERNAME! + ':' + process.env.NEXT_PUBLIC_CW_PASSWORD!));
+	headers.set(
+		'Authorization',
+		'Basic ' + btoa(process.env.NEXT_PUBLIC_CW_USERNAME! + ':' + process.env.NEXT_PUBLIC_CW_PASSWORD!)
+	);
 
-	const response = await fetch(`${process.env.NEXT_PUBLIC_CW_URL}/service/boards?conditions=projectFlag = true and inactiveFlag = false`, {
-		headers,
-	});
+	const response = await fetch(
+		`${process.env.NEXT_PUBLIC_CW_URL}/service/boards?conditions=projectFlag = true and inactiveFlag = false`,
+		{
+			headers,
+		}
+	);
 
 	return await response.json();
 };
@@ -827,7 +874,11 @@ export const getSynnexPricing = async () => {
 export const getVersions = unstable_cache(
 	async (id: string) => {
 		const supabase = createClient();
-		const { data, error } = await supabase.from('versions').select().eq('proposal', id).order('number', { ascending: false });
+		const { data, error } = await supabase
+			.from('versions')
+			.select()
+			.eq('proposal', id)
+			.order('number', { ascending: false });
 
 		if (error || !data) {
 			throw Error("Can't fetch versions...", { cause: error });
@@ -842,7 +893,10 @@ export const getVersions = unstable_cache(
 export const getUsers = unstable_cache(
 	async () => {
 		const supabase = createClient();
-		const { data, error } = await supabase.from('profiles').select('id, first_name, last_name').order('first_name', { ascending: false });
+		const { data, error } = await supabase
+			.from('profiles')
+			.select('id, first_name, last_name')
+			.order('first_name', { ascending: false });
 		// .order('last_name', { ascending: false });
 
 		if (error || !data) {

@@ -1,10 +1,12 @@
 'use client';
 import { Input } from '@/components/ui/input';
 import { cn } from '@/lib/utils';
-import { MagnifyingGlassIcon } from '@radix-ui/react-icons';
+import { MagnifyingGlassIcon, ReloadIcon } from '@radix-ui/react-icons';
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import React, { useCallback, useEffect, useState } from 'react';
 import { useDebouncedCallback } from 'use-debounce';
+import { useFormStatus } from 'react-dom';
+import { Button } from './ui/button';
 
 type Props = {
 	baseUrl: string;
@@ -14,6 +16,7 @@ type Props = {
 };
 
 const Search = ({ baseUrl, placeholder, className, queryParam = 'search' }: Props) => {
+	const { pending } = useFormStatus();
 	const [text, setText] = useState('');
 	const debounced = useDebouncedCallback((value) => {
 		setText(value);
@@ -45,14 +48,15 @@ const Search = ({ baseUrl, placeholder, className, queryParam = 'search' }: Prop
 	}, [baseUrl, createQueryString, pathname, router, text, queryParam]);
 
 	return (
-		<div
+		<form
 			className={cn(
 				'flex h-9 items-center w-full rounded-md border border-input bg-background px-3 py-1 text-sm shadow-sm transition-colors file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50',
 				className
 			)}
 			cmdk-input-wrapper=''
 		>
-			<MagnifyingGlassIcon className='mr-2 h-4 w-4 shrink-0 opacity-50' />
+			{pending ? <ReloadIcon className='mr-2 h-4 w-4 animate-spin' /> : <MagnifyingGlassIcon className='mr-2 h-4 w-4 shrink-0 opacity-50' />}
+
 			<Input
 				placeholder={placeholder}
 				defaultValue={text}
@@ -70,7 +74,9 @@ const Search = ({ baseUrl, placeholder, className, queryParam = 'search' }: Prop
 				}}
 				className='border-0 shadow-none focus-visible:ring-0'
 			/>
-		</div>
+
+			<Button className='hidden' />
+		</form>
 	);
 };
 

@@ -1,6 +1,6 @@
 import { Pencil1Icon } from '@radix-ui/react-icons';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
 import Link from 'next/link';
 import ProposalOptions from '@/app/[org]/proposal-options';
@@ -17,27 +17,42 @@ export function ProposalCard({ proposal, orgId }: { proposal: Proposal; orgId: s
 					<CardTitle>{proposal.name}</CardTitle>
 				</div>
 				<div className='flex items-center space-x-1 rounded-md bg-secondary text-secondary-foreground'>
-					<Button variant='secondary' className='px-3 shadow-none' asChild>
+					<Button
+						variant='secondary'
+						className='px-3 shadow-none'
+						asChild
+					>
 						<Link href={`/${orgId}/proposal/${proposal.id}/${proposal.working_version}`}>
 							<Pencil1Icon className='mr-2 h-4 w-4' />
 							Edit
 						</Link>
 					</Button>
-					<Separator orientation='vertical' className='h-[20px]' />
-					<ProposalOptions proposalId={proposal.id} orgId={orgId} />
+
+					<Separator
+						orientation='vertical'
+						className='h-[20px]'
+					/>
+
+					<ProposalOptions
+						proposal={proposal}
+						orgId={orgId}
+					/>
 				</div>
 			</CardHeader>
-			<CardContent className='mt-auto'>
-				<div className='flex items-center justify-between space-x-4 text-sm text-muted-foreground'>
-					<Suspense fallback={<Skeleton className='h-5 w-40' />}>
-						<ProposalCardStatus ticketId={proposal.service_ticket} />
-					</Suspense>
 
-					<div className='flex items-center text-muted-foreground text-xs animate-in fade-in truncate capitalize'>
-						Updated {relativeDate(new Date(proposal.updated_at))}
-					</div>
-				</div>
+			<CardContent>
+				<p className='text-sm text-muted-foreground'>{proposal.company_name}</p>
 			</CardContent>
+
+			<CardFooter className='flex flex-row items-center justify-between space-x-4 text-sm text-muted-foreground w-full'>
+				<Suspense fallback={<Skeleton className='h-5 w-40' />}>
+					<ProposalCardStatus ticketId={proposal.service_ticket} />
+				</Suspense>
+
+				<div className='flex items-center text-muted-foreground text-xs animate-in fade-in truncate capitalize'>
+					Updated {relativeDate(new Date(proposal.updated_at))}
+				</div>
+			</CardFooter>
 		</Card>
 	);
 }

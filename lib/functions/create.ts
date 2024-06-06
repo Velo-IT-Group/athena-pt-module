@@ -97,8 +97,8 @@ export const createProposal = async (proposal: ProposalInsert) => {
 	}
 
 	const version = await createVersion(data.id);
-	await createSection({ name: 'Hardware', version });
-	await createSection({ name: 'Services', version });
+	await createSection({ name: 'Hardware', version, order: 0 });
+	await createSection({ name: 'Services', version, order: 1 });
 
 	if (proposal.templates_used && proposal.templates_used.length) {
 		const templates = await Promise.all(proposal.templates_used.map((template) => getTemplate(template)));
@@ -111,6 +111,33 @@ export const createProposal = async (proposal: ProposalInsert) => {
 	revalidateTag('proposals');
 
 	redirect(`/${data.organization.slug}/proposal/${data.id}/${version}`);
+};
+
+export const duplicateProposal = async (proposal: ProposalInsert) => {
+	const supabase = createClient();
+	delete proposal['updated_at'];
+
+	const { data: returnedProposal } = await supabase
+		.from('proposals')
+		.insert({ ...proposal, name: `${proposal.name} - Copy`, working_version: null, id: undefined })
+		.select('id')
+		.returns<Array<{ id: string }>>()
+		.single();
+
+	if (!returnedProposal) return;
+
+	const version = await createVersion(returnedProposal.id);
+
+	console.log(version, proposal?.working_version);
+
+	await supabase.rpc('copy_version_data', {
+		old_version: proposal.id ?? '',
+		new_version: version,
+	});
+
+	revalidateTag('proposals');
+
+	redirect(`/velo-it-group/proposal/${returnedProposal.id}/${version}`);
 };
 
 export const createPhase = async (phase: PhaseInsert, tickets: Array<ProjectTemplateTicket>) => {
@@ -137,18 +164,6 @@ export const createPhase = async (phase: PhaseInsert, tickets: Array<ProjectTemp
 
 	revalidateTag('proposals');
 	revalidateTag('phases');
-};
-
-export const createComment = async (comment: CommentInsert) => {
-	const supabase = createClient();
-	const { error } = await supabase.from('comments').insert(comment);
-
-	if (error) {
-		console.error(error);
-		return;
-	}
-
-	revalidateTag('proposals');
 };
 
 export const createTicket = async (ticket: TicketInset, tasks: Array<ProjectTemplateTask>): Promise<Ticket | undefined> => {
@@ -262,12 +277,8 @@ export const signUp = async (formData: FormData, data?: MetaData) => {
 };
 
 export const createOpportunity = async (proposal: NestedProposal, ticket: ServiceTicket): Promise<Opportunity | undefined> => {
-	// if (proposal.opportunity_id && proposal.products) {
-	// 	await Promise.all(proposal?.products?.map((p) => createManageProduct(proposal.opportunity_id!, { id: p.id, productClass: p.product_class! }, p)));
-	// }
-
 	const data = JSON.stringify({
-		name: proposal.name,
+		name: `NICK'S TESTING - ${proposal.name}`,
 		type: {
 			id: 5,
 		},
@@ -402,10 +413,10 @@ export const createProject = async (
 			includeAllNotesFlag: true,
 			includeAllDocumentsFlag: true,
 			includeAllProductsFlag: true,
-			billProjectAfterClosedFlag: true,
-			budgetFlag: true,
-			estimatedHours,
-			billingMethod: 'FixedFee',
+			// billProjectAfterClosedFlag: true,
+			// budgetFlag: true,
+			// estimatedHours,
+			// billingMethod: 'FixedFee',
 		}),
 	};
 
@@ -434,35 +445,36 @@ export const createProjectPhase = async (projectId: number, phase: NestedPhase):
 		} as ProjectPhase),
 	};
 
-	console.log('TASK BODY', config.body);
+	console.log('NON ERROR PHASE BODY', config.body);
 
 	const response = await fetch(`${process.env.NEXT_PUBLIC_CW_URL}/project/projects/${projectId}/phases`, config);
 
-	if (response.status !== 201) {
+	if (!response.ok) {
 		try {
 			console.log('waiting');
-			await wait(1000);
+			wait(1000);
 			console.log('done waiting');
 
-			setTimeout(async () => {
-				const response = await fetch(`${process.env.NEXT_PUBLIC_CW_URL}/project/projects/${projectId}/phases`, config);
+			const response = await fetch(`${process.env.NEXT_PUBLIC_CW_URL}/project/projects/${projectId}/phases`, config);
 
-				console.log('PHASE BODY', config.body);
+			console.log('IS ERROR PHASE BODY', config.body);
 
-				if (response.status !== 201) throw Error(response.statusText);
+			if (!response.ok) {
+				console.error(response.statusText);
+				// throw Error(response.statusText);
+			}
 
-				const data = await response.json();
+			const data = await response.json();
 
-				await supabase.from('phases').update({ reference_id: data.id }).eq('id', phase.id);
+			// await supabase.from('phases').update({ reference_id: data.id }).eq('id', phase.id);
 
-				if (phase.tickets) {
-					await Promise.all(phase.tickets?.sort((a, b) => a.order - b.order)?.map((ticket) => createProjectTicket(data.id, ticket)));
-				}
+			if (phase.tickets) {
+				await Promise.all(phase.tickets?.sort((a, b) => a.order - b.order)?.map((ticket) => createProjectTicket(data.id, ticket)));
+			}
 
-				console.log('Phase', phase.description, data.id);
+			// console.log('Phase', phase.description, data.id);
 
-				return data;
-			});
+			return data;
 		} catch (error) {
 			console.error(error);
 			throw Error('Error', { cause: error });
@@ -471,7 +483,7 @@ export const createProjectPhase = async (projectId: number, phase: NestedPhase):
 
 	const data = await response.json();
 
-	await supabase.from('phases').update({ reference_id: data.id }).eq('id', phase.id);
+	// await supabase.from('phases').update({ reference_id: data.id }).eq('id', phase.id);
 
 	if (phase.tickets) {
 		await Promise.all(phase.tickets?.sort((a, b) => a.order - b.order)?.map((ticket) => createProjectTicket(data.id, ticket)));
@@ -506,31 +518,36 @@ export const createProjectTicket = async (phaseId: number, ticket: NestedTicket)
 		} as ProjectTicketInsert),
 	};
 
-	console.log('TICKET BODY', config.body);
+	console.log('NON ERROR TICKET BODY', config.body);
 
 	const response = await fetch(`${process.env.NEXT_PUBLIC_CW_URL}/project/tickets`, config);
 
-	if (response.status !== 201) {
+	if (!response.ok) {
 		try {
-			setTimeout(async () => {
-				const response = await fetch(`${process.env.NEXT_PUBLIC_CW_URL}/project/tickets`, config);
+			console.log('waiting');
+			wait(1000);
+			console.log('done waiting');
 
-				console.log('TICKET BODY', config.body);
+			console.log('IS ERROR TICKET BODY', config.body);
 
-				if (response.status !== 201) throw Error(response.statusText);
+			const response = await fetch(`${process.env.NEXT_PUBLIC_CW_URL}/project/tickets`, config);
 
-				const data = await response.json();
+			if (!response.ok) {
+				console.error(response.statusText);
+				// throw Error(response.statusText);
+			}
 
-				await supabase.from('tickets').update({ reference_id: data.id }).eq('id', ticket.id);
+			const data = await response.json();
 
-				if (ticket.tasks && ticket.tasks.length) {
-					await Promise.all(ticket.tasks?.sort((a, b) => a.priority - b.priority)?.map((task) => createProjectTask(data.id, task)));
-				}
+			// await supabase.from('tickets').update({ reference_id: data.id }).eq('id', ticket.id);
 
-				console.log('Ticket', summary, data.id);
+			if (ticket.tasks && ticket.tasks.length) {
+				await Promise.all(ticket.tasks?.sort((a, b) => a.priority - b.priority)?.map((task) => createProjectTask(data.id, task)));
+			}
 
-				return data;
-			}, 1000);
+			console.log('Ticket', summary, data.id);
+
+			return data;
 		} catch (error) {
 			console.error(error);
 			throw Error('Error', { cause: error });
@@ -539,7 +556,7 @@ export const createProjectTicket = async (phaseId: number, ticket: NestedTicket)
 
 	const data = await response.json();
 
-	await supabase.from('tickets').update({ reference_id: data.id }).eq('id', ticket.id);
+	// await supabase.from('tickets').update({ reference_id: data.id }).eq('id', ticket.id);
 
 	if (ticket.tasks && ticket.tasks.length) {
 		await Promise.all(ticket.tasks?.sort((a, b) => a.priority - b.priority)?.map((task) => createProjectTask(data.id, task)));
@@ -561,7 +578,7 @@ export const createProjectTask = async (ticketId: number, task: Task): Promise<P
 	const supabase = createClient();
 	const { summary, notes, priority } = task;
 	const body = JSON.stringify({
-		notes: summary,
+		notes,
 		priority,
 	} as ProjectTaskInsert);
 
@@ -575,23 +592,28 @@ export const createProjectTask = async (ticketId: number, task: Task): Promise<P
 
 	const response = await fetch(`${process.env.NEXT_PUBLIC_CW_URL}/project/tickets/${ticketId}/tasks`, config);
 
-	if (response.status !== 201) {
+	if (!response.ok) {
 		try {
-			setTimeout(async () => {
-				const response = await fetch(`${process.env.NEXT_PUBLIC_CW_URL}/project/tickets/${ticketId}/tasks`, config);
+			console.log('waiting');
+			wait(1000);
+			console.log('done waiting');
 
-				console.log('TASK BODY', config.body);
+			console.log('IS ERROR TASK BODY', config.body);
 
-				if (response.status !== 201) throw Error(response.statusText);
+			const response = await fetch(`${process.env.NEXT_PUBLIC_CW_URL}/project/tickets/${ticketId}/tasks`, config);
 
-				const data = await response.json();
+			if (response.status !== 201) {
+				console.error(response.statusText);
+				// throw Error(response.statusText);
+			}
 
-				await supabase.from('tasks').update({ reference_id: data.id }).eq('id', task.id);
+			const data = await response.json();
 
-				console.log('TASK', summary, data.id);
+			await supabase.from('tasks').update({ reference_id: data.id }).eq('id', task.id);
 
-				return data;
-			}, 2000);
+			console.log('TASK', summary, data.id);
+
+			return data;
 		} catch (error) {
 			console.error(error);
 			throw Error('Error', { cause: error });
@@ -600,9 +622,9 @@ export const createProjectTask = async (ticketId: number, task: Task): Promise<P
 
 	const data = await response.json();
 
-	await supabase.from('tasks').update({ reference_id: data.id }).eq('id', task.id);
+	// await supabase.from('tasks').update({ reference_id: data.id }).eq('id', task.id);
 
-	console.log('TASK', summary, data.id);
+	// console.log('TASK', summary, data.id);
 
 	return data;
 };
@@ -622,7 +644,7 @@ export const convertOpportunityToProject = async (opportunity: Opportunity, proj
 	};
 };
 
-export const createVersion = async (proposal: string) => {
+export const createVersion = async (proposal: string): Promise<string> => {
 	const supabase = createClient();
 
 	const { data, error } = await supabase.from('versions').insert({ proposal }).select('id').single();

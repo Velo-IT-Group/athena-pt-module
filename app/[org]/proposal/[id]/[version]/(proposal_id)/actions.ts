@@ -1,6 +1,12 @@
 'use server';
 
-import { createManageProduct, createOpportunity, createPhase, createProject, createProjectPhase } from '@/lib/functions/create';
+import {
+	createManageProduct,
+	createOpportunity,
+	createPhase,
+	createProject,
+	createProjectPhase,
+} from '@/lib/functions/create';
 import { getOpportunityProducts } from '@/lib/functions/read';
 import { ManageProductUpdate } from '@/lib/functions/update';
 import { updateManageProduct } from '@/utils/manage/update';
@@ -12,7 +18,11 @@ import { createClient } from '@/utils/supabase/server';
  * @param {string} id - The id of the product.
  * @param {ProductUpdate} product - The product you're wanting to update.
  */
-export const convertToManageProject = async (proposal: NestedProposal, ticket: ServiceTicket, phases: NestedPhase[]) => {
+export const convertToManageProject = async (
+	proposal: NestedProposal,
+	ticket: ServiceTicket,
+	phases: NestedPhase[]
+) => {
 	const supabase = createClient();
 
 	const products = proposal.working_version.products?.sort((a, b) => {
@@ -20,56 +30,53 @@ export const convertToManageProject = async (proposal: NestedProposal, ticket: S
 		if (Number(a!.created_at) > Number(b!.created_at)) return 1;
 		if (Number(a!.created_at) < Number(b!.created_at)) return -1;
 
-		return -1;
+		return 0;
 	});
+
+	if (!products || products.length === 0) throw new Error('No products provided...');
 
 	// Create opportunity
 	const opportunity = await createOpportunity(proposal, ticket);
+	if (!opportunity) throw new Error("Couldn't create opportunity...");
 
-	if (!opportunity) throw Error("Couldn't create opportunity...");
-
-	await Promise.all(products.map((p) => createManageProduct(opportunity.id, { id: p.id!, productClass: p.product_class! as ProductClass }, p)));
+	await Promise.all(
+		products.map((p) =>
+			createManageProduct(opportunity.id, { id: p.id!, productClass: p.product_class! as ProductClass }, p)
+		)
+	);
 
 	const { error } = await supabase.from('proposals').update({ opportunity_id: opportunity.id }).eq('id', proposal.id);
 
-	if (error) throw Error('Error updating proposal', { cause: error.message });
-
-	if (!products) throw Error('No products provided...');
+	if (error) throw new Error(`Error updating proposal ${error.message}`);
 
 	// Get all products from opportunity
 	const opportunityProducts = await getOpportunityProducts(opportunity.id);
 
-	if (!opportunityProducts) throw Error('No products returned...');
+	if (!opportunityProducts) throw new Error('No products returned...');
 
 	const flattendProducts = products?.flatMap((product: NestedProduct) => product.products);
 
 	// Filter bundled products to update the sub items prices
-	const bundledProducts = opportunityProducts.filter((product) => flattendProducts?.some((p) => p && p.id === product.catalogItem.id));
+	const bundledProducts = opportunityProducts.filter((product) =>
+		flattendProducts?.some((p) => p && p.id === product.catalogItem.id)
+	);
 
-	console.log('bundledProducts', bundledProducts);
+	const bundledChanges = bundledProducts
+		.map((b) => {
+			const product = flattendProducts.find((p) => p!.id === b.catalogItem.id);
+			if (!product) return null;
 
-	const bundledChanges = bundledProducts?.map((b) => {
-		const product = flattendProducts.find((product) => product!.id === b.catalogItem.id);
-		return {
-			id: b!.id,
-			values: [
-				{
-					op: 'replace',
-					path: '/price',
-					value: product!.price,
-				},
-				{
-					op: 'replace',
-					path: '/cost',
-					value: product!.cost,
-				},
-			],
-		} as ManageProductUpdate;
-	});
+			return {
+				id: b!.id,
+				values: [
+					{ op: 'replace', path: '/price', value: product!.price },
+					{ op: 'replace', path: '/cost', value: product!.cost },
+				],
+			} as ManageProductUpdate;
+		})
+		.filter(Boolean); // Filter out any null values
 
-	console.log('bundledChanges', bundledChanges);
-
-	await Promise.all(bundledChanges.map((product) => updateManageProduct(product)));
+	await Promise.all(bundledChanges.map((product) => updateManageProduct(product!)));
 
 	const project = await createProject(
 		{
@@ -84,7 +91,7 @@ export const convertToManageProject = async (proposal: NestedProposal, ticket: S
 		}, 0)
 	);
 
-	// if (!project) throw Error('Error creating project...', { cause: project });
+	if (!project) throw new Error(`Error creating project... ${project}`);
 
 	await Promise.all(phases.sort((a, b) => a.order - b.order).map((phase) => createProjectPhase(project!.id, phase)));
 

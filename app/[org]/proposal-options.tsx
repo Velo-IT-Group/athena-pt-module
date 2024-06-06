@@ -14,8 +14,10 @@ import { deleteProposal } from '@/lib/functions/delete';
 import { useRouter } from 'next/navigation';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import SubmitButton from '@/components/SubmitButton';
+import DuplicateIcon from '@/components/icons/duplicate-icon';
+import { duplicateProposal } from '@/lib/functions/create';
 
-const ProposalOptions = ({ proposalId, orgId }: { proposalId: string; orgId: string }) => {
+const ProposalOptions = ({ proposal, orgId }: { proposal: Proposal; orgId: string }) => {
 	const router = useRouter();
 
 	return (
@@ -28,20 +30,28 @@ const ProposalOptions = ({ proposalId, orgId }: { proposalId: string; orgId: str
 				</DropdownMenuTrigger>
 				<DropdownMenuContent align='end' alignOffset={-5} className='w-[200px]' forceMount>
 					<DropdownMenuLabel>Options</DropdownMenuLabel>
-					{/* <DropdownMenuItem>Add To Favorites</DropdownMenuItem> */}
+
 					<DropdownMenuItem
 						onClick={() => {
-							router.push(`/review/${proposalId}`);
+							router.push(`/review/${proposal.working_version}/${proposal.id}`);
 						}}
 					>
 						<EyeOpenIcon className='mr-2 h-4 w-4' /> Preview
 					</DropdownMenuItem>
 					<DropdownMenuItem
 						onClick={() => {
-							router.push(`/${orgId}/proposal/${proposalId}/settings`);
+							router.push(`/${orgId}/proposal/${proposal.id}/settings`);
 						}}
 					>
 						<MixerHorizontalIcon className='mr-2 h-4 w-4' /> Settings
+					</DropdownMenuItem>
+
+					<DropdownMenuItem
+						onClick={async () => {
+							await duplicateProposal(proposal);
+						}}
+					>
+						<DuplicateIcon className='mr-2 h-4 w-4' /> Duplicate
 					</DropdownMenuItem>
 
 					<DropdownMenuSeparator />
@@ -58,7 +68,7 @@ const ProposalOptions = ({ proposalId, orgId }: { proposalId: string; orgId: str
 					<DialogTitle>Are you absolutely sure?</DialogTitle>
 					<DialogDescription>This action cannot be undone. Are you sure you want to permanently delete this file from our servers?</DialogDescription>
 				</DialogHeader>
-				<form action={async () => await deleteProposal(proposalId)}>
+				<form action={async () => await deleteProposal(proposal.id)}>
 					<DialogFooter>
 						<SubmitButton>Confirm</SubmitButton>
 					</DialogFooter>

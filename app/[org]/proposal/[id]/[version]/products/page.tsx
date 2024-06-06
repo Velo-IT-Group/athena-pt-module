@@ -1,5 +1,5 @@
 import React from 'react';
-import { getProducts, getProposal } from '@/lib/functions/read';
+import { getProducts, getProposal, getSections } from '@/lib/functions/read';
 import { getCatalogItems } from '@/utils/manage/read';
 import SectionTabs from './section-tabs';
 
@@ -14,7 +14,9 @@ const ProposalProductPage = async ({ params, searchParams }: Props) => {
 	const page = typeof searchParams.page === 'string' ? Number(searchParams.page) : 1;
 	const { catalogItems, count } = await getCatalogItems(search, identifier, page);
 	const proposal = await getProposal(params.id, params.version);
-	const products = await getProducts(params.version);
+	const sections = await getSections(params.version);
+
+	console.log(sections);
 
 	if (!proposal) {
 		return <div></div>;
@@ -24,7 +26,7 @@ const ProposalProductPage = async ({ params, searchParams }: Props) => {
 		<main className='grow px-6 py-4 w-full space-y-4 flex flex-col bg-muted/40'>
 			<SectionTabs
 				params={params}
-				sections={proposal.working_version.sections}
+				sections={sections}
 				version={proposal.working_version.id}
 				proposal={proposal.id}
 				catalogItems={catalogItems}

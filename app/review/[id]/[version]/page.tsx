@@ -11,7 +11,6 @@ import ApprovalForm from './approval-form';
 import { notFound } from 'next/navigation';
 import { Metadata, ResolvingMetadata } from 'next';
 import { getTicket } from '@/utils/manage/read';
-import ProductListItem from './product-list-item';
 import ProductCard from './product-card';
 
 type Props = {
@@ -34,11 +33,11 @@ const ProposalReviewPage = async ({ params }: Props) => {
 		getPhases(params.version),
 	]);
 
+	console.log(proposal);
+
 	if (!proposal || !products) return notFound();
 
 	const ticket = await getTicket(proposal?.service_ticket ?? 0);
-
-	console.log(sections.flatMap((s) => s.products));
 
 	const { productTotal, recurringTotal } = calculateTotals(
 		sections.flatMap((s) => s.products),
@@ -86,11 +85,11 @@ const ProposalReviewPage = async ({ params }: Props) => {
 									<CardContent className='space-y-2.5'>
 										<div className='grid gap-2 grid-cols-7'>
 											<div className='max-w-96 col-span-4'>
-												<span className='text-sm text-muted-foreground'>Description / Unit Price</span>
+												<span className='text-sm text-muted-foreground'>Description</span>
 											</div>
 											<div className='grid gap-2 justify-items-end grid-cols-5 col-span-3'>
-												<span className='text-sm text-muted-foreground text-right col-span-2'>Recurring Cost</span>
-												<span className='text-sm text-muted-foreground col-span-3 text-right whitespace-nowrap'>Non-Recurring Cost</span>
+												<span className='text-sm text-muted-foreground text-right col-span-2'>Recurring Price</span>
+												<span className='text-sm text-muted-foreground col-span-3 text-right whitespace-nowrap'>Non-Recurring Price</span>
 											</div>
 										</div>
 										{sections.map((section) => {
@@ -99,13 +98,7 @@ const ProposalReviewPage = async ({ params }: Props) => {
 												[],
 												250
 											);
-											// const sectionProductSubTotal = section.products
-											// 	.filter((p) => !p.recurring_flag || p.recurring_bill_cycle !== 2)
-											// 	.reduce((accumulator, currentValue) => {
-											// 		const price: number | null = currentValue.product_class === 'Bundle' ? currentValue.calculated_price : currentValue.price;
 
-											// 		return accumulator + (price ?? 0) * (currentValue?.quantity ?? 0);
-											// 	}, 0);
 											return (
 												<>
 													<Separator />
@@ -115,10 +108,8 @@ const ProposalReviewPage = async ({ params }: Props) => {
 
 														<div className='grid gap-2 justify-items-end grid-cols-3 col-span-3'>
 															<p className='text-sm text-muted-foreground text-right'>
-																<span className='font-medium'>
-																	{getCurrencyString(sectionRecurringProductSubTotal)}
-																	/mo
-																</span>
+																{getCurrencyString(sectionRecurringProductSubTotal)}
+																/mo
 															</p>
 															<p className='text-sm text-muted-foreground text-right col-span-2'>{getCurrencyString(sectionProductSubTotal)}</p>
 														</div>

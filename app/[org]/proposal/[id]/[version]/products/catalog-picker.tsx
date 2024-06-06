@@ -22,9 +22,10 @@ type Props = {
 	searchParams?: { [key: string]: string | string[] | undefined };
 	section?: string;
 	url?: string;
+	productLength: number;
 };
 
-const CatalogPicker = ({ catalogItems, params, count, section, url }: Props) => {
+const CatalogPicker = ({ catalogItems, params, count, section, url, productLength }: Props) => {
 	const { version } = params;
 	const [expanded, setExpanded] = React.useState<ExpandedState>({});
 	const [rowSelection, setRowSelection] = React.useState({});
@@ -50,7 +51,7 @@ const CatalogPicker = ({ catalogItems, params, count, section, url }: Props) => 
 
 	const productInsert = async (product: ProductInsert, bundledItems?: ProductInsert[]) => {
 		await createProduct(
-			{ ...product, version, section: section ?? null },
+			{ ...product, version, section: section ?? null, order: productLength + 1 },
 			bundledItems?.map((item) => {
 				return { ...item, version, section };
 			})

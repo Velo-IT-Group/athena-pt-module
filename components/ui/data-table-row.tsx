@@ -23,10 +23,5 @@ const DataTableRow = React.forwardRef<HTMLTableRowElement, DataTableRowProps>(({
 	</TableRow>
 ));
 DataTableRow.displayName = 'DataTableRow';
-// function DataTableRow<T>({ row, ref }: Props<T>) {
-// 	return (
-
-// 	);
-// }
 
 export default DataTableRow;

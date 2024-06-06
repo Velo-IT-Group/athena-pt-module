@@ -3,8 +3,6 @@ import React, { useState } from 'react';
 import { ProjectTemplate } from '@/types/manage';
 import TemplatePicker from './TemplatePicker';
 import { ScrollArea } from './ui/scroll-area';
-import { cn } from '@/lib/utils';
-import TemplateItem from './TemplateItem';
 
 type Props = {
 	templates?: ProjectTemplate[];
@@ -20,11 +18,6 @@ const TemplateCatalog = ({ templates }: Props) => {
 					<h2 className='font-semibold text-base'>Project Templates</h2>
 				</div>
 
-				<div className={cn('space-y-2 rounded-xl')}>
-					{templates?.map((template, index) => (
-						<TemplateItem key={template.id} template={template} index={index} />
-					))}
-				</div>
 				<TemplatePicker templates={templates?.filter((template) => template.name.toLowerCase().includes(text)) ?? []} />
 			</div>
 		</ScrollArea>

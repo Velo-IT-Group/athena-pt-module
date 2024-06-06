@@ -2,8 +2,7 @@
 import React, { useState } from 'react';
 import type { ProjectTemplate, ServiceTicket } from '@/types/manage';
 import { Select, SelectContent, SelectGroup, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
+import LabeledInput from '../ui/labeled-input';
 
 type Props = {
 	templates: ProjectTemplate[];
@@ -14,9 +13,8 @@ const NewProposalForm = ({ templates, tickets }: Props) => {
 	const [selectedTicket, setSelectedTicket] = useState<ServiceTicket | undefined>();
 
 	return (
-		<div className='space-y-8'>
-			<div className='w-full'>
-				<Label htmlFor='service_ticket'>Service Ticket</Label>
+		<div className='space-y-4'>
+			<LabeledInput name='service_ticket' label='Service Ticket'>
 				<Select
 					name='service_ticket'
 					onValueChange={(e) => {
@@ -34,22 +32,17 @@ const NewProposalForm = ({ templates, tickets }: Props) => {
 						))}
 					</SelectContent>
 				</Select>
-			</div>
+			</LabeledInput>
 
-			<div>
-				<Label htmlFor='name'>Name</Label>
-				<Input
-					id='name'
-					name='name'
-					placeholder='Name'
-					defaultValue={selectedTicket ? `#${selectedTicket.id} - ${selectedTicket.summary}` : ''}
-					tabIndex={1}
-				/>
-			</div>
+			<LabeledInput
+				name='name'
+				label='Name'
+				placeholder='Name'
+				defaultValue={selectedTicket ? `#${selectedTicket.id} - ${selectedTicket.summary}` : ''}
+				tabIndex={1}
+			/>
 
-			<div>
-				<Label htmlFor='project_templates'>Project Template</Label>
-
+			<LabeledInput name='project_templates' label='Project Template'>
 				<Select name='templates_used'>
 					<SelectTrigger tabIndex={3}>
 						<SelectValue placeholder='Select a template' />
@@ -65,7 +58,7 @@ const NewProposalForm = ({ templates, tickets }: Props) => {
 						</SelectGroup>
 					</SelectContent>
 				</Select>
-			</div>
+			</LabeledInput>
 		</div>
 	);
 };

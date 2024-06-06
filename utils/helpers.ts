@@ -139,6 +139,9 @@ type ReturnType = {
 	productTotal: number;
 	recurringTotal: number;
 	totalPrice: number;
+	productCost: number;
+	recurringCost: number;
+	totalCost: number;
 	laborHours: number;
 	ticketHours?: number;
 };
@@ -154,7 +157,7 @@ export const calculateTotals = (products: Product[], phases: NestedPhase[], labo
 
 	const laborTotal = laborHours * labor_rate;
 
-	const productTotal = products
+	const productTotal: number = products
 		.filter((p) => !p.recurring_flag || p.recurring_bill_cycle !== 2)
 		.reduce((accumulator, currentValue) => {
 			const price: number | null = currentValue.product_class === 'Bundle' ? currentValue.calculated_price : currentValue.price;
@@ -166,12 +169,28 @@ export const calculateTotals = (products: Product[], phases: NestedPhase[], labo
 		?.filter((product) => product.recurring_flag)
 		.reduce((accumulator, currentValue) => accumulator + (currentValue?.price ?? 0) * (currentValue?.quantity ?? 0), 0);
 
-	const totalPrice = laborTotal;
+	const productCost: number = products
+		.filter((p) => !p.recurring_flag || p.recurring_bill_cycle !== 2)
+		.reduce((accumulator, currentValue) => {
+			const cost: number | null = currentValue.product_class === 'Bundle' ? currentValue.calculated_cost : currentValue.cost;
+
+			return accumulator + (cost ?? 0) * (currentValue?.quantity ?? 0);
+		}, 0);
+
+	const recurringCost = products
+		?.filter((product) => product.recurring_flag)
+		.reduce((accumulator, currentValue) => accumulator + (currentValue?.cost ?? 0) * (currentValue?.quantity ?? 0), 0);
+
+	const totalPrice = productTotal + recurringTotal;
+	const totalCost = productCost + recurringCost;
 
 	return {
 		laborTotal,
 		productTotal,
+		totalCost,
 		recurringTotal,
+		productCost,
+		recurringCost,
 		totalPrice,
 		ticketHours: ticketSum,
 		laborHours,

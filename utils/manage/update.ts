@@ -43,3 +43,32 @@ export const updateManageProduct = async (product: ManageProductUpdate): Promise
 
 	return data;
 };
+
+export const updateManageProject = async (id: number) => {
+	await fetch(`${process.env.NEXT_PUBLIC_CW_URL}/project/projects/${id}`, {
+		headers: baseHeaders,
+		method: 'patch',
+		body: JSON.stringify([
+			{
+				op: 'replace',
+				path: '/billProjectAfterClosedFlag',
+				value: true,
+			},
+			{
+				op: 'replace',
+				path: '/budgetFlag',
+				value: true,
+			},
+			{
+				op: 'replace',
+				path: '/estimatedHours',
+				value: 57,
+			},
+			{
+				op: 'replace',
+				path: '/billingMethod',
+				value: 'FixedFee',
+			},
+		]),
+	});
+};

@@ -149,6 +149,7 @@ export type Database = {
           id: number | null
           identifier: string | null
           manufacturer_part_number: string | null
+          order: number
           parent: string | null
           parent_catalog_item: number | null
           price: number | null
@@ -181,6 +182,7 @@ export type Database = {
           id?: number | null
           identifier?: string | null
           manufacturer_part_number?: string | null
+          order?: number
           parent?: string | null
           parent_catalog_item?: number | null
           price?: number | null
@@ -213,6 +215,7 @@ export type Database = {
           id?: number | null
           identifier?: string | null
           manufacturer_part_number?: string | null
+          order?: number
           parent?: string | null
           parent_catalog_item?: number | null
           price?: number | null
@@ -307,6 +310,7 @@ export type Database = {
         Row: {
           catalog_items: number[] | null
           company_id: number | null
+          company_name: string | null
           contact_id: number | null
           created_at: string
           created_by: string | null
@@ -327,6 +331,7 @@ export type Database = {
         Insert: {
           catalog_items?: number[] | null
           company_id?: number | null
+          company_name?: string | null
           contact_id?: number | null
           created_at?: string
           created_by?: string | null
@@ -347,6 +352,7 @@ export type Database = {
         Update: {
           catalog_items?: number[] | null
           company_id?: number | null
+          company_name?: string | null
           contact_id?: number | null
           created_at?: string
           created_by?: string | null
@@ -506,21 +512,18 @@ export type Database = {
         Row: {
           created_at: string
           id: string
-          name: string | null
           number: number | null
           proposal: string
         }
         Insert: {
           created_at?: string
           id?: string
-          name?: string | null
           number?: number | null
           proposal: string
         }
         Update: {
           created_at?: string
           id?: string
-          name?: string | null
           number?: number | null
           proposal?: string
         }
@@ -542,6 +545,13 @@ export type Database = {
       convert_to_manage: {
         Args: {
           proposal_id: string
+        }
+        Returns: undefined
+      }
+      copy_version_data: {
+        Args: {
+          old_version: string
+          new_version: string
         }
         Returns: undefined
       }

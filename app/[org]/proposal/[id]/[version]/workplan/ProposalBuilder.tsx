@@ -12,7 +12,7 @@ import { updatePhase, updateTicket } from '@/lib/functions/update';
 import { createPhase, newTemplate } from '@/lib/functions/create';
 import { createNestedPhaseFromTemplate } from '@/utils/helpers';
 import { Button } from '@/components/ui/button';
-import { DragDropContext, DropResult, Droppable } from 'react-beautiful-dnd';
+import { DragDropContext, Draggable, DropResult, Droppable } from 'react-beautiful-dnd';
 import { reorder } from '@/utils/array';
 import { cn, getBackgroundColor } from '@/lib/utils';
 
@@ -188,16 +188,21 @@ const ProposalBuilder = ({ id, phases, templates, version }: Props) => {
 										className={cn('space-y-4 px-2 py-4 flex flex-col rounded-xl h-full min-h-halfScreen', getBackgroundColor(snapshot))}
 									>
 										{sortedPhases.map((phase, index) => (
-											<div key={phase.id}>
-												<PhaseListItem
-													order={index + 1}
-													pending={state.pending}
-													phase={phase}
-													phaseMutation={mutate}
-													tickets={phase?.tickets ?? []}
-												/>
-											</div>
+											<Draggable key={phase.id} draggableId={phase.id} index={index}>
+												{(provided) => (
+													<div ref={provided.innerRef} {...provided.draggableProps} {...provided.dragHandleProps}>
+														<PhaseListItem
+															order={index + 1}
+															pending={state.pending}
+															phase={phase}
+															phaseMutation={mutate}
+															tickets={phase?.tickets ?? []}
+														/>
+													</div>
+												)}
+											</Draggable>
 										))}
+										{provided.placeholder}
 									</div>
 								)}
 							</Droppable>

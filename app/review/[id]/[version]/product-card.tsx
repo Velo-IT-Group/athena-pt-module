@@ -23,6 +23,10 @@ const ProductCard = ({ title, products }: Props) => {
 		return accumulator + (price ?? 0) * (currentValue?.quantity ?? 0);
 	}, 0);
 
+	const sortedProducts = products.sort((a, b) => {
+		return a.order - b.order;
+	});
+
 	return (
 		<Card>
 			<CardHeader>
@@ -40,7 +44,7 @@ const ProductCard = ({ title, products }: Props) => {
 					</div>
 				</div>
 
-				{products.map((product) => (
+				{sortedProducts.map((product) => (
 					<ProductListItem key={product.id} product={product} />
 				))}
 			</CardContent>
@@ -50,7 +54,7 @@ const ProductCard = ({ title, products }: Props) => {
 			<CardFooter className='grid gap-1.5'>
 				{nonRecurringTotal > 0 && (
 					<div className='flex items-center justify-between'>
-						<p className='text-sm text-muted-foreground'>Miscellaneous Product Subtotal</p>
+						<p className='text-sm text-muted-foreground'>{title} Product Subtotal</p>
 						<p className='text-sm text-muted-foreground text-right'>
 							<span className='font-medium'>{getCurrencyString(nonRecurringTotal)}</span>
 						</p>
@@ -59,7 +63,7 @@ const ProductCard = ({ title, products }: Props) => {
 
 				{recurringTotal > 0 && (
 					<div className='flex items-center justify-between'>
-						<p className='text-sm text-muted-foreground'>Miscellanous Recurring Subtotal</p>
+						<p className='text-sm text-muted-foreground'>{title} Recurring Subtotal</p>
 						<p className='text-sm text-muted-foreground text-right'>
 							<span className='font-medium'>
 								{getCurrencyString(recurringTotal)}

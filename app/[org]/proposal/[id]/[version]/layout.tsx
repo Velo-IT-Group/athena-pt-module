@@ -10,6 +10,7 @@ import ProposalActions from './(proposal_id)/proposal-actions';
 import { ProposalShare } from './(proposal_id)/proposal-share';
 import { calculateTotals } from '@/utils/helpers';
 import { Metadata, ResolvingMetadata } from 'next';
+import { Separator } from '@/components/ui/separator';
 
 type Props = {
 	params: { org: string; id: string; version: string };
@@ -47,13 +48,11 @@ const ProposalIdLayout = async ({ params, children }: Props) => {
 
 	// console.log(proposal.working_version);
 
-	const { laborTotal, productTotal, recurringTotal, totalPrice } = calculateTotals(
-		proposal.working_version.products,
+	const { laborTotal, productTotal, recurringTotal, totalPrice, recurringCost, productCost } = calculateTotals(
+		proposal.working_version.sections.flatMap((s) => s.products),
 		proposal.working_version.phases,
 		proposal.labor_rate
 	);
-
-	// console.log(proposal.versions);
 
 	return (
 		<>
@@ -74,26 +73,36 @@ const ProposalIdLayout = async ({ params, children }: Props) => {
 					</HoverCardTrigger>
 
 					<HoverCardContent className='w-80'>
-						<div className='grid gap-4'>
+						<div className='grid gap-2'>
 							<div className='space-y-2'>
 								<h4 className='font-medium leading-none'>Totals</h4>
-								<p className='text-sm text-muted-foreground'>See the totals of the different aspects of the proposal.</p>
+								<Separator />
 							</div>
 
-							<div className='grid gap-3'>
-								<div className='grid grid-cols-3 items-center gap-4'>
-									<Label>Labor</Label>
-									<p className='col-span-2 text-sm'>{getCurrencyString(laborTotal)}</p>
+							<div className='grid gap-2'>
+								<div className='grid grid-cols-5 items-center gap-2'>
+									<Label className='col-span-2'>Labor</Label>
+									<p className='col-span-3 text-sm'>{getCurrencyString(laborTotal)}</p>
 								</div>
 
-								<div className='grid grid-cols-3 items-center gap-4'>
-									<Label>Product</Label>
-									<p className='col-span-2 text-sm'>{getCurrencyString(productTotal)}</p>
+								<div className='grid grid-cols-5 items-center gap-2'>
+									<Label className='col-span-2'>Product</Label>
+									<p className='col-span-3 text-sm'>{getCurrencyString(productTotal)}</p>
 								</div>
 
-								<div className='grid grid-cols-3 items-center gap-4'>
-									<Label>Recurring</Label>
-									<p className='col-span-2 text-sm'>{getCurrencyString(recurringTotal)}</p>
+								<div className='grid grid-cols-5 items-center gap-2'>
+									<Label className='col-span-2'>Recurring</Label>
+									<p className='col-span-3 text-sm'>{getCurrencyString(recurringTotal)}</p>
+								</div>
+
+								<div className='grid grid-cols-5 items-center gap-2'>
+									<Label className='col-span-2'>Cost</Label>
+									<p className='col-span-3 text-sm'>{getCurrencyString(productCost)}</p>
+								</div>
+
+								<div className='grid grid-cols-5 items-center gap-2'>
+									<Label className='col-span-2'>Recurring Cost</Label>
+									<p className='col-span-3 text-sm'>{getCurrencyString(recurringCost)}</p>
 								</div>
 							</div>
 						</div>

@@ -38,7 +38,7 @@ import ConversionModal from './conversion-modal';
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from '@/components/ui/command';
 import { createProjectPhase, createVersion } from '@/lib/functions/create';
 import { Badge } from '@/components/ui/badge';
-import { useRouter } from 'next/navigation';
+import { redirect, useRouter } from 'next/navigation';
 import { createClient } from '@/utils/supabase/client';
 import { convertToManageProject } from './actions';
 
@@ -311,6 +311,7 @@ const ProposalActions = ({ proposal, phases, tickets, versions, ticket, params }
 					action={async () => {
 						await deleteProposal(proposal.id);
 						setShowDeleteDialog(false);
+						redirect('/velo-it-group');
 					}}
 				></form>
 				<AlertDialogContent>

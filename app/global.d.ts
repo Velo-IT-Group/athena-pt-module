@@ -4,10 +4,6 @@ import { Tables } from '@/types/supabase';
 declare global {
 	type Database = DB;
 
-	type Comment = DB['public']['Tables']['comments']['Row'];
-	type CommentInsert = DB['public']['Tables']['comments']['Insert'];
-	type CommentUpdate = DB['public']['Tables']['comments']['Update'];
-
 	type Integration = DB['public']['Tables']['integrations']['Row'];
 
 	type Organization = DB['public']['Tables']['organizations']['Row'];
@@ -24,9 +20,9 @@ declare global {
 	type PhaseUpdate = DB['public']['Tables']['phases']['Update'];
 
 	type Product = DB['public']['Tables']['products']['Row'];
-	type NestedProduct = Product & { products?: Product[] };
 	type ProductInsert = DB['public']['Tables']['products']['Insert'];
 	type ProductUpdate = DB['public']['Tables']['products']['Update'];
+	type NestedProduct = Product & { products?: Product[] };
 
 	type Profile = DB['public']['Tables']['profiles']['Row'];
 
@@ -50,7 +46,6 @@ declare global {
 	type VersionInsert = DB['public']['Tables']['versions']['Insert'];
 	type VersionUpdate = DB['public']['Tables']['versions']['Update'];
 
-	type DoublyNestedProposal = Proposal & { phases?: Array<NestedProposal> };
 	type NestedProposal = Proposal & {
 		working_version?: Version & { products: NestedProduct[]; sections: Array<Section & { products: NestedProduct[] }>; phases: NestedPhase[] };
 		phases?: Array<NestedPhase>;

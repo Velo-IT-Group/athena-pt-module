@@ -15,15 +15,9 @@ const TemplatePicker = ({ templates }: Props) => {
 			{(provided, snapshot) => (
 				<div {...provided.droppableProps} ref={provided.innerRef} className={cn('space-y-2 rounded-xl', getBackgroundColor(snapshot))}>
 					{templates.map((template, index) => (
-						<Draggable key={template.id} draggableId={String(template.id)} index={index}>
-							{(provided) => {
-								return (
-									<div key={template.id} ref={provided.innerRef} {...provided.draggableProps} {...provided.dragHandleProps}>
-										<TemplateItem template={template} index={index} />
-									</div>
-								);
-							}}
-						</Draggable>
+						<div key={template.id}>
+							<TemplateItem template={template} index={index} />
+						</div>
 					))}
 					{provided.placeholder}
 				</div>

@@ -1,25 +1,18 @@
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Textarea } from '@/components/ui/textarea';
-import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
-import { ChevronLeftIcon, PlusCircledIcon } from '@radix-ui/react-icons';
-import { getCategories, getProduct, getSections } from '@/lib/functions/read';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { ChevronLeftIcon } from '@radix-ui/react-icons';
+import { getProduct, getSections } from '@/lib/functions/read';
 import { notFound } from 'next/navigation';
 import ProductDetailsForm from './product-details-form';
 
 type Props = {
-	params: { org: string; id: string; product_id: string };
+	params: { org: string; id: string; version: string; product_id: string };
 };
 
 export default async function Page({ params }: Props) {
 	const product = await getProduct(params.product_id);
-	const categories = await getCategories();
-	const sections = await getSections(params.id);
+	const sections = await getSections(params.version);
 
 	if (!product) return notFound();
 
@@ -27,8 +20,9 @@ export default async function Page({ params }: Props) {
 		<main className='grid flex-1 auto-rows-max gap-4 p-6'>
 			<div className='flex items-center gap-4'>
 				<Button variant='outline' size='icon' className='h-7 w-7' asChild>
-					<Link href={`/${params.org}/proposal/${params.id}/products`}>
+					<Link href={`/${params.org}/proposal/${params.id}/${params.version}/products`}>
 						<ChevronLeftIcon className='h-4 w-4' />
+
 						<span className='sr-only'>Back</span>
 					</Link>
 				</Button>
@@ -36,9 +30,9 @@ export default async function Page({ params }: Props) {
 				<h1 className='flex-1 shrink-0 whitespace-nowrap text-xl font-semibold tracking-tight sm:grow-0'>{product.description}</h1>
 
 				<div className='hidden items-center gap-2 md:ml-auto md:flex'>
-					<Button variant='outline' size='sm'>
+					{/* <Button variant='outline' size='sm'>
 						Discard
-					</Button>
+					</Button> */}
 
 					<Button size='sm'>Save Product</Button>
 				</div>
@@ -54,46 +48,9 @@ export default async function Page({ params }: Props) {
 						</CardHeader>
 
 						<ProductDetailsForm product={product} sections={sections} />
-
-						{/* <CardContent>
-							<div className='grid gap-6'>
-								<div className='grid gap-3'>
-									<Label htmlFor='description'>Description</Label>
-
-									<Input name='description' type='text' className='w-full' defaultValue={product.description ?? undefined} />
-								</div>
-								<div className='grid gap-3'>
-									<Label htmlFor='notes'>Notes</Label>
-
-									<Textarea
-										name='notes'
-										placeholder='Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nullam auctor, nisl nec ultricies ultricies, nunc nisl ultricies nunc, nec ultricies nunc nisl nec nunc.'
-										className='min-h-32'
-									/>
-								</div>
-
-								<div className='grid gap-3'>
-									<Label htmlFor='notes'>Notes</Label>
-
-									<Select defaultValue={product?.section ?? undefined}>
-										<SelectTrigger>
-											<SelectValue placeholder='Select section...' />
-										</SelectTrigger>
-
-										<SelectContent>
-											{sections.map((section) => (
-												<SelectItem key={section.id} value={section.id}>
-													{section.name}
-												</SelectItem>
-											))}
-										</SelectContent>
-									</Select>
-								</div>
-							</div>
-						</CardContent> */}
 					</Card>
 
-					<Card x-chunk='dashboard-07-chunk-1'>
+					{/* <Card x-chunk='dashboard-07-chunk-1'>
 						<CardHeader>
 							<CardTitle>Stock</CardTitle>
 							<CardDescription>Lipsum dolor sit amet, consectetur adipiscing elit</CardDescription>
@@ -184,9 +141,9 @@ export default async function Page({ params }: Props) {
 								Add Variant
 							</Button>
 						</CardFooter>
-					</Card>
+					</Card> */}
 
-					<Card x-chunk='dashboard-07-chunk-2'>
+					{/* <Card x-chunk='dashboard-07-chunk-2'>
 						<CardHeader>
 							<CardTitle>Product Category</CardTitle>
 						</CardHeader>
@@ -224,11 +181,11 @@ export default async function Page({ params }: Props) {
 								</div>
 							</div>
 						</CardContent>
-					</Card>
+					</Card> */}
 				</div>
 
 				<div className='grid auto-rows-max items-start gap-4 lg:gap-8'>
-					<Card x-chunk='dashboard-07-chunk-3'>
+					{/* <Card x-chunk='dashboard-07-chunk-3'>
 						<CardHeader>
 							<CardTitle>Product Status</CardTitle>
 						</CardHeader>
@@ -254,52 +211,15 @@ export default async function Page({ params }: Props) {
 								</div>
 							</div>
 						</CardContent>
-					</Card>
+					</Card> */}
+
 					<Card className='overflow-hidden' x-chunk='dashboard-07-chunk-4'>
 						<CardHeader>
 							<CardTitle>Vendor Details</CardTitle>
-							<CardDescription>Lipsum dolor sit amet, consectetur adipiscing elit</CardDescription>
+							{/* <CardDescription>Lipsum dolor sit amet, consectetur adipiscing elit</CardDescription> */}
 						</CardHeader>
 						<CardContent>
-							<div className='grid gap-2'>
-								{/* <Image alt='Product image' className='aspect-square w-full rounded-md object-cover' height='300' src='/placeholder.svg' width='300' />
-								<div className='grid grid-cols-3 gap-2'>
-									<button>
-										<Image
-											alt='Product image'
-											className='aspect-square w-full rounded-md object-cover'
-											height='84'
-											src='/placeholder.svg'
-											width='84'
-										/>
-									</button>
-									<button>
-										<Image
-											alt='Product image'
-											className='aspect-square w-full rounded-md object-cover'
-											height='84'
-											src='/placeholder.svg'
-											width='84'
-										/>
-									</button>
-									<button className='flex aspect-square w-full items-center justify-center rounded-md border border-dashed'>
-										<UploadIcon className='h-4 w-4 text-muted-foreground' />
-										<span className='sr-only'>Upload</span>
-									</button>
-								</div> */}
-							</div>
-						</CardContent>
-					</Card>
-					<Card x-chunk='dashboard-07-chunk-5'>
-						<CardHeader>
-							<CardTitle>Archive Product</CardTitle>
-							<CardDescription>Lipsum dolor sit amet, consectetur adipiscing elit.</CardDescription>
-						</CardHeader>
-						<CardContent>
-							<div></div>
-							<Button size='sm' variant='secondary'>
-								Archive Product
-							</Button>
+							<div className='grid gap-2'>More to come!</div>
 						</CardContent>
 					</Card>
 				</div>

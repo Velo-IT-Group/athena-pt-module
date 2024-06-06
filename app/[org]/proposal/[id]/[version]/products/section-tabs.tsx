@@ -13,8 +13,9 @@ import { CatalogItem } from '@/types/manage';
 import SectionItem from './section-item';
 import { usePathname } from 'next/navigation';
 import { Separator } from '@/components/ui/separator';
-import { updateSection } from '@/lib/functions/update';
-import { reorder } from '@/utils/array';
+import { updateProduct, updateSection } from '@/lib/functions/update';
+import { move, reorder } from '@/utils/array';
+import { start } from 'repl';
 
 type Props = {
 	params: { org: string; id: string; version: string };
@@ -29,9 +30,7 @@ type Props = {
 	url?: string;
 };
 
-const SectionTabs = ({ params, sections, version }: Props) => {
-	const isDark = false;
-	const pathname = usePathname();
+const SectionTabs = ({ params, sections, version, page, count, proposal, catalogItems, searchParams, section, url }: Props) => {
 	const [pending, startTransition] = useTransition();
 	const [state, mutate] = useOptimistic({ sections, pending: false }, (state, newState: SectionState) => {
 		if (newState.newSection) {
@@ -57,18 +56,8 @@ const SectionTabs = ({ params, sections, version }: Props) => {
 		}
 	});
 
-	// a little function to help us with reordering the result
-	// function reorder<T>(list: T[], startIndex: number, endIndex: number) {
-	// 	const result = Array.from(list);
-	// 	const [removed] = result.splice(startIndex, 1);
-	// 	result.splice(endIndex, 0, removed);
-
-	// 	return result;
-	// }
-
 	async function onDragEnd(result: DropResult) {
 		const { destination, source, type, draggableId } = result;
-		console.log(result);
 
 		// handle dropping a template onto proposal
 		if (!destination) return;
@@ -76,15 +65,65 @@ const SectionTabs = ({ params, sections, version }: Props) => {
 		// if dropped on the same list and has same index then do nothing
 		if (source.droppableId === destination?.droppableId && source.index === destination?.index) return;
 
-		if (type === 'products') {
-			const idSplit = draggableId.split('_');
-			console.log(idSplit);
-			const section = parseInt(idSplit[0]);
+		if (type === 'product') {
+			if (source.droppableId === destination.droppableId) {
+				const section = state.sections.find((s) => s.id === source.droppableId);
+				const items = reorder(section?.products ?? [], source.index, destination.index);
+
+				console.log(section);
+
+				const updatedSection = { ...section, products: items };
+
+				console.log(updatedSection);
+
+				mutate({
+					updatedSection,
+					pending: true,
+				});
+
+				return;
+			} else {
+				const destinationSection = state.sections.find((s) => s.id === destination.droppableId);
+				const sourceSection = state.sections.find((s) => s.id === source.droppableId);
+
+				const result = move(sourceSection?.products ?? [], destinationSection?.products ?? [], source, destination);
+
+				console.log(
+					result[source.droppableId],
+					{ ...sourceSection, products: result[source.droppableId] },
+					{ ...destinationSection, products: result[destination.droppableId] }
+				);
+
+				const updatedSource = { ...sourceSection, products: result[source.droppableId] };
+				const updatedDestination = {
+					...destinationSection,
+					products: reorder(result[destination.droppableId].products, source.index, destination.index),
+				};
+
+				startTransition(async () => {
+					mutate({
+						updatedSection: updatedSource,
+						pending: true,
+					});
+
+					mutate({
+						updatedSection: updatedDestination,
+						pending: true,
+					});
+
+					await Promise.all(updatedSource?.products.map(({ unique_id, order }) => updateProduct(unique_id, { section: updatedSource.id, order })));
+					await Promise.all(
+						updatedDestination?.products.map(({ unique_id, order }) => updateProduct(unique_id, { section: updatedDestination.id, order }))
+					);
+				});
+
+				return;
+			}
 		}
 
 		const updatedSections = reorder(state.sections, source.index, destination.index);
 
-		console.log(updatedSections);
+		// console.log(updatedSections);
 
 		startTransition(async () => {
 			mutate({ updatedSections, pending: true });
@@ -114,7 +153,18 @@ const SectionTabs = ({ params, sections, version }: Props) => {
 								<Draggable key={section.id} draggableId={`section-${section.id}`} index={index}>
 									{(provided) => (
 										<div ref={provided.innerRef} {...provided.draggableProps}>
-											<SectionItem key={section.id} section={section} dragHandleProps={provided.dragHandleProps} />
+											<SectionItem
+												key={section.id}
+												section={section}
+												dragHandleProps={provided.dragHandleProps}
+												catalogItems={catalogItems}
+												count={count}
+												page={page}
+												params={params}
+												proposal={proposal}
+												searchParams={searchParams}
+												url={url}
+											/>
 										</div>
 									)}
 								</Draggable>

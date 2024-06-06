@@ -5,12 +5,12 @@ import { DraggableProvidedDragHandleProps } from 'react-beautiful-dnd';
 
 export interface TableCellProps extends React.TableHTMLAttributes<HTMLTableCellElement> {
 	cell: Cell<any, any>;
-	// handleProps: DraggableProvidedDragHandleProps | null | undefined;
+	handleProps?: DraggableProvidedDragHandleProps | null;
 }
 
-const DataTableCell = forwardRef<HTMLTableCellElement, TableCellProps>(({ cell, className }, ref) => {
+const DataTableCell = forwardRef<HTMLTableCellElement, TableCellProps>(({ cell, className, handleProps }, ref) => {
 	return (
-		<TableCell key={cell.id} className={className} ref={ref}>
+		<TableCell key={cell.id} className={className} ref={ref} {...handleProps}>
 			{flexRender(cell.column.columnDef.cell, cell.getContext())}
 		</TableCell>
 	);
