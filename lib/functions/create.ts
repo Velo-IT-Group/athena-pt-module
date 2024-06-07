@@ -29,8 +29,12 @@ import { wait } from '@/utils/helpers';
  * @param {number} order - The index of the item the first template phase will be added after.
  */
 export const newTemplate = async (template: ProjectTemplate, order: number, version: string) => {
-	await Promise.all(
-		template?.workplan?.phases.map((phase: ProjectPhase, index: number) =>
+	try {
+		if (!template || !template.workplan || !template.workplan.phases) {
+			throw new Error('Invalid template structure.');
+		}
+
+		const createPhasePromises = template.workplan.phases.map((phase: ProjectPhase, index: number) =>
 			createPhase(
 				{
 					order: order + index + 1,
@@ -38,11 +42,22 @@ export const newTemplate = async (template: ProjectTemplate, order: number, vers
 					version,
 				},
 				phase.tickets
-			)
-		) ?? []
-	);
+			).catch((error) => {
+				console.error(`Error creating phase ${index + 1}:`, error);
+				// Optionally, handle individual errors, e.g., log them, store them, etc.
+				return null; // Ensure the Promise.all does not reject due to this failure
+			})
+		);
 
-	revalidateTag('proposals');
+		// Await all phase creation promises
+		await Promise.all(createPhasePromises);
+
+		// Revalidate proposals tag
+		revalidateTag('proposals');
+	} catch (error) {
+		console.error('Error in newTemplate function:', error);
+		throw new Error(`Failed to create new template: ${error}`);
+	}
 };
 
 /**
@@ -50,15 +65,20 @@ export const newTemplate = async (template: ProjectTemplate, order: number, vers
  * @param {TaskInsert} task - The object that will be used to create the task.
  */
 export const createTask = async (task: TaskInsert) => {
-	const supabase = createClient();
-	const { error } = await supabase.from('tasks').insert(task);
-	console.log('CREATE TASK FUNCTION', task);
+	try {
+		const supabase = createClient();
+		const { error } = await supabase.from('tasks').insert(task);
+		console.log('CREATE TASK FUNCTION', task);
 
-	if (error) {
-		throw Error('Error creating task.', { cause: error });
+		if (error) {
+			throw new Error('Error creating task.', { cause: error });
+		}
+
+		revalidateTag('proposals');
+	} catch (error) {
+		console.error('createTask Error:', error);
+		throw error; // Rethrow the error after logging it
 	}
-
-	revalidateTag('proposals');
 };
 
 /**
@@ -67,183 +87,224 @@ export const createTask = async (task: TaskInsert) => {
  */
 export const createTasks = async (tasks: TaskInsert[]) => {
 	'use server';
-	const supabase = createClient();
-	const { error } = await supabase.from('tasks').insert(tasks);
+	try {
+		const supabase = createClient();
+		const { error } = await supabase.from('tasks').insert(tasks);
 
-	if (error) {
-		throw Error('Error creating tasks.', { cause: error });
+		if (error) {
+			throw new Error('Error creating tasks.', { cause: error });
+		}
+
+		revalidateTag('proposals');
+	} catch (error) {
+		console.error('createTasks Error:', error);
+		throw error; // Rethrow the error
 	}
-
-	revalidateTag('proposals');
 };
 
 /**
- * Creates Tasks in Supabase.
+ * Creates Proposal in Supabase.
  * @param {ProposalInsert} proposal - The object that will be used to create the task.
  */
 export const createProposal = async (proposal: ProposalInsert) => {
-	const supabase = createClient();
+	try {
+		const supabase = createClient();
 
-	const { data, error } = await supabase
-		.from('proposals')
-		.insert(proposal)
-		.select('id, organization(slug)')
-		.returns<{ id: string; organization: { slug: string } }[]>()
-		.single();
+		const { data, error } = await supabase
+			.from('proposals')
+			.insert(proposal)
+			.select('id, organization(slug)')
+			.returns<{ id: string; organization: { slug: string } }[]>()
+			.single();
 
-	if (!data || error) {
-		console.error(error);
-		return;
-	}
-
-	const version = await createVersion(data.id);
-	await createSection({ name: 'Hardware', version, order: 0 });
-	await createSection({ name: 'Services', version, order: 1 });
-
-	if (proposal.templates_used && proposal.templates_used.length) {
-		const templates = await Promise.all(proposal.templates_used.map((template) => getTemplate(template)));
-
-		if (templates && templates.length) {
-			await Promise.all(templates.map((template) => newTemplate(template!, 0, version)));
+		if (error || !data) {
+			throw new Error('Error creating proposal.', { cause: error });
 		}
+
+		const version = await createVersion(data.id);
+		await createSection({ name: 'Hardware', version, order: 0 });
+
+		if (proposal.templates_used && proposal.templates_used.length) {
+			const templates = await Promise.all(proposal.templates_used.map(getTemplate));
+
+			if (templates && templates.length) {
+				await Promise.all(templates.map((template) => newTemplate(template!, 0, version)));
+			}
+		}
+
+		revalidateTag('proposals');
+		redirect(`/${data.organization.slug}/proposal/${data.id}/${version}`);
+	} catch (error) {
+		console.error('createProposal Error:', error);
+		throw error; // Rethrow the error after logging it
 	}
-
-	revalidateTag('proposals');
-
-	redirect(`/${data.organization.slug}/proposal/${data.id}/${version}`);
 };
 
 export const duplicateProposal = async (proposal: ProposalInsert) => {
-	const supabase = createClient();
-	delete proposal['updated_at'];
+	try {
+		const supabase = createClient();
+		delete proposal['updated_at'];
 
-	const { data: returnedProposal } = await supabase
-		.from('proposals')
-		.insert({ ...proposal, name: `${proposal.name} - Copy`, working_version: null, id: undefined })
-		.select('id')
-		.returns<Array<{ id: string }>>()
-		.single();
+		const { data: returnedProposal, error } = await supabase
+			.from('proposals')
+			.insert({ ...proposal, name: `${proposal.name} - Copy`, working_version: null, id: undefined })
+			.select('id')
+			.returns<Array<{ id: string }>>()
+			.single();
 
-	if (!returnedProposal) return;
+		if (error || !returnedProposal) {
+			throw new Error('Error duplicating proposal.', { cause: error });
+		}
 
-	const version = await createVersion(returnedProposal.id);
+		const version = await createVersion(returnedProposal.id);
 
-	console.log(version, proposal?.working_version);
+		console.log(version, proposal?.working_version);
 
-	await supabase.rpc('copy_version_data', {
-		old_version: proposal.id ?? '',
-		new_version: version,
-	});
+		await supabase.rpc('copy_version_data', {
+			old_version: proposal.id ?? '',
+			new_version: version,
+		});
 
-	revalidateTag('proposals');
-
-	redirect(`/velo-it-group/proposal/${returnedProposal.id}/${version}`);
+		revalidateTag('proposals');
+		redirect(`/velo-it-group/proposal/${returnedProposal.id}/${version}`);
+	} catch (error) {
+		console.error('duplicateProposal Error:', error);
+		throw error; // Rethrow the error after logging it
+	}
 };
 
 export const createPhase = async (phase: PhaseInsert, tickets: Array<ProjectTemplateTicket>) => {
-	'use server';
-	const supabase = createClient();
-	const { data, error } = await supabase.from('phases').insert(phase).select().single();
+	try {
+		const supabase = createClient();
+		const { data, error } = await supabase.from('phases').insert(phase).select().single();
 
-	if (!data || error) {
-		console.error(error);
-		return;
+		if (error || !data) {
+			throw new Error('Error creating phase.', { cause: error });
+		}
+
+		if (tickets.length) {
+			await Promise.all(
+				tickets.map((ticket: ProjectTemplateTicket) => {
+					console.log(ticket);
+					return createTicket(
+						{
+							phase: data.id,
+							summary: ticket.summary,
+							budget_hours: ticket.budgetHours,
+							order: parseInt(ticket.wbsCode!),
+						},
+						ticket.tasks ?? []
+					).catch((err) => {
+						console.error(`Error creating ticket for phase ${data.id}:`, err);
+					});
+				})
+			);
+		}
+
+		revalidateTag('proposals');
+		revalidateTag('phases');
+	} catch (error) {
+		console.error('createPhase Error:', error);
+		throw error; // Rethrow the error after logging it
 	}
-
-	if (tickets.length) {
-		await Promise.all(
-			tickets.map((ticket: ProjectTemplateTicket) => {
-				console.log(ticket);
-				return createTicket(
-					{ phase: data.id, summary: ticket.summary, budget_hours: ticket.budgetHours, order: parseInt(ticket.wbsCode!) },
-					ticket.tasks ?? []
-				);
-			})
-		);
-	}
-
-	revalidateTag('proposals');
-	revalidateTag('phases');
 };
 
-export const createTicket = async (ticket: TicketInset, tasks: Array<ProjectTemplateTask>): Promise<Ticket | undefined> => {
-	'use server';
-	const supabase = createClient();
+export const createTicket = async (
+	ticket: TicketInsert,
+	tasks: Array<ProjectTemplateTask>
+): Promise<Ticket | undefined> => {
+	try {
+		const supabase = createClient();
 
-	console.log(ticket);
-	const { data, error } = await supabase.from('tickets').insert(ticket).select().single();
+		console.log(ticket);
+		const { data, error } = await supabase.from('tickets').insert(ticket).select().single();
 
-	if (!data || error) {
-		console.error('ticket creation error', error);
-		return;
+		if (error || !data) {
+			throw new Error('Error creating ticket.', { cause: error });
+		}
+
+		let mappedTasks: Array<TaskInsert> = tasks.map(({ summary, notes, priority }) => ({
+			summary: summary!,
+			notes: notes!,
+			priority: priority!,
+			ticket: data.id,
+		}));
+
+		if (mappedTasks.length) {
+			await createTasks(mappedTasks);
+		}
+
+		revalidateTag('proposals');
+		return data;
+	} catch (error) {
+		console.error('createTicket Error:', error);
+		throw error; // Rethrow the error after logging it
 	}
-
-	let mappedTasks: Array<TaskInsert> = tasks.map(({ summary, notes, priority }) => {
-		let taskInsert = { summary: summary!, notes: notes!, priority: priority!, ticket: data.id };
-		return taskInsert;
-	});
-
-	if (mappedTasks.length) {
-		await createTasks(mappedTasks);
-	}
-
-	revalidateTag('proposals');
-
-	return data;
 };
 
 export const createProduct = async (product: ProductInsert, bundledItems?: ProductInsert[]) => {
-	const supabase = createClient();
+	try {
+		const supabase = createClient();
 
-	const { data, error } = await supabase.from('products').insert(product).select('unique_id').single();
+		const { data, error } = await supabase.from('products').insert(product).select('unique_id').single();
 
-	if (error) {
-		console.error(error);
-		return;
+		if (error || !data) {
+			throw new Error('Error creating product.', { cause: error });
+		}
+
+		if (bundledItems && bundledItems.length) {
+			await createProducts(
+				bundledItems.map((item) => ({
+					...item,
+					parent: data.unique_id,
+				}))
+			);
+		}
+
+		revalidateTag('products');
+		revalidateTag('proposals');
+		revalidateTag('sections');
+		return data;
+	} catch (error) {
+		console.error('createProduct Error:', error);
+		throw error; // Rethrow the error after logging it
 	}
-
-	if (bundledItems && bundledItems.length) {
-		await createProducts(
-			bundledItems.map((item) => {
-				return { ...item, parent: data.unique_id };
-			})
-		);
-	}
-
-	revalidateTag('products');
-	revalidateTag('proposals');
-	revalidateTag('sections');
-
-	return data;
 };
 
-export const createProducts = async (product: ProductInsert[], bundledItems?: CatalogComponent[]) => {
-	const supabase = createClient();
+export const createProducts = async (products: ProductInsert[], bundledItems?: CatalogComponent[]) => {
+	try {
+		const supabase = createClient();
 
-	const { error } = await supabase.from('products').insert(product);
+		const { error } = await supabase.from('products').insert(products);
 
-	if (error) {
-		console.error(error);
-		throw Error(`Error creating products`, { cause: error });
+		if (error) {
+			throw new Error('Error creating products.', { cause: error });
+		}
+
+		revalidateTag('products');
+		revalidateTag('proposals');
+		revalidateTag('sections');
+	} catch (error) {
+		console.error('createProducts Error:', error);
+		throw error; // Rethrow the error after logging it
 	}
-
-	revalidateTag('products');
-	revalidateTag('proposals');
-	revalidateTag('sections');
 };
 
 export const createOrganizationIntegration = async (organization: OrganizationIntegrationInsert) => {
-	'use server';
-	const supabase = createClient();
-	const { error } = await supabase.from('organization_integrations').insert(organization);
+	try {
+		const supabase = createClient();
+		const { error } = await supabase.from('organization_integrations').insert(organization);
 
-	if (error) {
-		console.error(error);
-		return;
+		if (error) {
+			throw new Error('Error creating organization integration.', { cause: error });
+		}
+
+		revalidateTag('organizations');
+		revalidateTag('proposals');
+	} catch (error) {
+		console.error('createOrganizationIntegration Error:', error);
+		throw error; // Rethrow the error after logging it
 	}
-
-	revalidateTag('organizations');
-	revalidateTag('proposals');
 };
 
 interface MetaData {
@@ -276,58 +337,65 @@ export const signUp = async (formData: FormData, data?: MetaData) => {
 	// return redirect('/login?message=Check email to continue sign in process');
 };
 
-export const createOpportunity = async (proposal: NestedProposal, ticket: ServiceTicket): Promise<Opportunity | undefined> => {
-	const data = JSON.stringify({
-		name: `NICK'S TESTING - ${proposal.name}`,
-		type: {
-			id: 5,
-		},
-		primarySalesRep: {
-			// @ts-ignore
-			id: proposal.created_by?.manage_reference_id,
-		},
-		company: {
-			// id: ticket.company?.id,
-			id: 19297,
-		},
-		contact: {
-			id: ticket.contact?.id,
-		},
-		stage: {
-			id: 6,
-		},
-		// status: {
-		// 	id: 2,
-		// },
-	});
+export const createOpportunity = async (
+	proposal: NestedProposal,
+	ticket: ServiceTicket
+): Promise<Opportunity | undefined> => {
+	try {
+		const data = JSON.stringify({
+			name: `NICK'S TESTING - ${proposal.name}`,
+			type: {
+				id: 5,
+			},
+			site: { id: 1002 },
+			primarySalesRep: {
+				// @ts-ignore
+				id: proposal.created_by?.manage_reference_id,
+			},
+			company: {
+				// id: ticket.company?.id,
+				id: 19297,
+			},
+			contact: {
+				id: 17804,
+				// id: ticket.contact?.id,
+			},
+			stage: {
+				id: 6,
+			},
+			// status: {
+			// 	id: 2,
+			// },
+		});
 
-	console.log(data);
+		console.log(data);
 
-	const config: AxiosRequestConfig = {
-		...baseConfig,
-		url: '/sales/opportunities',
-		method: 'post',
-		headers: {
-			...baseConfig.headers,
-			'Content-Type': 'application/json',
-		},
-		data,
-	};
-	//
-	// console.log(config.headers);
-	// console.log(proposal, proposal.created_by, proposal.products);
+		const config: AxiosRequestConfig = {
+			...baseConfig,
+			url: '/sales/opportunities',
+			method: 'post',
+			headers: {
+				...baseConfig.headers,
+				'Content-Type': 'application/json',
+			},
+			data,
+		};
 
-	const response: AxiosResponse<Opportunity, Error> = await axios.request(config);
+		const response: AxiosResponse<Opportunity, Error> = await axios.request(config);
 
-	await updateProposal(proposal.id, { opportunity_id: response.data.id });
+		await updateProposal(proposal.id, { opportunity_id: response.data.id });
 
-	// if (proposal.products) {
-	// 	await Promise.all(
-	// 		proposal.products.map((p) => createManageProduct(response.data.id, { id: p.catalog_item!, productClass: p.product_class! as ProductClass }, p))
-	// 	);
-	// }
+		// if (proposal.products) {
+		// 	await Promise.all(
+		// 		proposal.products.map((p) => createManageProduct(response.data.id, { id: p.catalog_item!, productClass: p.product_class! as ProductClass }, p))
+		// 	);
+		// }
 
-	return response.data;
+		return response.data;
+	} catch (error) {
+		console.error('Error creating opportunity:', error);
+		throw new Error('Failed to create opportunity.'); // Rethrow the error with a clear message
+	}
 };
 
 export const createManageProduct = async (
@@ -367,12 +435,12 @@ export const createManageProduct = async (
 	try {
 		const response: AxiosResponse<ProductsItem, Error> = await axios.request(config);
 
-		console.log('CREATING PRODUCT', 'created succesfully');
+		console.log('CREATING PRODUCT', 'created successfully');
 
 		return response.data;
 	} catch (error) {
-		console.error('ERROR CREATING PRODUCT', error);
-		return;
+		console.error('Error creating product:', error);
+		throw new Error('Failed to create product.'); // Rethrow the error with a clear message
 	}
 };
 
@@ -386,23 +454,26 @@ interface ProjectCreate {
 }
 
 export const createSection = async (section: SectionInsert) => {
-	const supabase = createClient();
-	const { error } = await supabase.from('sections').insert(section);
+	try {
+		const supabase = createClient();
+		const { error } = await supabase.from('sections').insert(section);
 
-	if (error) {
-		console.error(error);
-		throw Error('Error creating section...', { cause: error.message });
+		if (error) {
+			throw new Error('Error creating section', { cause: error.message });
+		}
+
+		revalidateTag('sections');
+		revalidateTag('proposals');
+	} catch (error) {
+		console.error('createSection Error:', error);
+		throw error; // Rethrow the error after logging it
 	}
-
-	revalidateTag('sections');
-	revalidateTag('proposals');
 };
 
 export const createProject = async (
 	project: ProjectCreate,
 	proposalId: string,
-	opportunityId: number,
-	estimatedHours: number
+	opportunityId: number
 ): Promise<Project | undefined> => {
 	const supabase = createClient();
 	let config: RequestInit = {
@@ -413,24 +484,30 @@ export const createProject = async (
 			includeAllNotesFlag: true,
 			includeAllDocumentsFlag: true,
 			includeAllProductsFlag: true,
-			// billProjectAfterClosedFlag: true,
-			// budgetFlag: true,
-			// estimatedHours,
-			// billingMethod: 'FixedFee',
 		}),
 	};
 
-	const response = await fetch(`${process.env.NEXT_PUBLIC_CW_URL}/sales/opportunities/${opportunityId}/convertToProject`, config);
+	try {
+		const response = await fetch(
+			`${process.env.NEXT_PUBLIC_CW_URL}/sales/opportunities/${opportunityId}/convertToProject`,
+			config
+		);
 
-	if (response.status !== 201) throw Error('Error creating project', { cause: JSON.stringify(response, null, 2) });
+		if (response.status !== 201) {
+			throw new Error('Error creating project', { cause: await response.json() });
+		}
 
-	const data = await response.json();
+		const data = await response.json();
 
-	console.log(data);
+		console.log(data);
 
-	await supabase.from('proposals').update({ project_id: data.id }).eq('id', proposalId);
+		await supabase.from('proposals').update({ project_id: data.id }).eq('id', proposalId);
 
-	return data;
+		return data;
+	} catch (error) {
+		console.error('createProject Error:', error);
+		throw error; // Rethrow the error after logging it
+	}
 };
 
 export const createProjectPhase = async (projectId: number, phase: NestedPhase): Promise<ProjectPhase | undefined> => {
@@ -445,53 +522,40 @@ export const createProjectPhase = async (projectId: number, phase: NestedPhase):
 		} as ProjectPhase),
 	};
 
-	console.log('NON ERROR PHASE BODY', config.body);
+	try {
+		console.log('NON ERROR PHASE BODY', config.body);
 
-	const response = await fetch(`${process.env.NEXT_PUBLIC_CW_URL}/project/projects/${projectId}/phases`, config);
+		let response = await fetch(`${process.env.NEXT_PUBLIC_CW_URL}/project/projects/${projectId}/phases`, config);
 
-	if (!response.ok) {
-		try {
-			console.log('waiting');
-			wait(1000);
-			console.log('done waiting');
+		// if (!response.ok) {
+		// 	console.log('waiting');
+		// 	await wait(1000);
+		// 	console.log('done waiting');
 
-			const response = await fetch(`${process.env.NEXT_PUBLIC_CW_URL}/project/projects/${projectId}/phases`, config);
+		// 	response = await fetch(`${process.env.NEXT_PUBLIC_CW_URL}/project/projects/${projectId}/phases`, config);
 
-			console.log('IS ERROR PHASE BODY', config.body);
+		// 	if (!response.ok) {
+		// 		throw new Error('Error creating project phase', { cause: await response.text() });
+		// 	}
+		// }
 
-			if (!response.ok) {
-				console.error(response.statusText);
-				// throw Error(response.statusText);
-			}
+		const data = await response.json();
 
-			const data = await response.json();
+		// await supabase.from('phases').update({ reference_id: data.id }).eq('id', phase.id);
 
-			// await supabase.from('phases').update({ reference_id: data.id }).eq('id', phase.id);
+		// if (phase.tickets) {
+		// 	await Promise.all(
+		// 		phase.tickets?.sort((a, b) => a.order - b.order)?.map((ticket) => createProjectTicket(data.id, ticket))
+		// 	);
+		// }
 
-			if (phase.tickets) {
-				await Promise.all(phase.tickets?.sort((a, b) => a.order - b.order)?.map((ticket) => createProjectTicket(data.id, ticket)));
-			}
+		console.log('Phase', phase.description, data.id);
 
-			// console.log('Phase', phase.description, data.id);
-
-			return data;
-		} catch (error) {
-			console.error(error);
-			throw Error('Error', { cause: error });
-		}
+		return data;
+	} catch (error) {
+		console.error('createProjectPhase Error:', error);
+		throw error; // Rethrow the error after logging it
 	}
-
-	const data = await response.json();
-
-	// await supabase.from('phases').update({ reference_id: data.id }).eq('id', phase.id);
-
-	if (phase.tickets) {
-		await Promise.all(phase.tickets?.sort((a, b) => a.order - b.order)?.map((ticket) => createProjectTicket(data.id, ticket)));
-	}
-
-	console.log('Phase', phase.description, data.id);
-
-	return data;
 };
 
 interface ProjectTicketInsert {
@@ -502,8 +566,10 @@ interface ProjectTicketInsert {
 	};
 }
 
-export const createProjectTicket = async (phaseId: number, ticket: NestedTicket): Promise<ProjectTemplateTicket | undefined> => {
-	const supabase = createClient();
+export const createProjectTicket = async (
+	phaseId: number,
+	ticket: NestedTicket
+): Promise<ProjectTemplateTicket | undefined> => {
 	const { summary, budget_hours: budgetHours } = ticket;
 
 	let config: RequestInit = {
@@ -520,51 +586,32 @@ export const createProjectTicket = async (phaseId: number, ticket: NestedTicket)
 
 	console.log('NON ERROR TICKET BODY', config.body);
 
-	const response = await fetch(`${process.env.NEXT_PUBLIC_CW_URL}/project/tickets`, config);
+	try {
+		let response = await fetch(`${process.env.NEXT_PUBLIC_CW_URL}/project/tickets`, config);
 
-	if (!response.ok) {
-		try {
-			console.log('waiting');
-			wait(1000);
-			console.log('done waiting');
+		// if (!response.ok) {
+		// 	await wait(1000); // Assuming wait is a utility function that returns a Promise
 
-			console.log('IS ERROR TICKET BODY', config.body);
+		// 	response = await fetch(`${process.env.NEXT_PUBLIC_CW_URL}/project/tickets`, config);
 
-			const response = await fetch(`${process.env.NEXT_PUBLIC_CW_URL}/project/tickets`, config);
+		// 	if (!response.ok) {
+		// 		throw new Error(`Error creating project ticket: ${response.statusText}`);
+		// 	}
+		// }
 
-			if (!response.ok) {
-				console.error(response.statusText);
-				// throw Error(response.statusText);
-			}
+		const data = await response.json();
 
-			const data = await response.json();
+		// if (ticket.tasks && ticket.tasks.length) {
+		// 	await Promise.all(
+		// 		ticket.tasks?.sort((a, b) => a.priority - b.priority)?.map((task) => createProjectTask(data.id, task))
+		// 	);
+		// }
 
-			// await supabase.from('tickets').update({ reference_id: data.id }).eq('id', ticket.id);
-
-			if (ticket.tasks && ticket.tasks.length) {
-				await Promise.all(ticket.tasks?.sort((a, b) => a.priority - b.priority)?.map((task) => createProjectTask(data.id, task)));
-			}
-
-			console.log('Ticket', summary, data.id);
-
-			return data;
-		} catch (error) {
-			console.error(error);
-			throw Error('Error', { cause: error });
-		}
+		return data;
+	} catch (error) {
+		console.error('createProjectTicket Error:', error);
+		throw new Error('Error creating project ticket', { cause: error });
 	}
-
-	const data = await response.json();
-
-	// await supabase.from('tickets').update({ reference_id: data.id }).eq('id', ticket.id);
-
-	if (ticket.tasks && ticket.tasks.length) {
-		await Promise.all(ticket.tasks?.sort((a, b) => a.priority - b.priority)?.map((task) => createProjectTask(data.id, task)));
-	}
-
-	console.log('Ticket', summary, data.id);
-
-	return data;
 };
 
 interface ProjectTaskInsert {
@@ -575,7 +622,6 @@ interface ProjectTaskInsert {
 }
 
 export const createProjectTask = async (ticketId: number, task: Task): Promise<ProjectTemplateTask | undefined> => {
-	const supabase = createClient();
 	const { summary, notes, priority } = task;
 	const body = JSON.stringify({
 		notes,
@@ -590,43 +636,34 @@ export const createProjectTask = async (ticketId: number, task: Task): Promise<P
 
 	console.log('NON ERROR TASK BODY', config.body);
 
-	const response = await fetch(`${process.env.NEXT_PUBLIC_CW_URL}/project/tickets/${ticketId}/tasks`, config);
+	try {
+		let response = await fetch(`${process.env.NEXT_PUBLIC_CW_URL}/project/tickets/${ticketId}/tasks`, config);
 
-	if (!response.ok) {
-		try {
-			console.log('waiting');
-			wait(1000);
-			console.log('done waiting');
+		// if (!response.ok) {
+		// 	console.log('waiting');
+		// 	await wait(1000);
+		// 	console.log('done waiting');
 
-			console.log('IS ERROR TASK BODY', config.body);
+		// 	console.log('IS ERROR TASK BODY', config.body);
 
-			const response = await fetch(`${process.env.NEXT_PUBLIC_CW_URL}/project/tickets/${ticketId}/tasks`, config);
+		// 	response = await fetch(`${process.env.NEXT_PUBLIC_CW_URL}/project/tickets/${ticketId}/tasks`, config);
 
-			if (response.status !== 201) {
-				console.error(response.statusText);
-				// throw Error(response.statusText);
-			}
+		// 	if (response.status !== 201) {
+		// 		throw new Error(`Error creating project task: ${response.statusText}`);
+		// 	}
+		// }
 
-			const data = await response.json();
+		const data = await response.json();
 
-			await supabase.from('tasks').update({ reference_id: data.id }).eq('id', task.id);
+		// await supabase.from('tasks').update({ reference_id: data.id }).eq('id', task.id);
 
-			console.log('TASK', summary, data.id);
+		// console.log('TASK', summary, data.id);
 
-			return data;
-		} catch (error) {
-			console.error(error);
-			throw Error('Error', { cause: error });
-		}
+		return data;
+	} catch (error) {
+		console.error('createProjectTask Error:', error);
+		throw new Error('Error creating project task', { cause: error });
 	}
-
-	const data = await response.json();
-
-	// await supabase.from('tasks').update({ reference_id: data.id }).eq('id', task.id);
-
-	// console.log('TASK', summary, data.id);
-
-	return data;
 };
 
 export const convertOpportunityToProject = async (opportunity: Opportunity, projectId: number) => {
@@ -642,18 +679,93 @@ export const convertOpportunityToProject = async (opportunity: Opportunity, proj
 		},
 		data,
 	};
+
+	try {
+		// Assuming you're using axios for requests
+		await axios.request(config);
+	} catch (error) {
+		console.error('convertOpportunityToProject Error:', error);
+		throw new Error('Error converting opportunity to project', { cause: error });
+	}
 };
 
 export const createVersion = async (proposal: string): Promise<string> => {
 	const supabase = createClient();
 
-	const { data, error } = await supabase.from('versions').insert({ proposal }).select('id').single();
+	try {
+		const { data, error } = await supabase.from('versions').insert({ proposal }).select('id').single();
 
-	if (error || !data) throw Error("Can't create version...", { cause: error });
+		if (error || !data) {
+			throw new Error("Can't create version");
+		}
 
-	await updateProposal(proposal, { working_version: data.id });
+		await updateProposal(proposal, { working_version: data.id });
 
-	revalidateTag('versions');
+		revalidateTag('versions');
 
-	return data.id;
+		return data.id;
+	} catch (error) {
+		console.error('createVersion Error:', error);
+		throw new Error('Error creating version', { cause: error });
+	}
 };
+
+async function createPhaseWithTicketsAndTasks(projectId: number, phase: NestedPhase): Promise<void> {
+	try {
+		// Create phase
+		const createdPhase = await createProjectPhase(projectId, phase);
+
+		if (!createdPhase) return;
+
+		// Create tickets and tasks for the phase
+		if (!phase.tickets) return;
+
+		await Promise.all(
+			phase.tickets.map(async (ticket) => {
+				try {
+					const createdTicket = await createProjectTicket(createdPhase.id, ticket);
+
+					if (!createdTicket) return;
+
+					if (!ticket.tasks) return;
+					// Create tasks for the ticket
+					await Promise.all(
+						ticket.tasks.map(async (task) => {
+							try {
+								await createProjectTask(createdTicket.id, task);
+							} catch (error) {
+								console.error(`Error creating task for ticket ${createdTicket.id}:`, error);
+								// Handle task creation error
+							}
+						})
+					);
+				} catch (error) {
+					console.error(`Error creating ticket for phase ${createdPhase.id}:`, error);
+					// Handle ticket creation error
+				}
+			})
+		);
+	} catch (error) {
+		console.error(`Error creating phase:`, error);
+		// Handle phase creation error
+	}
+}
+
+// Call the function for each phase
+export async function createPhasesWithTicketsAndTasks(projectId: number, phases: NestedPhase[]): Promise<void> {
+	try {
+		await Promise.all(
+			phases.map(async (phase) => {
+				try {
+					await createPhaseWithTicketsAndTasks(projectId, phase);
+				} catch (error) {
+					console.error(`Error processing phase ${phase.id}:`, error);
+					// Handle phase processing error
+				}
+			})
+		);
+	} catch (error) {
+		console.error('Error creating phases:', error);
+		// Handle overall phases creation error
+	}
+}

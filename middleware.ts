@@ -8,47 +8,51 @@ export async function middleware(request: NextRequest) {
 		},
 	});
 
-	const supabase = createServerClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!, {
-		cookies: {
-			get(name: string) {
-				return request.cookies.get(name)?.value;
+	const supabase = createServerClient(
+		process.env.NEXT_PUBLIC_SUPABASE_URL!,
+		process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+		{
+			cookies: {
+				get(name: string) {
+					return request.cookies.get(name)?.value;
+				},
+				set(name: string, value: string, options: CookieOptions) {
+					request.cookies.set({
+						name,
+						value,
+						...options,
+					});
+					response = NextResponse.next({
+						request: {
+							headers: request.headers,
+						},
+					});
+					response.cookies.set({
+						name,
+						value,
+						...options,
+					});
+				},
+				remove(name: string, options: CookieOptions) {
+					request.cookies.set({
+						name,
+						value: '',
+						...options,
+					});
+					response = NextResponse.next({
+						request: {
+							headers: request.headers,
+						},
+					});
+					response.cookies.set({
+						name,
+						value: '',
+						...options,
+					});
+				},
 			},
-			set(name: string, value: string, options: CookieOptions) {
-				request.cookies.set({
-					name,
-					value,
-					...options,
-				});
-				response = NextResponse.next({
-					request: {
-						headers: request.headers,
-					},
-				});
-				response.cookies.set({
-					name,
-					value,
-					...options,
-				});
-			},
-			remove(name: string, options: CookieOptions) {
-				request.cookies.set({
-					name,
-					value: '',
-					...options,
-				});
-				response = NextResponse.next({
-					request: {
-						headers: request.headers,
-					},
-				});
-				response.cookies.set({
-					name,
-					value: '',
-					...options,
-				});
-			},
-		},
-	});
+		}
+	);
 
 	await supabase.auth.getUser();
 
@@ -59,6 +63,8 @@ export async function middleware(request: NextRequest) {
 			data: { user },
 		} = await supabase.auth.getUser();
 
+		console.log('USER', user);
+
 		// if user is signed in and the current path is / redirect the user to /account
 		if (user && request.nextUrl.pathname === '/') {
 			return NextResponse.redirect(new URL(`/${'velo-it-group'}/`, request.url));
@@ -66,8 +72,7 @@ export async function middleware(request: NextRequest) {
 
 		//
 		if (user && request.nextUrl.pathname === '/login') {
-			await supabase.auth.signOut();
-			return response;
+			return NextResponse.redirect(new URL(`/${'velo-it-group'}/`, request.url));
 		}
 
 		//
@@ -105,7 +110,6 @@ export const config = {
 		 */
 		'/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)',
 		'/',
-		'/login',
 		'/[org]/:path*',
 	],
 };

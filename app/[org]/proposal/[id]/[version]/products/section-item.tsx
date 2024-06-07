@@ -16,17 +16,35 @@ import {
 } from '@tanstack/react-table';
 import { Draggable, DraggableProvidedDragHandleProps } from 'react-beautiful-dnd';
 import { columns } from './columns';
-import { Pencil1Icon, PlusIcon } from '@radix-ui/react-icons';
+import { DotsHorizontalIcon, Pencil1Icon, PlusIcon, TrashIcon } from '@radix-ui/react-icons';
 import { Button } from '@/components/ui/button';
 import CatalogPicker from './catalog-picker';
 import { CatalogItem } from '@/types/manage';
 import { updateProduct, updateSection } from '@/lib/functions/update';
 import { useState } from 'react';
-import { Dialog, DialogClose, DialogContent, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import {
+	Dialog,
+	DialogClose,
+	DialogContent,
+	DialogFooter,
+	DialogHeader,
+	DialogTitle,
+	DialogTrigger,
+} from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import LabeledInput from '@/components/ui/labeled-input';
 import { updateSectionInfo } from './actions';
 import SubmitButton from '@/components/SubmitButton';
+import {
+	DropdownMenu,
+	DropdownMenuContent,
+	DropdownMenuGroup,
+	DropdownMenuItem,
+	DropdownMenuSeparator,
+	DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
+import { deleteSection } from '@/lib/functions/delete';
+import { toast } from 'sonner';
 
 type Props = {
 	section: NestedSection;
@@ -98,24 +116,86 @@ const SectionItem = ({ section, dragHandleProps, catalogItems, params, page, cou
 	return (
 		<Card>
 			<CardHeader className='group'>
-				<CardTitle {...dragHandleProps} className='flex items-center'>
+				<CardTitle
+					{...dragHandleProps}
+					className='flex items-center'
+				>
 					{section.name}
+
 					<Dialog>
 						<DialogTrigger asChild>
-							<Button variant='ghost' size='sm' className='ml-2 px-1 opacity-0 h-5 group-hover:opacity-100'>
+							<Button
+								variant='ghost'
+								size='sm'
+								className='ml-2 px-1 opacity-0 h-5 group-hover:opacity-100'
+							>
 								<Pencil1Icon className='h-4 w-4' />
 							</Button>
 						</DialogTrigger>
+
+						<DropdownMenu>
+							<DropdownMenuTrigger asChild>
+								<Button
+									variant='ghost'
+									size='sm'
+									className='ml-2 px-1 opacity-0 h-5 group-hover:opacity-100 data-[state=open]:opacity-100'
+								>
+									<DotsHorizontalIcon className='h-4 w-4' />
+								</Button>
+							</DropdownMenuTrigger>
+
+							<DropdownMenuContent align='start'>
+								<DropdownMenuGroup>
+									<DialogTrigger asChild>
+										<DropdownMenuItem>
+											<Pencil1Icon className='w-4 h-4 mr-2' /> Edit
+										</DropdownMenuItem>
+									</DialogTrigger>
+								</DropdownMenuGroup>
+
+								<DropdownMenuSeparator />
+
+								<DropdownMenuGroup>
+									<DropdownMenuItem
+										onClick={async () => {
+											try {
+												await deleteSection(section.id);
+												// Optional: Perform any additional actions after successful deletion
+											} catch (error) {
+												console.error('Error deleting section:', error);
+												toast(JSON.stringify(error, null, 2));
+												// Optionally, you can notify the user or perform other error handling actions here
+											}
+										}}
+										className='focus:bg-red-50 focus:text-red-500'
+									>
+										<TrashIcon className='w-4 h-4 mr-2' /> Delete
+									</DropdownMenuItem>
+								</DropdownMenuGroup>
+							</DropdownMenuContent>
+						</DropdownMenu>
 
 						<DialogContent>
 							<DialogHeader>
 								<DialogTitle>Edit Section</DialogTitle>
 							</DialogHeader>
 
-							<form id='updateSection' name='updateSection' action={updateSectionInfo}>
-								<input name='id' hidden defaultValue={section.id} />
+							<form
+								id='updateSection'
+								name='updateSection'
+								action={updateSectionInfo}
+							>
+								<input
+									name='id'
+									hidden
+									defaultValue={section.id}
+								/>
 
-								<LabeledInput name='name' defaultValue={section.name} label='Name' />
+								<LabeledInput
+									name='name'
+									defaultValue={section.name}
+									label='Name'
+								/>
 
 								<DialogFooter className='mt-4'>
 									<DialogClose asChild>
@@ -130,8 +210,12 @@ const SectionItem = ({ section, dragHandleProps, catalogItems, params, page, cou
 				</CardTitle>
 			</CardHeader>
 			<CardContent>
-				<DraggableDataTable table={table} type={section.id} />
+				<DraggableDataTable
+					table={table}
+					type={section.id}
+				/>
 			</CardContent>
+
 			<CardFooter>
 				<CatalogPicker
 					proposal=''

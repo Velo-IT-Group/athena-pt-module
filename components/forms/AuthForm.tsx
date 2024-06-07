@@ -2,7 +2,7 @@
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import SubmitButton from '@/components/SubmitButton';
-import { getMembers, signIn } from '@/lib/functions/read';
+import { getMembers, signIn, signInWithAzure } from '@/lib/functions/read';
 import { signUp } from '@/lib/functions/create';
 import { toast } from 'sonner';
 import { useState } from 'react';
@@ -19,6 +19,9 @@ import {
 import { getSystemMembers } from '@/utils/manage/read';
 import { SystemMember } from '@/types/manage';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../ui/select';
+import { Button } from '../ui/button';
+import Image from 'next/image';
+import { Separator } from '../ui/separator';
 
 export default function AuthForm({ searchParams }: { searchParams?: { message: string } }) {
 	const [showAlertDialog, setShowAlertDialog] = useState(false);
@@ -26,16 +29,57 @@ export default function AuthForm({ searchParams }: { searchParams?: { message: s
 	const [credentials, setCredentials] = useState<FormData>(new FormData());
 
 	return (
-		<form className='animate-in flex-1 flex flex-col w-full justify-center gap-2 text-foreground' action={signIn}>
+		<form
+			className='animate-in flex-1 flex flex-col w-full justify-center gap-2 text-foreground'
+			action={signIn}
+		>
+			<Button
+				variant='outline'
+				className='text-card-foreground'
+				formAction={signInWithAzure}
+			>
+				<Image
+					src='/microsoftLogo.png'
+					alt='Microsoft logo'
+					height={12}
+					width={12}
+					className='inline-block mr-1.5 rounded-sm'
+				/>
+				Microsoft
+			</Button>
+
+			<div className='flex items-center gap-4'>
+				<Separator
+					orientation='horizontal'
+					className='shrink'
+				/>
+
+				<p className='text-sm text-muted-foreground text-center'>Or</p>
+
+				<Separator
+					orientation='horizontal'
+					className='shrink'
+				/>
+			</div>
+
 			<Label htmlFor='email'>Email</Label>
-			<Input name='email' placeholder='you@example.com' autoComplete='email' required />
+			<Input
+				name='email'
+				placeholder='you@example.com'
+				autoComplete='email'
+			/>
 
 			<Label htmlFor='password'>Password</Label>
-			<Input type='password' name='password' placeholder='••••••••' autoComplete='current-password' required />
+			<Input
+				type='password'
+				name='password'
+				placeholder='••••••••'
+				autoComplete='current-password'
+			/>
 
 			<SubmitButton>Sign in</SubmitButton>
 
-			<SubmitButton
+			<Button
 				className='text-card-foreground'
 				formAction={async (data: FormData) => {
 					try {
@@ -56,9 +100,12 @@ export default function AuthForm({ searchParams }: { searchParams?: { message: s
 				variant='outline'
 			>
 				Sign Up
-			</SubmitButton>
+			</Button>
 
-			<AlertDialog open={showAlertDialog} onOpenChange={setShowAlertDialog}>
+			<AlertDialog
+				open={showAlertDialog}
+				onOpenChange={setShowAlertDialog}
+			>
 				<AlertDialogContent>
 					<AlertDialogHeader>
 						<AlertDialogTitle>Select a ConnectWise Member</AlertDialogTitle>
@@ -71,7 +118,11 @@ export default function AuthForm({ searchParams }: { searchParams?: { message: s
 						action={async (data) => {
 							const member_id = parseInt(data.get('manage_reference_id') as string);
 							const member = possibleMembers.find((member) => member.id === member_id);
-							await signUp(credentials, { first_name: member?.firstName || '', last_name: member?.lastName || '', manage_reference_id: member_id });
+							await signUp(credentials, {
+								first_name: member?.firstName || '',
+								last_name: member?.lastName || '',
+								manage_reference_id: member_id,
+							});
 						}}
 					>
 						<Select name='manage_reference_id'>
@@ -80,7 +131,10 @@ export default function AuthForm({ searchParams }: { searchParams?: { message: s
 							</SelectTrigger>
 							<SelectContent>
 								{possibleMembers.map((member) => (
-									<SelectItem key={member.id} value={member.id.toString()}>
+									<SelectItem
+										key={member.id}
+										value={member.id.toString()}
+									>
 										{member.firstName} {member.lastName}
 									</SelectItem>
 								))}
@@ -95,7 +149,9 @@ export default function AuthForm({ searchParams }: { searchParams?: { message: s
 				</AlertDialogContent>
 			</AlertDialog>
 
-			{searchParams?.message && <p className='mt-4 p-4 text-red-600 focus:text-red-600 focus:bg-red-50 text-center'>{searchParams.message}</p>}
+			{searchParams?.message && (
+				<p className='mt-4 p-4 text-red-600 focus:text-red-600 focus:bg-red-50 text-center'>{searchParams.message}</p>
+			)}
 		</form>
 	);
 }

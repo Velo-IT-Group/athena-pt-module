@@ -25,7 +25,10 @@ export function DraggableDataTable<TData>({ table, hideHeader = false, type }: D
 							<TableRow key={headerGroup.id}>
 								{headerGroup.headers.map((header) => {
 									return (
-										<TableHead key={header.id} colSpan={header.colSpan}>
+										<TableHead
+											key={header.id}
+											colSpan={header.colSpan}
+										>
 											{header.isPlaceholder ? null : flexRender(header.column.columnDef.header, header.getContext())}
 										</TableHead>
 									);
@@ -35,12 +38,23 @@ export function DraggableDataTable<TData>({ table, hideHeader = false, type }: D
 					</TableHeader>
 				)}
 
-				<Droppable droppableId={type} type='product'>
+				<Droppable
+					droppableId={type}
+					type='product'
+				>
 					{(provided, snapshot) => (
-						<TableBody ref={provided.innerRef} {...provided.droppableProps} className={cn(getBackgroundColor(snapshot))}>
+						<TableBody
+							ref={provided.innerRef}
+							{...provided.droppableProps}
+							className={cn(getBackgroundColor(snapshot))}
+						>
 							{table.getRowModel().rows?.length ? (
 								table.getRowModel().rows.map((row, index) => (
-									<Draggable key={(row.original as Product).unique_id} draggableId={(row.original as Product).unique_id} index={index}>
+									<Draggable
+										key={(row.original as Product).unique_id}
+										draggableId={(row.original as Product).unique_id}
+										index={index}
+									>
 										{(provided) => (
 											<TableRow
 												data-state={row.getIsSelected() && 'selected'}
@@ -58,7 +72,9 @@ export function DraggableDataTable<TData>({ table, hideHeader = false, type }: D
 																handleProps={provided.dragHandleProps}
 															/>
 														) : (
-															<TableCell key={cell.id}>{flexRender(cell.column.columnDef.cell, cell.getContext())}</TableCell>
+															<TableCell key={cell.id}>
+																{flexRender(cell.column.columnDef.cell, cell.getContext())}
+															</TableCell>
 														)}
 													</>
 												))}
@@ -68,7 +84,10 @@ export function DraggableDataTable<TData>({ table, hideHeader = false, type }: D
 								))
 							) : (
 								<TableRow>
-									<TableCell colSpan={table.getAllColumns().length} className='h-24 text-center'>
+									<TableCell
+										colSpan={table.getAllColumns().length}
+										className='h-24 text-center'
+									>
 										No results.
 									</TableCell>
 								</TableRow>

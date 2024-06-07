@@ -27,28 +27,43 @@ const ProposalSettingsPage = async ({ params }: { params: { id: string; version:
 					action={async (data: FormData) => {
 						'use server';
 						// @ts-ignore
-						await updateProposal(proposal.id, { name: data.get('name') as string, status: data.get('status') as string });
+						await updateProposal(proposal.id, {
+							name: data.get('name') as string,
+							status: data.get('status') as string,
+						});
 					}}
 					className='flex flex-col h-full'
 				>
 					<CardHeader>
 						<CardTitle>General Settings</CardTitle>
-						<CardDescription>Used to identify your Project on the Dashboard, Vercel CLI, and in the URL of your Deployments.</CardDescription>
+						<CardDescription>
+							Used to identify your Project on the Dashboard, Vercel CLI, and in the URL of your Deployments.
+						</CardDescription>
 					</CardHeader>
 					<CardContent className='space-y-3'>
 						<div className='grid gap-1'>
 							<Label htmlFor='name'>Name</Label>
-							<Input required name='name' defaultValue={proposal.name} />
+							<Input
+								required
+								name='name'
+								defaultValue={proposal.name}
+							/>
 						</div>
 						<div className='grid gap-1'>
 							<Label htmlFor='status'>Status</Label>
-							<Select defaultValue={proposal.status} name='status'>
+							<Select
+								defaultValue={proposal.status}
+								name='status'
+							>
 								<SelectTrigger>
 									<SelectValue placeholder='Select a status' />
 								</SelectTrigger>
 								<SelectContent>
 									{statuses.map((status) => (
-										<SelectItem value={status.value} key={status.value}>
+										<SelectItem
+											value={status.value}
+											key={status.value}
+										>
 											{status.label}
 										</SelectItem>
 									))}
@@ -72,17 +87,17 @@ const ProposalSettingsPage = async ({ params }: { params: { id: string; version:
 						<div className='grid grid-cols-5 items-center gap-2 col-span-2'>
 							<h3 className='text-sm text-muted-foreground'>Ticket</h3>
 							<div className='col-span-4'>
-								<TicketSelector tickets={tickets ?? []} ticket={proposal.service_ticket} />
+								<TicketSelector
+									tickets={tickets ?? []}
+									ticket={proposal.service_ticket}
+								/>
 							</div>
 						</div>
-						<div className='grid gap-2'>
+						<div className='grid gap-2 col-span-2'>
 							<h3 className='text-sm text-muted-foreground'>Summary</h3>
 							<p className='font-medium'>{ticket?.summary}</p>
 						</div>
-						<div className='grid gap-2'>
-							<h3 className='text-sm text-muted-foreground'>Summary</h3>
-							<p className='font-medium'>{ticket?.summary}</p>
-						</div>
+
 						<div className='grid gap-2'>
 							<h3 className='text-sm text-muted-foreground'>Company</h3>
 							<p className='font-medium'>{ticket.company?.name ?? ''}</p>
@@ -93,7 +108,10 @@ const ProposalSettingsPage = async ({ params }: { params: { id: string; version:
 						</div>
 					</CardContent>
 					<CardFooter>
-						<SubmitButton className='ml-auto' disabled={true}>
+						<SubmitButton
+							className='ml-auto'
+							disabled={true}
+						>
 							Save
 						</SubmitButton>
 					</CardFooter>
@@ -166,7 +184,8 @@ const ProposalSettingsPage = async ({ params }: { params: { id: string; version:
 					<CardHeader>
 						<CardTitle>Delete Proposal</CardTitle>
 						<CardDescription>
-							The proposal will be permanently deleted, including its deployments and domains. This action is irreversible and can not be undone.
+							The proposal will be permanently deleted, including its deployments and domains. This action is
+							irreversible and can not be undone.
 						</CardDescription>
 					</CardHeader>
 					{/* <CardContent></CardContent> */}

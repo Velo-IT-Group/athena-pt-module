@@ -39,7 +39,7 @@ declare global {
 	type TaskUpdate = DB['public']['Tables']['tasks']['Update'];
 
 	type Ticket = DB['public']['Tables']['tickets']['Row'];
-	type TicketInset = DB['public']['Tables']['tickets']['Insert'];
+	type TicketInsert = DB['public']['Tables']['tickets']['Insert'];
 	type TicketUpdate = DB['public']['Tables']['tickets']['Insert'];
 
 	type Version = DB['public']['Tables']['versions']['Row'];
@@ -47,7 +47,11 @@ declare global {
 	type VersionUpdate = DB['public']['Tables']['versions']['Update'];
 
 	type NestedProposal = Proposal & {
-		working_version?: Version & { products: NestedProduct[]; sections: Array<Section & { products: NestedProduct[] }>; phases: NestedPhase[] };
+		working_version?: Version & {
+			products: NestedProduct[];
+			sections: Array<Section & { products: NestedProduct[] }>;
+			phases: NestedPhase[];
+		};
 		phases?: Array<NestedPhase>;
 		products?: NestedProduct[];
 		sections?: Array<Section & { products?: NestedProduct[] }>;

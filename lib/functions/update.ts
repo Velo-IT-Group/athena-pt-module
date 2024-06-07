@@ -166,11 +166,9 @@ type PatchOperation = {
 export const updateManageProduct = async (product: ManageProductUpdate): Promise<ProductsItem | undefined> => {
 	let data = JSON.stringify(product.values);
 
-	console.log(product.id, data);
-
 	let config = {
 		...baseConfig,
-		method: 'patch',
+		method: 'PATCH',
 		url: `/procurement/products/${product.id}`,
 		headers: {
 			...baseConfig.headers,
@@ -178,6 +176,8 @@ export const updateManageProduct = async (product: ManageProductUpdate): Promise
 		},
 		data: data,
 	};
+
+	console.log(config);
 
 	try {
 		const product: AxiosResponse<ProductsItem, Error> = await axios.request(config);
@@ -221,7 +221,11 @@ export const updateUserMetadata = async (data: FormData, user_metadata: UserMeta
 	const supabase = createClient();
 
 	const { error } = await supabase.auth.updateUser({
-		data: { ...user_metadata, first_name: data.get('first_name') as string, last_name: data.get('last_name') as string },
+		data: {
+			...user_metadata,
+			first_name: data.get('first_name') as string,
+			last_name: data.get('last_name') as string,
+		},
 	});
 
 	if (error) throw Error('Error updating profile', { cause: error.message });

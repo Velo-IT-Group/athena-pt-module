@@ -2,7 +2,11 @@ import { CatalogItem, ProjectPhase, ProjectWorkPlan } from '@/types/manage';
 import { productStub } from '@/types/optimisticTypes';
 import { v4 as uuid } from 'uuid';
 
-export const createNestedPhaseFromTemplate = (workplan: ProjectWorkPlan, version: string, destinationIndex: number): NestedPhase[] => {
+export const createNestedPhaseFromTemplate = (
+	workplan: ProjectWorkPlan,
+	version: string,
+	destinationIndex: number
+): NestedPhase[] => {
 	return (
 		workplan?.phases.map((phase: ProjectPhase, index) => {
 			const { description, wbsCode } = phase;
@@ -105,7 +109,9 @@ export const convertToCamelCase = (item: string | object, flatten: boolean = tru
 	const snakeObject: Record<string, any> = {};
 
 	for (const [key, value] of Object.entries(item)) {
-		const snakeKey = key.toLowerCase().replace(/([-_][a-z])/g, (group) => group.toUpperCase().replace('-', '').replace('_', ''));
+		const snakeKey = key
+			.toLowerCase()
+			.replace(/([-_][a-z])/g, (group) => group.toUpperCase().replace('-', '').replace('_', ''));
 		snakeObject[snakeKey] = value;
 	}
 
@@ -147,7 +153,8 @@ type ReturnType = {
 };
 
 export const calculateTotals = (products: Product[], phases: NestedPhase[], labor_rate: number): ReturnType => {
-	const ticketHours = phases && phases.length ? phases.map((p) => p.tickets?.map((t) => t.budget_hours).flat()).flat() : [];
+	const ticketHours =
+		phases && phases.length ? phases.map((p) => p.tickets?.map((t) => t.budget_hours).flat()).flat() : [];
 
 	const ticketSum = ticketHours?.reduce((accumulator, currentValue) => {
 		return (accumulator ?? 0) + (currentValue ?? 0);
@@ -158,11 +165,12 @@ export const calculateTotals = (products: Product[], phases: NestedPhase[], labo
 	const laborTotal = laborHours * labor_rate;
 
 	const productTotal: number = products
-		.filter((p) => !p.recurring_flag || p.recurring_bill_cycle !== 2)
+		.filter((p) => !p.recurring_flag || p.recurring_bill_cycle !== 2 || p.parent !== null)
 		.reduce((accumulator, currentValue) => {
-			const price: number | null = currentValue.product_class === 'Bundle' ? currentValue.calculated_price : currentValue.price;
+			const price: number | null =
+				currentValue.product_class === 'Bundle' ? currentValue.calculated_price : currentValue.price;
 
-			return accumulator + (price ?? 0) * (currentValue?.quantity ?? 0);
+			return currentValue.parent ? accumulator + 0 : accumulator + (price ?? 0) * (currentValue?.quantity ?? 0);
 		}, 0);
 
 	const recurringTotal = products
@@ -172,16 +180,17 @@ export const calculateTotals = (products: Product[], phases: NestedPhase[], labo
 	const productCost: number = products
 		.filter((p) => !p.recurring_flag || p.recurring_bill_cycle !== 2)
 		.reduce((accumulator, currentValue) => {
-			const cost: number | null = currentValue.product_class === 'Bundle' ? currentValue.calculated_cost : currentValue.cost;
+			const cost: number | null =
+				currentValue.product_class === 'Bundle' ? currentValue.calculated_cost : currentValue.cost;
 
-			return accumulator + (cost ?? 0) * (currentValue?.quantity ?? 0);
+			return currentValue.parent ? accumulator + 0 : accumulator + (cost ?? 0) * (currentValue?.quantity ?? 0);
 		}, 0);
 
 	const recurringCost = products
 		?.filter((product) => product.recurring_flag)
 		.reduce((accumulator, currentValue) => accumulator + (currentValue?.cost ?? 0) * (currentValue?.quantity ?? 0), 0);
 
-	const totalPrice = productTotal + recurringTotal;
+	const totalPrice = productTotal + recurringTotal + laborTotal;
 	const totalCost = productCost + recurringCost;
 
 	return {

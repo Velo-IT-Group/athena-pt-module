@@ -3,7 +3,7 @@ import { Separator } from '@/components/ui/separator';
 import { Button } from '@/components/ui/button';
 import React from 'react';
 import { Dialog, DialogTrigger } from '@/components/ui/dialog';
-import { getPhases, getProducts, getProposal, getSections, getUser } from '@/lib/functions/read';
+import { getPhases, getProducts, getProposal, getSections } from '@/lib/functions/read';
 import { getCurrencyString } from '@/utils/money';
 import Navbar from '@/components/Navbar';
 import { calculateTotals } from '@/utils/helpers';
@@ -39,13 +39,11 @@ const ProposalReviewPage = async ({ params }: Props) => {
 
 	const ticket = await getTicket(proposal?.service_ticket ?? 0);
 
-	const { productTotal, recurringTotal } = calculateTotals(
+	const { productTotal, recurringTotal, laborTotal, totalPrice } = calculateTotals(
 		sections.flatMap((s) => s.products),
 		phases ?? [],
 		proposal.labor_rate
 	);
-
-	const user = await getUser();
 
 	return (
 		<div className='relative bg-secondary/25 dark:bg-background flex-1 min-h-screen'>
@@ -56,13 +54,20 @@ const ProposalReviewPage = async ({ params }: Props) => {
 				</div>
 			</div>
 
-			<Navbar title={proposal.name} org='' version={proposal.working_version.number ? proposal.working_version.number : undefined}>
+			<Navbar
+				title={proposal.name}
+				org=''
+				version={proposal.working_version.number ? proposal.working_version.number : undefined}
+			>
 				<Dialog>
 					<DialogTrigger asChild>
 						<Button className='mr-2'>Approve</Button>
 					</DialogTrigger>
 
-					<ApprovalForm proposal={proposal} ticket={ticket} />
+					<ApprovalForm
+						proposal={proposal}
+						ticket={ticket}
+					/>
 				</Dialog>
 			</Navbar>
 
@@ -74,7 +79,13 @@ const ProposalReviewPage = async ({ params }: Props) => {
 
 							<div className='rounded-xl border bg-secondary/50 dark:bg-card/50 p-4 space-y-4'>
 								{sections?.map((section) => {
-									return <ProductCard key={section.id} title={section.name} products={section.products} />;
+									return (
+										<ProductCard
+											key={section.id}
+											title={section.name}
+											products={section.products}
+										/>
+									);
 								})}
 
 								<Card>
@@ -89,15 +100,14 @@ const ProposalReviewPage = async ({ params }: Props) => {
 											</div>
 											<div className='grid gap-2 justify-items-end grid-cols-5 col-span-3'>
 												<span className='text-sm text-muted-foreground text-right col-span-2'>Recurring Price</span>
-												<span className='text-sm text-muted-foreground col-span-3 text-right whitespace-nowrap'>Non-Recurring Price</span>
+												<span className='text-sm text-muted-foreground col-span-3 text-right whitespace-nowrap'>
+													Non-Recurring Price
+												</span>
 											</div>
 										</div>
 										{sections.map((section) => {
-											const { productTotal: sectionProductSubTotal, recurringTotal: sectionRecurringProductSubTotal } = calculateTotals(
-												section.products,
-												[],
-												250
-											);
+											const { productTotal: sectionProductSubTotal, recurringTotal: sectionRecurringProductSubTotal } =
+												calculateTotals(section.products, [], 250);
 
 											return (
 												<>
@@ -111,12 +121,30 @@ const ProposalReviewPage = async ({ params }: Props) => {
 																{getCurrencyString(sectionRecurringProductSubTotal)}
 																/mo
 															</p>
-															<p className='text-sm text-muted-foreground text-right col-span-2'>{getCurrencyString(sectionProductSubTotal)}</p>
+															<p className='text-sm text-muted-foreground text-right col-span-2'>
+																{getCurrencyString(sectionProductSubTotal)}
+															</p>
 														</div>
 													</div>
 												</>
 											);
 										})}
+
+										<Separator />
+
+										<div className='grid gap-2 grid-cols-7'>
+											<div className='font-medium text-sm col-span-4'>Services Total</div>
+
+											<div className='grid gap-2 justify-items-end grid-cols-3 col-span-3'>
+												<p className='text-sm text-muted-foreground text-right'>
+													{getCurrencyString(0)}
+													/mo
+												</p>
+												<p className='text-sm text-muted-foreground text-right col-span-2'>
+													{getCurrencyString(laborTotal)}
+												</p>
+											</div>
+										</div>
 
 										<Separator />
 
@@ -127,7 +155,7 @@ const ProposalReviewPage = async ({ params }: Props) => {
 													<span className='font-medium'>{getCurrencyString(recurringTotal)}/mo</span>
 												</p>
 												<p className='text-sm text-muted-foreground text-right col-span-2'>
-													<span className='font-medium'>{getCurrencyString(productTotal)}</span>
+													<span className='font-medium'>{getCurrencyString(totalPrice)}</span>
 												</p>
 											</div>
 										</div>
@@ -136,7 +164,8 @@ const ProposalReviewPage = async ({ params }: Props) => {
 							</div>
 
 							<p className='text-sm text-muted-foreground pr-4'>
-								Taxes, shipping, handling and other fees may apply. We reserve the right to cancel orders arising from pricing or other errors.
+								Taxes, shipping, handling and other fees may apply. We reserve the right to cancel orders arising from
+								pricing or other errors.
 							</p>
 						</div>
 					</div>
@@ -150,7 +179,10 @@ const ProposalReviewPage = async ({ params }: Props) => {
 							<div className='space-y-4'>
 								<Separator />
 								{phases?.map((phase) => (
-									<div className='space-y-4' key={phase.id}>
+									<div
+										className='space-y-4'
+										key={phase.id}
+									>
 										<div className='flex items-center gap-2'>
 											<h3 className='font-medium tracking-tight'>
 												{phase.description} - {phase.hours}hrs
@@ -159,7 +191,10 @@ const ProposalReviewPage = async ({ params }: Props) => {
 
 										<ul className='list-disc list-inside px-4'>
 											{phase.tickets?.map((ticket) => (
-												<li key={ticket.id} className='text-sm'>
+												<li
+													key={ticket.id}
+													className='text-sm'
+												>
 													{ticket.summary}
 												</li>
 											))}
