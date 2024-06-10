@@ -21,6 +21,7 @@ import { getTemplate } from './read';
 import axios, { AxiosRequestConfig, AxiosResponse } from 'axios';
 import { updateProposal } from './update';
 import { wait } from '@/utils/helpers';
+import { cookies } from 'next/headers';
 
 /**
  * Creates Phases, Tickets and Tasks In Supabase.
@@ -66,7 +67,8 @@ export const newTemplate = async (template: ProjectTemplate, order: number, vers
  */
 export const createTask = async (task: TaskInsert) => {
 	try {
-		const supabase = createClient();
+		const cookieStore = cookies();
+		const supabase = createClient(cookieStore);
 		const { error } = await supabase.from('tasks').insert(task);
 		console.log('CREATE TASK FUNCTION', task);
 
@@ -88,7 +90,8 @@ export const createTask = async (task: TaskInsert) => {
 export const createTasks = async (tasks: TaskInsert[]) => {
 	'use server';
 	try {
-		const supabase = createClient();
+		const cookieStore = cookies();
+		const supabase = createClient(cookieStore);
 		const { error } = await supabase.from('tasks').insert(tasks);
 
 		if (error) {
@@ -108,7 +111,8 @@ export const createTasks = async (tasks: TaskInsert[]) => {
  */
 export const createProposal = async (proposal: ProposalInsert) => {
 	try {
-		const supabase = createClient();
+		const cookieStore = cookies();
+		const supabase = createClient(cookieStore);
 
 		const { data, error } = await supabase
 			.from('proposals')
@@ -142,7 +146,8 @@ export const createProposal = async (proposal: ProposalInsert) => {
 
 export const duplicateProposal = async (proposal: ProposalInsert) => {
 	try {
-		const supabase = createClient();
+		const cookieStore = cookies();
+		const supabase = createClient(cookieStore);
 		delete proposal['updated_at'];
 
 		const { data: returnedProposal, error } = await supabase
@@ -175,7 +180,8 @@ export const duplicateProposal = async (proposal: ProposalInsert) => {
 
 export const createPhase = async (phase: PhaseInsert, tickets: Array<ProjectTemplateTicket>) => {
 	try {
-		const supabase = createClient();
+		const cookieStore = cookies();
+		const supabase = createClient(cookieStore);
 		const { data, error } = await supabase.from('phases').insert(phase).select().single();
 
 		if (error || !data) {
@@ -214,7 +220,8 @@ export const createTicket = async (
 	tasks: Array<ProjectTemplateTask>
 ): Promise<Ticket | undefined> => {
 	try {
-		const supabase = createClient();
+		const cookieStore = cookies();
+		const supabase = createClient(cookieStore);
 
 		console.log(ticket);
 		const { data, error } = await supabase.from('tickets').insert(ticket).select().single();
@@ -244,7 +251,8 @@ export const createTicket = async (
 
 export const createProduct = async (product: ProductInsert, bundledItems?: ProductInsert[]) => {
 	try {
-		const supabase = createClient();
+		const cookieStore = cookies();
+		const supabase = createClient(cookieStore);
 
 		const { data, error } = await supabase.from('products').insert(product).select('unique_id').single();
 
@@ -273,7 +281,8 @@ export const createProduct = async (product: ProductInsert, bundledItems?: Produ
 
 export const createProducts = async (products: ProductInsert[], bundledItems?: CatalogComponent[]) => {
 	try {
-		const supabase = createClient();
+		const cookieStore = cookies();
+		const supabase = createClient(cookieStore);
 
 		const { error } = await supabase.from('products').insert(products);
 
@@ -292,7 +301,8 @@ export const createProducts = async (products: ProductInsert[], bundledItems?: C
 
 export const createOrganizationIntegration = async (organization: OrganizationIntegrationInsert) => {
 	try {
-		const supabase = createClient();
+		const cookieStore = cookies();
+		const supabase = createClient(cookieStore);
 		const { error } = await supabase.from('organization_integrations').insert(organization);
 
 		if (error) {
@@ -319,7 +329,8 @@ export const signUp = async (formData: FormData, data?: MetaData) => {
 	const origin = headers().get('origin');
 	const email = formData.get('email') as string;
 	const password = formData.get('password') as string;
-	const supabase = createClient();
+	const cookieStore = cookies();
+	const supabase = createClient(cookieStore);
 
 	const { error } = await supabase.auth.signUp({
 		email,
@@ -455,7 +466,8 @@ interface ProjectCreate {
 
 export const createSection = async (section: SectionInsert) => {
 	try {
-		const supabase = createClient();
+		const cookieStore = cookies();
+		const supabase = createClient(cookieStore);
 		const { error } = await supabase.from('sections').insert(section);
 
 		if (error) {
@@ -475,7 +487,8 @@ export const createProject = async (
 	proposalId: string,
 	opportunityId: number
 ): Promise<Project | undefined> => {
-	const supabase = createClient();
+	const cookieStore = cookies();
+	const supabase = createClient(cookieStore);
 	let config: RequestInit = {
 		method: 'POST',
 		headers: baseHeaders,
@@ -511,7 +524,8 @@ export const createProject = async (
 };
 
 export const createProjectPhase = async (projectId: number, phase: NestedPhase): Promise<ProjectPhase | undefined> => {
-	const supabase = createClient();
+	const cookieStore = cookies();
+	const supabase = createClient(cookieStore);
 	let config: RequestInit = {
 		method: 'POST',
 		headers: baseHeaders,
@@ -690,7 +704,8 @@ export const convertOpportunityToProject = async (opportunity: Opportunity, proj
 };
 
 export const createVersion = async (proposal: string): Promise<string> => {
-	const supabase = createClient();
+	const cookieStore = cookies();
+	const supabase = createClient(cookieStore);
 
 	try {
 		const { data, error } = await supabase.from('versions').insert({ proposal }).select('id').single();

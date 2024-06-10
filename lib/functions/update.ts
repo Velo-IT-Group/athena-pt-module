@@ -13,7 +13,8 @@ import { UserMetadata } from '@supabase/supabase-js';
  * @param {ProductUpdate} product - The product you're wanting to update.
  */
 export const updateProduct = async (id: string, product: ProductUpdate) => {
-	const supabase = createClient();
+	const cookieStore = cookies();
+	const supabase = createClient(cookieStore);
 	const { error } = await supabase.from('products').update(product).eq('unique_id', id);
 
 	console.log(id, product, error);
@@ -35,7 +36,8 @@ export const updateProduct = async (id: string, product: ProductUpdate) => {
  * @param {ProposalUpdate} proposal - The proposal you're wanting to update.
  */
 export const updateProposal = async (id: string, proposal: ProposalUpdate) => {
-	const supabase = createClient();
+	const cookieStore = cookies();
+	const supabase = createClient(cookieStore);
 	const { error } = await supabase.from('proposals').update(proposal).eq('id', id);
 
 	if (error) {
@@ -52,7 +54,8 @@ export const updateProposal = async (id: string, proposal: ProposalUpdate) => {
  * @param {TicketUpdate} ticket - The ticket you're wanting to update.
  */
 export const updateTicket = async (id: string, ticket: TicketUpdate) => {
-	const supabase = createClient();
+	const cookieStore = cookies();
+	const supabase = createClient(cookieStore);
 	const { error } = await supabase.from('tickets').update(ticket).eq('id', id);
 
 	if (error) {
@@ -69,7 +72,8 @@ export const updateTicket = async (id: string, ticket: TicketUpdate) => {
  * @param {PhaseUpdate} phase - The phase you're wanting to update.
  */
 export const updatePhase = async (id: string, phase: PhaseUpdate) => {
-	const supabase = createClient();
+	const cookieStore = cookies();
+	const supabase = createClient(cookieStore);
 	const { error } = await supabase.from('phases').update(phase).eq('id', id);
 
 	if (error) {
@@ -86,7 +90,8 @@ export const updatePhase = async (id: string, phase: PhaseUpdate) => {
  * @param {TaskUpdate} task - The task you're wanting to update.
  */
 export const updateTask = async (id: string, task: TaskUpdate) => {
-	const supabase = createClient();
+	const cookieStore = cookies();
+	const supabase = createClient(cookieStore);
 	const { error } = await supabase.from('tasks').update(task).eq('id', id);
 
 	if (error) {
@@ -103,7 +108,8 @@ export const updateTask = async (id: string, task: TaskUpdate) => {
  * @param {OrganizationUpdate} organization - The organization you're wanting to update.
  */
 export const updateOrganization = async (id: string, organization: OrganizationUpdate) => {
-	const supabase = createClient();
+	const cookieStore = cookies();
+	const supabase = createClient(cookieStore);
 	const { error } = await supabase.from('organizations').update(organization).eq('id', id);
 
 	if (error) {
@@ -121,7 +127,8 @@ export const updateOrganization = async (id: string, organization: OrganizationU
  * @param {OrganizationIntegrationUpdate} orgIntegration - The organization's integration you're wanting to update.
  */
 export const updateOrganizationIntegration = async (id: string, orgIntegration: OrganizationIntegrationUpdate) => {
-	const supabase = createClient();
+	const cookieStore = cookies();
+	const supabase = createClient(cookieStore);
 	const { error } = await supabase.from('organization_integrations').update(orgIntegration).eq('id', id);
 
 	if (error) {
@@ -191,7 +198,8 @@ export const updateManageProduct = async (product: ManageProductUpdate): Promise
 };
 
 export const updateSection = async (section: SectionUpdate) => {
-	const supabase = createClient();
+	const cookieStore = cookies();
+	const supabase = createClient(cookieStore);
 	const { error } = await supabase.from('sections').update(section).eq('id', section.id!);
 
 	console.log('SECTION ID', section.id);
@@ -205,7 +213,8 @@ export const updateSection = async (section: SectionUpdate) => {
 };
 
 export const updateVersion = async (version: VersionUpdate) => {
-	const supabase = createClient();
+	const cookieStore = cookies();
+	const supabase = createClient(cookieStore);
 	const { error } = await supabase.from('versions').update(version).eq('id', version.id!);
 
 	console.log('SECTION ID', version.id);
@@ -218,7 +227,8 @@ export const updateVersion = async (version: VersionUpdate) => {
 };
 
 export const updateUserMetadata = async (data: FormData, user_metadata: UserMetadata) => {
-	const supabase = createClient();
+	const cookieStore = cookies();
+	const supabase = createClient(cookieStore);
 
 	const { error } = await supabase.auth.updateUser({
 		data: {

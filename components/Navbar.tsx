@@ -7,6 +7,7 @@ import NavigationTabs from './NavigationTabs';
 import UserNav from './UserNav';
 import { createClient } from '@/utils/supabase/server';
 import NavbarTitleEditor from './navbar-title-editor';
+import { cookies } from 'next/headers';
 
 export type Tab = {
 	name: string;
@@ -24,7 +25,8 @@ type Props = {
 };
 
 const Navbar = async ({ title, titleEditable, titleId, children, org, version, tabs }: Props) => {
-	const supabase = createClient();
+	const cookieStore = cookies();
+	const supabase = createClient(cookieStore);
 
 	const [
 		organization,
@@ -48,7 +50,10 @@ const Navbar = async ({ title, titleEditable, titleId, children, org, version, t
 				)}
 
 				{org && (
-					<Link href={`/${org}`} className='font-semibold hover:underline'>
+					<Link
+						href={`/${org}`}
+						className='font-semibold hover:underline'
+					>
 						{organization?.name ?? ''}
 					</Link>
 				)}
@@ -58,7 +63,10 @@ const Navbar = async ({ title, titleEditable, titleId, children, org, version, t
 						<SlashIcon className='h-4 opacity-15' />
 						{titleEditable && titleId ? (
 							<>
-								<NavbarTitleEditor id={titleId} title={title} />
+								<NavbarTitleEditor
+									id={titleId}
+									title={title}
+								/>
 							</>
 						) : (
 							<>

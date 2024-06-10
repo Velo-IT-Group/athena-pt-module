@@ -13,6 +13,7 @@ import { ManageProductUpdate } from '@/lib/functions/update';
 import { updateManageProduct, updateManageProject } from '@/utils/manage/update';
 import { ProductClass, ServiceTicket } from '@/types/manage';
 import { createClient } from '@/utils/supabase/server';
+import { cookies } from 'next/headers';
 
 const defaultServiceProduct: NestedProduct = {
 	id: 15,
@@ -58,7 +59,8 @@ export const convertToManageProject = async (
 	ticket: ServiceTicket,
 	phases: NestedPhase[]
 ) => {
-	const supabase = createClient();
+	const cookieStore = cookies();
+	const supabase = createClient(cookieStore);
 
 	const products = proposal.working_version.products?.sort((a, b) => {
 		// First, compare by created_at in descending order

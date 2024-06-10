@@ -16,6 +16,7 @@ import { QueryData } from '@supabase/supabase-js';
 import { createClient } from '@/utils/supabase/server';
 import { baseConfig, baseHeaders } from '@/lib/utils';
 import { redirect } from 'next/navigation';
+import { cookies } from 'next/headers';
 
 const catalogItemFields =
 	'calculatedCostFlag,calculatedPriceFlag,calculatedPrice,manufacturerPartNumber,calculatedCost,category/name,cost,customerDescription,parentCatalogItem,description,dropShipFlag,id,identifier,inactiveFlag,manufacturer/name,phaseProductFlag,price,productClass,proposal,recurringBillCycle/id,recurringCost,recurringCycleType,recurringFlag,recurringOneTimeFlag,recurringRevenue,serializedCostFlag,serializedFlag,specialOrderFlag,subcategory/name,taxableFlag,type,uniqueId,unitOfMeasure/id,vendor/name';
@@ -26,7 +27,8 @@ const catalogComponentFields =
 export const getPhases = async (
 	id: string
 ): Promise<Array<Phase & { tickets: Array<Ticket & { tasks: Task[] }> }> | undefined> => {
-	const supabase = createClient();
+	const cookieStore = cookies();
+	const supabase = createClient(cookieStore);
 
 	const { data, error } = await supabase
 		.from('phases')
@@ -215,7 +217,8 @@ export const getCatalogItem = async (id: number) => {
 };
 
 export const getComments = async (id: string) => {
-	const supabase = createClient();
+	const cookieStore = cookies();
+	const supabase = createClient(cookieStore);
 
 	const { data, error } = await supabase.from('comments').select('*, user(*)').eq('proposal', id);
 
@@ -347,7 +350,8 @@ export const getTicketNotes = async (id: number) => {
 };
 
 export const getSections = async (id: string) => {
-	const supabase = createClient();
+	const cookieStore = cookies();
+	const supabase = createClient(cookieStore);
 
 	const { data: sections, error } = await supabase
 		.from('sections')
@@ -365,7 +369,8 @@ export const getSections = async (id: string) => {
 };
 
 export const getSection = async (id: string) => {
-	const supabase = createClient();
+	const cookieStore = cookies();
+	const supabase = createClient(cookieStore);
 
 	const { data: section, error } = await supabase
 		.from('sections')
@@ -383,7 +388,8 @@ export const getSection = async (id: string) => {
 };
 
 export const getProducts = async (id: string) => {
-	const supabase = createClient();
+	const cookieStore = cookies();
+	const supabase = createClient(cookieStore);
 
 	const { data: products, error } = await supabase
 		.from('products')
@@ -401,7 +407,8 @@ export const getProducts = async (id: string) => {
 };
 
 export const getProduct = async (id: string) => {
-	const supabase = createClient();
+	const cookieStore = cookies();
+	const supabase = createClient(cookieStore);
 
 	const { data: product, error } = await supabase.from('products').select('*, parent(*)').eq('unique_id', id).single();
 
@@ -413,7 +420,8 @@ export const getProduct = async (id: string) => {
 };
 
 export const getMembers = async () => {
-	const supabase = createClient();
+	const cookieStore = cookies();
+	const supabase = createClient(cookieStore);
 	const { data, error } = await supabase.from('organizations').select('profiles(*)').single();
 
 	if (!data || error) {
@@ -423,7 +431,8 @@ export const getMembers = async () => {
 	return data.profiles;
 };
 export const getProposal = async (id: string, version: string) => {
-	const supabase = createClient();
+	const cookieStore = cookies();
+	const supabase = createClient(cookieStore);
 
 	try {
 		const { data, error } = await supabase
@@ -461,7 +470,8 @@ export const getProposal = async (id: string, version: string) => {
 
 export const getOrganization = async () => {
 	'use server';
-	const supabase = createClient();
+	const cookieStore = cookies();
+	const supabase = createClient(cookieStore);
 	const { data, error } = await supabase
 		.from('organizations')
 		.select('*, organization_integrations(*, integration(*))')
@@ -475,7 +485,8 @@ export const getOrganization = async () => {
 };
 export const getIntegrations = async () => {
 	'use server';
-	const supabase = createClient();
+	const cookieStore = cookies();
+	const supabase = createClient(cookieStore);
 
 	const { data, error } = await supabase.from('integrations').select().order('name', { ascending: true });
 
@@ -487,7 +498,8 @@ export const getIntegrations = async () => {
 };
 
 export const getActivity = async () => {
-	const supabase = createClient();
+	const cookieStore = cookies();
+	const supabase = createClient(cookieStore);
 
 	const { data, error } = await supabase.from('activity_log').select().order('event_timestamp', { ascending: true });
 
@@ -499,7 +511,8 @@ export const getActivity = async () => {
 };
 
 export const getProposals = async (order?: keyof Proposal, searchText?: string, userFilters: string[] = []) => {
-	const supabase = createClient();
+	const cookieStore = cookies();
+	const supabase = createClient(cookieStore);
 
 	const proposalsQuery = supabase
 		.from('proposals')
@@ -685,7 +698,8 @@ export const signIn = async (formData: FormData) => {
 
 	const email = formData.get('email') as string;
 	const password = formData.get('password') as string;
-	const supabase = createClient();
+	const cookieStore = cookies();
+	const supabase = createClient(cookieStore);
 
 	const { error } = await supabase.auth.signInWithPassword({
 		email,
@@ -702,19 +716,20 @@ export const signIn = async (formData: FormData) => {
 };
 
 export const signInWithAzure = async (formData: FormData) => {
-	const supabase = createClient();
+	const cookieStore = cookies();
+	const supabase = createClient(cookieStore);
 
 	const { data, error } = await supabase.auth.signInWithOAuth({
 		provider: 'azure',
 		options: {
 			scopes: 'email profile',
-			redirectTo: 'http://localhost:3000/api/auth/callback',
+			redirectTo: 'http://localhost:3000/auth/callback',
 		},
 	});
 
-	console.log(data.url);
+	console.log(data.url, error);
 	if (data.url) {
-		redirect(data.url); // use the redirect API for your server framework
+		return redirect(data.url); // use the redirect API for your server framework
 	}
 };
 
@@ -774,7 +789,8 @@ export const getSynnexPricing = async () => {
 };
 
 export const getVersions = async (id: string) => {
-	const supabase = createClient();
+	const cookieStore = cookies();
+	const supabase = createClient(cookieStore);
 	const { data, error } = await supabase
 		.from('versions')
 		.select()
@@ -789,7 +805,8 @@ export const getVersions = async (id: string) => {
 };
 
 export const getUsers = async () => {
-	const supabase = createClient();
+	const cookieStore = cookies();
+	const supabase = createClient(cookieStore);
 	const { data, error } = await supabase
 		.from('profiles')
 		.select('id, first_name, last_name')

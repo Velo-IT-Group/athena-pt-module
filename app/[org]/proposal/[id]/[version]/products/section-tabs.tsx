@@ -30,7 +30,18 @@ type Props = {
 	url?: string;
 };
 
-const SectionTabs = ({ params, sections, version, page, count, proposal, catalogItems, searchParams, section, url }: Props) => {
+const SectionTabs = ({
+	params,
+	sections,
+	version,
+	page,
+	count,
+	proposal,
+	catalogItems,
+	searchParams,
+	section,
+	url,
+}: Props) => {
 	const [pending, startTransition] = useTransition();
 	const [state, mutate] = useOptimistic({ sections, pending: false }, (state, newState: SectionState) => {
 		if (newState.newSection) {
@@ -40,7 +51,10 @@ const SectionTabs = ({ params, sections, version, page, count, proposal, catalog
 			};
 		} else if (newState.updatedSection) {
 			return {
-				sections: [...state.sections.filter((f) => f.id !== newState.updatedSection!.id), newState.updatedSection] as Section[],
+				sections: [
+					...state.sections.filter((f) => f.id !== newState.updatedSection!.id),
+					newState.updatedSection,
+				] as Section[],
 				pending: newState.pending,
 			};
 		} else if (newState.updatedSections) {
@@ -88,16 +102,16 @@ const SectionTabs = ({ params, sections, version, page, count, proposal, catalog
 
 				const result = move(sourceSection?.products ?? [], destinationSection?.products ?? [], source, destination);
 
-				console.log(
-					result[source.droppableId],
-					{ ...sourceSection, products: result[source.droppableId] },
-					{ ...destinationSection, products: result[destination.droppableId] }
-				);
+				// console.log(
+				// 	result[source.droppableId],
+				// 	{ ...sourceSection, products: result[source.droppableId] },
+				// 	{ ...destinationSection, products: result[destination.droppableId] }
+				// );
 
 				const updatedSource = { ...sourceSection, products: result[source.droppableId] };
 				const updatedDestination = {
 					...destinationSection,
-					products: reorder(result[destination.droppableId].products, source.index, destination.index),
+					products: reorder(result[destination.droppableId], source.index, destination.index),
 				};
 
 				startTransition(async () => {
@@ -111,9 +125,15 @@ const SectionTabs = ({ params, sections, version, page, count, proposal, catalog
 						pending: true,
 					});
 
-					await Promise.all(updatedSource?.products.map(({ unique_id, order }) => updateProduct(unique_id, { section: updatedSource.id, order })));
 					await Promise.all(
-						updatedDestination?.products.map(({ unique_id, order }) => updateProduct(unique_id, { section: updatedDestination.id, order }))
+						updatedSource?.products.map(({ unique_id, order }) =>
+							updateProduct(unique_id, { section: updatedSource.id, order })
+						)
+					);
+					await Promise.all(
+						updatedDestination?.products.map(({ unique_id, order }) =>
+							updateProduct(unique_id, { section: updatedDestination.id, order })
+						)
 					);
 				});
 
@@ -148,11 +168,21 @@ const SectionTabs = ({ params, sections, version, page, count, proposal, catalog
 			<DragDropContext onDragEnd={onDragEnd}>
 				<Droppable droppableId='sections'>
 					{(provided) => (
-						<div ref={provided.innerRef} className='space-y-3'>
+						<div
+							ref={provided.innerRef}
+							className='space-y-3'
+						>
 							{orderedSections.map((section, index) => (
-								<Draggable key={section.id} draggableId={`section-${section.id}`} index={index}>
+								<Draggable
+									key={section.id}
+									draggableId={`section-${section.id}`}
+									index={index}
+								>
 									{(provided) => (
-										<div ref={provided.innerRef} {...provided.draggableProps}>
+										<div
+											ref={provided.innerRef}
+											{...provided.draggableProps}
+										>
 											<SectionItem
 												key={section.id}
 												section={section}
@@ -212,7 +242,10 @@ const SectionTabs = ({ params, sections, version, page, count, proposal, catalog
 							<DialogTitle>Add section</DialogTitle>
 						</DialogHeader>
 
-						<Input placeholder='Section name' name='name' />
+						<Input
+							placeholder='Section name'
+							name='name'
+						/>
 
 						<DialogFooter>
 							<DialogClose asChild>

@@ -12,22 +12,41 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { createClient } from '@/utils/supabase/client';
 import { type User } from '@supabase/supabase-js';
-import { Dialog, DialogClose, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from './ui/dialog';
+import {
+	Dialog,
+	DialogClose,
+	DialogContent,
+	DialogDescription,
+	DialogFooter,
+	DialogHeader,
+	DialogTitle,
+	DialogTrigger,
+} from './ui/dialog';
 import { Input } from './ui/input';
 import { Label } from './ui/label';
 import { toast } from 'sonner';
 import { updateUserMetadata } from '@/lib/functions/update';
 import SubmitButton from './SubmitButton';
+import { handleSignOut } from '@/app/[org]/actions';
 
 const UserNav = ({ user, className, url }: { user: User; className?: string; url?: string }) => {
 	const supabase = createClient();
 	return (
 		<Dialog>
 			<DropdownMenu>
-				<DropdownMenuTrigger className={className} asChild>
-					<Button variant='ghost' className='relative h-8 w-8 rounded-full'>
+				<DropdownMenuTrigger
+					className={className}
+					asChild
+				>
+					<Button
+						variant='ghost'
+						className='relative h-8 w-8 rounded-full'
+					>
 						<Avatar className='h-8 w-8'>
-							<AvatarImage src={url} alt='@shadcn' />
+							<AvatarImage
+								src={url}
+								alt='@shadcn'
+							/>
 							<AvatarFallback>
 								{user.user_metadata?.first_name && user.user_metadata?.first_name[0]}
 								{user.user_metadata?.last_name && user.user_metadata?.last_name[0]}
@@ -35,7 +54,10 @@ const UserNav = ({ user, className, url }: { user: User; className?: string; url
 						</Avatar>
 					</Button>
 				</DropdownMenuTrigger>
-				<DropdownMenuContent className='w-56' align='end'>
+				<DropdownMenuContent
+					className='w-56'
+					align='end'
+				>
 					<DropdownMenuLabel className='font-normal'>
 						<div className='flex flex-col space-y-1'>
 							<p className='text-sm font-medium leading-none'>
@@ -55,7 +77,7 @@ const UserNav = ({ user, className, url }: { user: User; className?: string; url
 
 					<DropdownMenuSeparator />
 
-					<DropdownMenuItem onClick={async () => await supabase.auth.signOut()}>Log out</DropdownMenuItem>
+					<DropdownMenuItem onClick={async () => await handleSignOut()}>Log out</DropdownMenuItem>
 				</DropdownMenuContent>
 			</DropdownMenu>
 
@@ -79,12 +101,22 @@ const UserNav = ({ user, className, url }: { user: User; className?: string; url
 
 					<div className='grid gap-2'>
 						<Label htmlFor='first_name'>First Name</Label>
-						<Input name='first_name' defaultValue={user.user_metadata.first_name} placeholder='Jim' required />
+						<Input
+							name='first_name'
+							defaultValue={user.user_metadata.first_name}
+							placeholder='Jim'
+							required
+						/>
 					</div>
 
 					<div className='grid gap-2'>
 						<Label htmlFor='last_name'>Last Name</Label>
-						<Input name='last_name' defaultValue={user.user_metadata.last_name} placeholder='Bob' required />
+						<Input
+							name='last_name'
+							defaultValue={user.user_metadata.last_name}
+							placeholder='Bob'
+							required
+						/>
 					</div>
 
 					<DialogFooter>

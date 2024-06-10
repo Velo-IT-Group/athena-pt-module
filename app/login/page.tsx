@@ -12,6 +12,8 @@ const LoginPage = ({
 		message?: string;
 	};
 }) => {
+	console.log(searchParams);
+
 	return (
 		<div className='container relative hidden h-screen flex-col items-center justify-center md:grid lg:max-w-none lg:grid-cols-2 lg:px-0'>
 			<div className='relative hidden h-full flex-1 flex-col bg-muted p-10 text-white lg:flex dark:border-r'>
@@ -23,9 +25,10 @@ const LoginPage = ({
 				<div className='relative z-20 mt-auto'>
 					<blockquote className='space-y-2'>
 						<p className='text-lg'>
-							&ldquo;We&apos;ve been with Velo IT Group for several years now, and these guys are the real thing. They are highly responsive,
-							committed to excellence, and they&apos;ve helped us to modernize our IT infrastructure across multiple states. Velo delivered on all of
-							their promises, and we couldn&apos;t be happier to work with them.&rdquo;
+							&ldquo;We&apos;ve been with Velo IT Group for several years now, and these guys are the real thing. They
+							are highly responsive, committed to excellence, and they&apos;ve helped us to modernize our IT
+							infrastructure across multiple states. Velo delivered on all of their promises, and we couldn&apos;t be
+							happier to work with them.&rdquo;
 						</p>
 						<footer className='text-sm'>Todd Trahan - President, Cal-Chlor</footer>
 					</blockquote>
@@ -40,11 +43,17 @@ const LoginPage = ({
 					<AuthForm />
 					<p className='px-8 text-center text-sm text-muted-foreground'>
 						By clicking continue, you agree to our{' '}
-						<Link href='/terms' className='underline underline-offset-4 hover:text-primary'>
+						<Link
+							href='/terms'
+							className='underline underline-offset-4 hover:text-primary'
+						>
 							Terms of Service
 						</Link>{' '}
 						and{' '}
-						<Link href='/privacy' className='underline underline-offset-4 hover:text-primary'>
+						<Link
+							href='/privacy'
+							className='underline underline-offset-4 hover:text-primary'
+						>
 							Privacy Policy
 						</Link>
 						.
