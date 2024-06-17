@@ -12,6 +12,7 @@ import { notFound } from 'next/navigation';
 import { Metadata, ResolvingMetadata } from 'next';
 import { getTicket } from '@/utils/manage/read';
 import ProductCard from './product-card';
+import ExpiredProposal from './expired-proposal';
 
 type Props = {
 	params: { id: string; version: string };
@@ -33,9 +34,11 @@ const ProposalReviewPage = async ({ params }: Props) => {
 		getPhases(params.version),
 	]);
 
-	console.log(proposal);
-
 	if (!proposal || !products) return notFound();
+
+	// Convert the proposal string date to a Date object
+	const proposalExpirationDate = new Date(proposal.expiration_date ?? '');
+	const today = new Date(); // Get today's date
 
 	const ticket = await getTicket(proposal?.service_ticket ?? 0);
 
@@ -47,6 +50,8 @@ const ProposalReviewPage = async ({ params }: Props) => {
 
 	return (
 		<div className='relative bg-secondary/25 dark:bg-background flex-1 min-h-screen'>
+			{proposalExpirationDate.getDay() > today.getDay() && <ExpiredProposal />}
+
 			<div className='absolute p-4 z-50 grid place-items-center bg-black/25 h-screen w-screen backdrop-blur-md sm:hidden'>
 				<div className='bg-card p-4 rounded-md text-center'>
 					<h1 className='text-lg font-semibold'>Please use computer browser</h1>
@@ -111,9 +116,12 @@ const ProposalReviewPage = async ({ params }: Props) => {
 
 											return (
 												<>
-													<Separator />
+													<Separator key={section.id} />
 
-													<div className='grid gap-2 grid-cols-7'>
+													<div
+														className='grid gap-2 grid-cols-7'
+														key={section.id}
+													>
 														<div className='font-medium text-sm col-span-4'>{section.name} Total</div>
 
 														<div className='grid gap-2 justify-items-end grid-cols-3 col-span-3'>
