@@ -379,8 +379,6 @@ export const createOpportunity = async (
 			// },
 		});
 
-		console.log(data);
-
 		const config: AxiosRequestConfig = {
 			...baseConfig,
 			url: '/sales/opportunities',
@@ -394,7 +392,9 @@ export const createOpportunity = async (
 
 		const response: AxiosResponse<Opportunity, Error> = await axios.request(config);
 
-		await updateProposal(proposal.id, { opportunity_id: response.data.id });
+		console.log(response.statusText);
+
+		// await updateProposal(proposal.id, { opportunity_id: response.data.id });
 
 		// if (proposal.products) {
 		// 	await Promise.all(
@@ -507,25 +507,27 @@ export const createProject = async (
 		);
 
 		if (response.status !== 201) {
-			throw new Error('Error creating project', { cause: await response.json() });
+			throw new Error(`Error creating project: ${response.statusText}`, { cause: await response.json() });
 		}
 
 		const data = await response.json();
 
-		console.log(data);
-
-		await supabase.from('proposals').update({ project_id: data.id }).eq('id', proposalId);
+		// await supabase.from('proposals').update({ project_id: data.id }).eq('id', proposalId);
 
 		return data;
 	} catch (error) {
 		console.error('createProject Error:', error);
-		throw error; // Rethrow the error after logging it
+		await wait(5000);
+
+		try {
+			await createProject(project, proposalId, opportunityId);
+		} catch (error) {
+			throw error; // Rethrow the error after logging it
+		}
 	}
 };
 
 export const createProjectPhase = async (projectId: number, phase: NestedPhase): Promise<ProjectPhase | undefined> => {
-	const cookieStore = cookies();
-	const supabase = createClient(cookieStore);
 	let config: RequestInit = {
 		method: 'POST',
 		headers: baseHeaders,
@@ -536,39 +538,27 @@ export const createProjectPhase = async (projectId: number, phase: NestedPhase):
 		} as ProjectPhase),
 	};
 
+	console.log('NON ERROR PHASE BODY', config.body);
+
 	try {
-		console.log('NON ERROR PHASE BODY', config.body);
+		const response = await fetch(`${process.env.NEXT_PUBLIC_CW_URL}/project/projects/${projectId}/phases`, config);
 
-		let response = await fetch(`${process.env.NEXT_PUBLIC_CW_URL}/project/projects/${projectId}/phases`, config);
-
-		// if (!response.ok) {
-		// 	console.log('waiting');
-		// 	await wait(1000);
-		// 	console.log('done waiting');
-
-		// 	response = await fetch(`${process.env.NEXT_PUBLIC_CW_URL}/project/projects/${projectId}/phases`, config);
-
-		// 	if (!response.ok) {
-		// 		throw new Error('Error creating project phase', { cause: await response.text() });
-		// 	}
-		// }
+		if (!response.ok) throw new Error(`Error creating phase: ${response.statusText}`);
 
 		const data = await response.json();
 
-		// await supabase.from('phases').update({ reference_id: data.id }).eq('id', phase.id);
+		if (phase.tickets) {
+			const results = await Promise.allSettled(
+				phase.tickets?.sort((a, b) => a.order - b.order)?.map((ticket) => createProjectTicket(data.id, ticket))
+			);
 
-		// if (phase.tickets) {
-		// 	await Promise.all(
-		// 		phase.tickets?.sort((a, b) => a.order - b.order)?.map((ticket) => createProjectTicket(data.id, ticket))
-		// 	);
-		// }
-
-		console.log('Phase', phase.description, data.id);
+			const errors = results.filter((r) => r.status === 'rejected');
+			console.error(`Failed Creation Of Tickets: ${errors}`);
+		}
 
 		return data;
 	} catch (error) {
 		console.error('createProjectPhase Error:', error);
-		throw error; // Rethrow the error after logging it
 	}
 };
 
@@ -598,33 +588,25 @@ export const createProjectTicket = async (
 		} as ProjectTicketInsert),
 	};
 
-	console.log('NON ERROR TICKET BODY', config.body);
-
 	try {
 		let response = await fetch(`${process.env.NEXT_PUBLIC_CW_URL}/project/tickets`, config);
 
-		// if (!response.ok) {
-		// 	await wait(1000); // Assuming wait is a utility function that returns a Promise
-
-		// 	response = await fetch(`${process.env.NEXT_PUBLIC_CW_URL}/project/tickets`, config);
-
-		// 	if (!response.ok) {
-		// 		throw new Error(`Error creating project ticket: ${response.statusText}`);
-		// 	}
-		// }
+		if (!response.ok) throw new Error(`Error creating project ticket: ${response.statusText}`);
 
 		const data = await response.json();
 
-		// if (ticket.tasks && ticket.tasks.length) {
-		// 	await Promise.all(
-		// 		ticket.tasks?.sort((a, b) => a.priority - b.priority)?.map((task) => createProjectTask(data.id, task))
-		// 	);
-		// }
+		if (ticket.tasks && ticket.tasks.length) {
+			const results = await Promise.allSettled(
+				ticket.tasks?.sort((a, b) => a.priority - b.priority)?.map((task) => createProjectTask(data.id, task))
+			);
+
+			const errors = results.filter((r) => r.status === 'rejected');
+			console.error(`Failed Creation Of Tasks: ${errors}`);
+		}
 
 		return data;
 	} catch (error) {
 		console.error('createProjectTicket Error:', error);
-		throw new Error('Error creating project ticket', { cause: error });
 	}
 };
 
@@ -653,30 +635,14 @@ export const createProjectTask = async (ticketId: number, task: Task): Promise<P
 	try {
 		let response = await fetch(`${process.env.NEXT_PUBLIC_CW_URL}/project/tickets/${ticketId}/tasks`, config);
 
-		// if (!response.ok) {
-		// 	console.log('waiting');
-		// 	await wait(1000);
-		// 	console.log('done waiting');
-
-		// 	console.log('IS ERROR TASK BODY', config.body);
-
-		// 	response = await fetch(`${process.env.NEXT_PUBLIC_CW_URL}/project/tickets/${ticketId}/tasks`, config);
-
-		// 	if (response.status !== 201) {
-		// 		throw new Error(`Error creating project task: ${response.statusText}`);
-		// 	}
-		// }
+		if (!response.ok) throw new Error(`Error creating task: ${response.statusText}`);
 
 		const data = await response.json();
 
-		// await supabase.from('tasks').update({ reference_id: data.id }).eq('id', task.id);
-
-		// console.log('TASK', summary, data.id);
-
 		return data;
 	} catch (error) {
-		console.error('createProjectTask Error:', error);
-		throw new Error('Error creating project task', { cause: error });
+		console.error(error);
+		// throw new Error('Error creating project task', { cause: error });
 	}
 };
 

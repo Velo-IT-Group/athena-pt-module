@@ -1,6 +1,6 @@
 'use server';
 import { createClient } from '@/utils/supabase/server';
-import { revalidateTag } from 'next/cache';
+import { revalidatePath, revalidateTag } from 'next/cache';
 import { cookies } from 'next/headers';
 import axios, { AxiosResponse } from 'axios';
 import { baseConfig } from '../utils';
@@ -45,6 +45,7 @@ export const updateProposal = async (id: string, proposal: ProposalUpdate) => {
 		throw Error(error.message);
 	}
 
+	revalidatePath('/');
 	revalidateTag('proposals');
 };
 

@@ -11,7 +11,7 @@ import {
 import { getOpportunityProducts } from '@/lib/functions/read';
 import { ManageProductUpdate } from '@/lib/functions/update';
 import { updateManageProduct, updateManageProject } from '@/utils/manage/update';
-import { ProductClass, ServiceTicket } from '@/types/manage';
+import { ProductClass, ProjectPhase, ServiceTicket } from '@/types/manage';
 import { createClient } from '@/utils/supabase/server';
 import { cookies } from 'next/headers';
 
@@ -74,7 +74,7 @@ export const convertToManageProject = async (
 	// Create opportunity
 	const opportunity = await createOpportunity(proposal, ticket);
 
-	if (!opportunity) throw new Error("Couldn't create opportunity...");
+	if (!opportunity) throw new Error(`Couldn't create opportunity: ${opportunity}`);
 
 	await createManageProduct(
 		opportunity.id,
@@ -127,11 +127,8 @@ export const convertToManageProject = async (
 		})
 		.filter(Boolean); // Filter out any null values
 
-	console.log(bundledChanges);
-
 	await Promise.all(
 		bundledChanges.map(async (product) => {
-			console.log(product);
 			try {
 				await updateManageProduct(product!);
 			} catch (error) {
@@ -158,24 +155,19 @@ export const convertToManageProject = async (
 		phases.reduce((acc, current) => acc + current.hours, 0)
 	);
 
-	// try {
-	// 	await Promise.all(
-	// 		phases
-	// 			.sort((a, b) => a.order - b.order)
-	// 			.map(async (phase) => {
-	// 				try {
-	// 					await createProjectPhase(project.id, phase);
-	// 				} catch (error) {
-	// 					console.error('Error creating project phase:', error);
-	// 					throw error; // Rethrow the error to propagate it upwards
-	// 				}
-	// 			})
-	// 	);
-	// } catch (error) {
-	// 	// Handle errors from the Promise.all operation itself
-	// 	console.error('Error in Promise.all:', error);
-	// 	// You can choose to rethrow the error or handle it accordingly
-	// }
+	try {
+		const results = await Promise.allSettled(phases.map((phase) => createProjectPhase(project.id, phase)));
+
+		const errors = results.filter((r) => r.status === 'rejected');
+		console.log('Create phase unfullfilled', errors);
+		const successes = results
+			.filter((r): r is PromiseFulfilledResult<ProjectPhase> => r.status === 'fulfilled')
+			.map((p) => p.value);
+	} catch (error) {
+		// Handle errors from the Promise.all operation itself
+		console.error('Error in Promise.all:', error);
+		// You can choose to rethrow the error or handle it accordingly
+	}
 	await createPhasesWithTicketsAndTasks(project.id, phases);
 
 	return opportunity.id;

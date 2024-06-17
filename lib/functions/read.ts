@@ -116,7 +116,6 @@ export const getTickets = async (): Promise<ServiceTicket[] | undefined> => {
 
 	try {
 		const response: AxiosResponse<ServiceTicket[], Error> = await axios.request(config);
-		// console.log(response);
 		return response.data;
 	} catch (error) {
 		console.error(error);
@@ -155,8 +154,6 @@ export const getCatalogItems = async (searchText?: string, identifier?: string, 
 		const countResponse: AxiosResponse<{ count: number }, Error> = await axios.request(config);
 		const bundles = response.data.filter((item) => item.productClass === 'Bundle');
 		const bItems = (await Promise.all(bundles.map((b) => getCatalogItemComponents(b.id)))).flat();
-
-		// console.log(response.data);
 
 		const mappedData = response.data.map((item) => {
 			return {
@@ -262,8 +259,6 @@ export const getCatalogItemComponents = async (id: number) => {
 				...c,
 			};
 		});
-
-		console.log(mappedCatalogItems);
 
 		return mappedCatalogItems;
 	} catch (error) {
@@ -596,12 +591,10 @@ export const getTemplate = async (id: number): Promise<ProjectTemplate | undefin
 
 	try {
 		const response: AxiosResponse<ProjectTemplate, Error> = await axios.request(config);
-		// console.log(response.data);
 		const workplan = await axios.request<ProjectWorkPlan>({
 			...baseConfig,
 			url: `/project/projectTemplates/${response.data.id}/workplan`,
 		});
-		// console.log(workplan.data);
 
 		return { ...response.data, workplan: workplan?.data ?? [] };
 	} catch (error) {
@@ -727,7 +720,6 @@ export const signInWithAzure = async (formData: FormData) => {
 		},
 	});
 
-	console.log(data.url, error);
 	if (data.url) {
 		return redirect(data.url); // use the redirect API for your server framework
 	}
@@ -805,18 +797,19 @@ export const getVersions = async (id: string) => {
 };
 
 export const getUsers = async () => {
-	const cookieStore = cookies();
-	const supabase = createClient(cookieStore);
-	const { data, error } = await supabase
-		.from('profiles')
-		.select('id, first_name, last_name')
-		.order('first_name', { ascending: false });
-	// .order('last_name', { ascending: false });
+	try {
+		const cookieStore = cookies();
+		const supabase = createClient(cookieStore);
+		const { data, error } = await supabase
+			.from('profiles')
+			.select('id, first_name, last_name')
+			.order('first_name', { ascending: false });
+		// .order('last_name', { ascending: false });
 
-	if (error || !data) {
-		console.log(error);
-		throw Error("Can't fetch users...", { cause: error });
+		if (error || !data) throw new Error(`Can't fetch users: ${error}`);
+
+		return data;
+	} catch (error) {
+		console.error(error);
 	}
-
-	return data;
 };

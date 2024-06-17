@@ -12,7 +12,15 @@ import { Button } from '@/components/ui/button';
 import { ChevronDownIcon, EyeOpenIcon, MixerHorizontalIcon, TrashIcon } from '@radix-ui/react-icons';
 import { deleteProposal } from '@/lib/functions/delete';
 import { useRouter } from 'next/navigation';
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import {
+	Dialog,
+	DialogContent,
+	DialogDescription,
+	DialogFooter,
+	DialogHeader,
+	DialogTitle,
+	DialogTrigger,
+} from '@/components/ui/dialog';
 import SubmitButton from '@/components/SubmitButton';
 import DuplicateIcon from '@/components/icons/duplicate-icon';
 import { duplicateProposal } from '@/lib/functions/create';
@@ -24,16 +32,24 @@ const ProposalOptions = ({ proposal, orgId }: { proposal: Proposal; orgId: strin
 		<Dialog>
 			<DropdownMenu>
 				<DropdownMenuTrigger asChild>
-					<Button variant='secondary' className='px-2 shadow-none'>
+					<Button
+						variant='secondary'
+						className='px-2 shadow-none'
+					>
 						<ChevronDownIcon className='h-4 w-4 text-secondary-foreground' />
 					</Button>
 				</DropdownMenuTrigger>
-				<DropdownMenuContent align='end' alignOffset={-5} className='w-[200px]' forceMount>
+				<DropdownMenuContent
+					align='end'
+					alignOffset={-5}
+					className='w-[200px]'
+					forceMount
+				>
 					<DropdownMenuLabel>Options</DropdownMenuLabel>
 
 					<DropdownMenuItem
 						onClick={() => {
-							router.push(`/review/${proposal.working_version}/${proposal.id}`);
+							router.push(`/review/${proposal.id}/${proposal.working_version}`);
 						}}
 					>
 						<EyeOpenIcon className='mr-2 h-4 w-4' /> Preview
@@ -66,7 +82,9 @@ const ProposalOptions = ({ proposal, orgId }: { proposal: Proposal; orgId: strin
 			<DialogContent>
 				<DialogHeader>
 					<DialogTitle>Are you absolutely sure?</DialogTitle>
-					<DialogDescription>This action cannot be undone. Are you sure you want to permanently delete this file from our servers?</DialogDescription>
+					<DialogDescription>
+						This action cannot be undone. Are you sure you want to permanently delete this file from our servers?
+					</DialogDescription>
 				</DialogHeader>
 				<form action={async () => await deleteProposal(proposal.id)}>
 					<DialogFooter>

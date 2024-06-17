@@ -10,7 +10,6 @@ import {
 	DropdownMenuSeparator,
 	DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { createClient } from '@/utils/supabase/client';
 import { type User } from '@supabase/supabase-js';
 import {
 	Dialog,
@@ -28,8 +27,10 @@ import { toast } from 'sonner';
 import { updateUserMetadata } from '@/lib/functions/update';
 import SubmitButton from './SubmitButton';
 import { handleSignOut } from '@/app/[org]/actions';
+import { useRouter } from 'next/navigation';
 
 const UserNav = ({ user, className, url }: { user: User; className?: string; url?: string }) => {
+	const { push } = useRouter();
 	let nameSplit = (user.user_metadata.full_name as string).split(' ');
 
 	return (
@@ -78,7 +79,14 @@ const UserNav = ({ user, className, url }: { user: User; className?: string; url
 
 					<DropdownMenuSeparator />
 
-					<DropdownMenuItem onClick={async () => await handleSignOut()}>Log out</DropdownMenuItem>
+					<DropdownMenuItem
+						onClick={async () => {
+							await handleSignOut();
+							push('/login');
+						}}
+					>
+						Log out
+					</DropdownMenuItem>
 				</DropdownMenuContent>
 			</DropdownMenu>
 

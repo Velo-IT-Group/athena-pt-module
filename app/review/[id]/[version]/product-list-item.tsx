@@ -7,19 +7,24 @@ import React from 'react';
 type Props = { product: NestedProduct; className?: string };
 
 const ProductListItem = ({ product, className }: Props) => {
+	const price = product.product_class === 'Bundle' ? product.calculated_price! : product.price!;
+
 	return (
 		<>
-			<Separator />
+			<Separator key={product.unique_id} />
 
-			<div className={cn('flex flex-col sm:flex-row sm:items-start gap-6 justify-between', className)}>
+			<div
+				key={product.unique_id}
+				className={cn('flex flex-col sm:flex-row sm:items-start gap-6 justify-between', className)}
+			>
 				<div className=''>
 					<div className='font-medium text-sm'>{product.description}</div>
 					<div className='flex items-center w-full'>
-						<div className='text-muted-foreground text-sm'>{getCurrencyString(product.price!)} </div>
+						<div className='text-muted-foreground text-sm'>{getCurrencyString(price)} </div>
 						<p className='sm:hidden text-right mx-2 text-muted-foreground'>/</p>
 						<p className='sm:hidden text-sm text-muted-foreground text-right'>{product.quantity}</p>
 						<p className='sm:hidden text-sm text-muted-foreground text-right ml-auto'>
-							<span className='font-medium'>{getCurrencyString(product.price! * product.quantity!)}</span>
+							<span className='font-medium'>{getCurrencyString(price * product.quantity!)}</span>
 						</p>
 					</div>
 				</div>
@@ -28,7 +33,7 @@ const ProductListItem = ({ product, className }: Props) => {
 					<p className='text-sm text-muted-foreground text-right'>{product.quantity}</p>
 					<p className='text-sm text-muted-foreground text-right'>
 						<span className='font-medium'>
-							{getCurrencyString(product.price! * product.quantity!)}
+							{getCurrencyString(price * product.quantity!)}
 							{product.recurring_bill_cycle === 2 && '/mo'}
 						</span>
 					</p>
@@ -38,10 +43,18 @@ const ProductListItem = ({ product, className }: Props) => {
 			{product.products &&
 				product.products.length > 0 &&
 				product.products.map((p) => (
-					<div key={p.id} className='flex items-center shrink pl-4'>
+					<div
+						key={p.unique_id}
+						className='flex items-center shrink pl-4'
+					>
 						<CornerDownRightIcon />
 
-						<div className={cn('flex flex-col sm:flex-row sm:items-start gap-2 justify-between bg-muted ml-4 p-2.5 rounded-md flex-1', className)}>
+						<div
+							className={cn(
+								'flex flex-col sm:flex-row sm:items-start gap-2 justify-between bg-muted ml-4 p-2.5 rounded-md flex-1',
+								className
+							)}
+						>
 							<div className=''>
 								<div className='font-medium text-sm'>{p.description}</div>
 								<div className='flex items-center w-full'>

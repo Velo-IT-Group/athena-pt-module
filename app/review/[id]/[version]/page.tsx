@@ -50,7 +50,7 @@ const ProposalReviewPage = async ({ params }: Props) => {
 
 	return (
 		<div className='relative bg-secondary/25 dark:bg-background flex-1 min-h-screen'>
-			{proposalExpirationDate.getDay() > today.getDay() && <ExpiredProposal />}
+			{today.getDay() > proposalExpirationDate.getDay() && <ExpiredProposal />}
 
 			<div className='absolute p-4 z-50 grid place-items-center bg-black/25 h-screen w-screen backdrop-blur-md sm:hidden'>
 				<div className='bg-card p-4 rounded-md text-center'>

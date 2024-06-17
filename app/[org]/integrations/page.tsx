@@ -17,8 +17,6 @@ const IntegrationsPage = async ({ params }: { params: { org: string } }) => {
 		return r;
 	}, Object.create(null));
 
-	console.log(sectionedIntegrations);
-
 	return (
 		<OrganizationLayout org={params.org}>
 			<div className='bg-background py-10 border-b'>
@@ -26,7 +24,12 @@ const IntegrationsPage = async ({ params }: { params: { org: string } }) => {
 			</div>
 			<div className='flex items-start gap-4 py-10 container relative'>
 				<div className='grid gap-1 sticky top-14'>
-					<Button variant='ghost' size='sm' className='justify-start min-w-36' asChild>
+					<Button
+						variant='ghost'
+						size='sm'
+						className='justify-start min-w-36'
+						asChild
+					>
 						<Link href=''></Link>
 					</Button>
 					{/* {tabs.map((tab) => (
@@ -53,7 +56,10 @@ const IntegrationsPage = async ({ params }: { params: { org: string } }) => {
 						</section>
 					))} */}
 					{Object.entries(sectionedIntegrations).map(([key, integrations]) => (
-						<section key={key} className='space-y-4'>
+						<section
+							key={key}
+							className='space-y-4'
+						>
 							<h2 className='text-lg font-medium capitalize'>{key}</h2>
 							<div className='grid grid-cols-3 gap-4'>
 								{/* @ts-ignore */}

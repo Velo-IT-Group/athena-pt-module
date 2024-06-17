@@ -46,8 +46,6 @@ const ProposalIdLayout = async ({ params, children }: Props) => {
 		notFound();
 	}
 
-	// console.log(proposal.working_version);
-
 	const { laborTotal, productTotal, recurringTotal, totalPrice, recurringCost, productCost } = calculateTotals(
 		proposal.working_version.sections.flatMap((s) => s.products),
 		proposal.working_version.phases,
@@ -60,12 +58,17 @@ const ProposalIdLayout = async ({ params, children }: Props) => {
 				org={org}
 				title={proposal?.name}
 				titleId={id}
-				version={proposal.versions.length > 1 && proposal.working_version.number ? proposal.working_version.number : undefined}
+				version={
+					proposal.versions.length > 1 && proposal.working_version.number ? proposal.working_version.number : undefined
+				}
 				tabs={tabs}
 			>
 				<HoverCard>
 					<HoverCardTrigger asChild>
-						<Button variant='link' className='text-sm font-medium'>
+						<Button
+							variant='link'
+							className='text-sm font-medium'
+						>
 							<span>
 								Total: <span className='text-muted-foreground'>{getCurrencyString(totalPrice)}</span>
 							</span>
@@ -108,7 +111,10 @@ const ProposalIdLayout = async ({ params, children }: Props) => {
 						</div>
 					</HoverCardContent>
 
-					<ProposalShare proposalId={proposal.id} versionId={version} />
+					<ProposalShare
+						proposalId={proposal.id}
+						versionId={version}
+					/>
 
 					<ProposalActions
 						proposal={proposal}
