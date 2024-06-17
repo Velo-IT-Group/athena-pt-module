@@ -30,7 +30,8 @@ import SubmitButton from './SubmitButton';
 import { handleSignOut } from '@/app/[org]/actions';
 
 const UserNav = ({ user, className, url }: { user: User; className?: string; url?: string }) => {
-	const supabase = createClient();
+	let nameSplit = (user.user_metadata.full_name as string).split(' ');
+
 	return (
 		<Dialog>
 			<DropdownMenu>
@@ -48,8 +49,8 @@ const UserNav = ({ user, className, url }: { user: User; className?: string; url
 								alt='@shadcn'
 							/>
 							<AvatarFallback>
-								{user.user_metadata?.first_name && user.user_metadata?.first_name[0]}
-								{user.user_metadata?.last_name && user.user_metadata?.last_name[0]}
+								{nameSplit && nameSplit.length && nameSplit[0][0]}
+								{nameSplit && nameSplit.length > 1 && nameSplit[1][0]}
 							</AvatarFallback>
 						</Avatar>
 					</Button>

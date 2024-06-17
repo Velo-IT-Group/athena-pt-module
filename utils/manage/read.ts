@@ -46,7 +46,8 @@ const catalogComponentFields: Array<keyof CatalogComponent> = [
 export const getTemplates = async () => {
 	try {
 		const projectTemplateResponse = await fetch(
-			`${process.env.NEXT_PUBLIC_CW_URL!}/project/projectTemplates?fields=id,name,description&pageSize=1000&orderBy=name`,
+			`${process.env
+				.NEXT_PUBLIC_CW_URL!}/project/projectTemplates?fields=id,name,description&pageSize=1000&orderBy=name`,
 			{
 				next: {
 					revalidate: 21600,
@@ -104,13 +105,16 @@ export const getTemplate = async (id: number) => {
 
 	const template: ProjectTemplate = await templateResponse.json();
 
-	const workplanResponse = await fetch(`${process.env.NEXT_PUBLIC_CW_URL!}/project/projectTemplates/${template.id}/workplan`, {
-		next: {
-			revalidate: 21600,
-			tags: ['workplans'],
-		},
-		headers: baseHeaders,
-	});
+	const workplanResponse = await fetch(
+		`${process.env.NEXT_PUBLIC_CW_URL!}/project/projectTemplates/${template.id}/workplan`,
+		{
+			next: {
+				revalidate: 21600,
+				tags: ['workplans'],
+			},
+			headers: baseHeaders,
+		}
+	);
 
 	if (!workplanResponse.ok) {
 		throw Error('Error fetching template...', { cause: workplanResponse.statusText });
@@ -134,9 +138,12 @@ export const getOpportunityProducts = async (id: number) => {
 };
 
 export const getOpportunityTypes = async (): Promise<{ id: number; description: string }[]> => {
-	const response = await fetch(`${process.env.NEXT_PUBLIC_CW_URL}/sales/opportunities/types?fields=id,description&orderBy=description`, {
-		headers: baseHeaders,
-	});
+	const response = await fetch(
+		`${process.env.NEXT_PUBLIC_CW_URL}/sales/opportunities/types?fields=id,description&orderBy=description`,
+		{
+			headers: baseHeaders,
+		}
+	);
 
 	if (!response.ok) {
 		throw Error('Error fetching opportunity types...', { cause: response.statusText });
@@ -146,9 +153,12 @@ export const getOpportunityTypes = async (): Promise<{ id: number; description: 
 };
 
 export const getOpportunityStatuses = async (): Promise<{ id: number; name: string }[]> => {
-	const response = await fetch(`${process.env.NEXT_PUBLIC_CW_URL}/sales/opportunities/statuses?fields=id,name&orderBy=name`, {
-		headers: baseHeaders,
-	});
+	const response = await fetch(
+		`${process.env.NEXT_PUBLIC_CW_URL}/sales/opportunities/statuses?fields=id,name&orderBy=name`,
+		{
+			headers: baseHeaders,
+		}
+	);
 
 	if (!response.ok) {
 		throw Error('Error fetching opportunity statuses...', { cause: response.statusText });
@@ -158,7 +168,9 @@ export const getOpportunityStatuses = async (): Promise<{ id: number; name: stri
 };
 
 export const getProjectStatuses = async () => {
-	const response = await fetch(`${process.env.NEXT_PUBLIC_CW_URL}/project/statuses?fields=id,name&orderBy=name`, { headers: baseHeaders });
+	const response = await fetch(`${process.env.NEXT_PUBLIC_CW_URL}/project/statuses?fields=id,name&orderBy=name`, {
+		headers: baseHeaders,
+	});
 
 	if (!response.ok) {
 		throw Error('Error fetching project statuses...', { cause: response.statusText });
@@ -168,9 +180,12 @@ export const getProjectStatuses = async () => {
 };
 
 export const getProjectBoards = async () => {
-	const response = await fetch(`${process.env.NEXT_PUBLIC_CW_URL}/service/boards?conditions=projectFlag = true and inactiveFlag = false`, {
-		headers: baseHeaders,
-	});
+	const response = await fetch(
+		`${process.env.NEXT_PUBLIC_CW_URL}/service/boards?conditions=projectFlag = true and inactiveFlag = false`,
+		{
+			headers: baseHeaders,
+		}
+	);
 
 	if (!response.ok) {
 		throw Error('Error fetching project boards...', { cause: response.statusText });
@@ -180,10 +195,13 @@ export const getProjectBoards = async () => {
 };
 
 export const getTicketNotes = async (id: number) => {
-	const response = await fetch(`${process.env.NEXT_PUBLIC_CW_URL}/service/tickets/${id}/allNotes?pageSize=250&orderBy=_info/sortByDate desc`, {
-		headers: baseHeaders,
-		cache: 'no-store',
-	});
+	const response = await fetch(
+		`${process.env.NEXT_PUBLIC_CW_URL}/service/tickets/${id}/allNotes?pageSize=250&orderBy=_info/sortByDate desc`,
+		{
+			headers: baseHeaders,
+			cache: 'no-store',
+		}
+	);
 
 	if (!response.ok) {
 		throw Error('Error fetching ticket notes...', { cause: response.statusText });
@@ -193,9 +211,14 @@ export const getTicketNotes = async (id: number) => {
 };
 
 export const getCatalogItemComponents = async (id: number) => {
-	const response = await fetch(`${process.env.NEXT_PUBLIC_CW_URL}/procurement/catalog/${id}/components?fields=${catalogComponentFields.toString()}`, {
-		headers: baseHeaders,
-	});
+	const response = await fetch(
+		`${
+			process.env.NEXT_PUBLIC_CW_URL
+		}/procurement/catalog/${id}/components?fields=${catalogComponentFields.toString()}`,
+		{
+			headers: baseHeaders,
+		}
+	);
 
 	if (!response.ok) {
 		throw Error('Error getting catalog item components...', { cause: response.statusText });
@@ -207,9 +230,12 @@ export const getCatalogItemComponents = async (id: number) => {
 
 	const componentString = components.map((c) => c.catalogItem.id).toString();
 
-	const catalogItemsResponse = await fetch(`${process.env.NEXT_PUBLIC_CW_URL}/procurement/catalog?conditions=id in (${componentString})`, {
-		headers: baseHeaders,
-	});
+	const catalogItemsResponse = await fetch(
+		`${process.env.NEXT_PUBLIC_CW_URL}/procurement/catalog?conditions=id in (${componentString})`,
+		{
+			headers: baseHeaders,
+		}
+	);
 
 	if (!catalogItemsResponse.ok) {
 		throw Error('Error getting catalog items...', { cause: catalogItemsResponse.statusText });
@@ -279,7 +305,9 @@ export const getWorkplan = async (id: number) => {
 };
 
 export const getTicket = async (id: number, fields?: Array<keyof ServiceTicket>) => {
-	const response = await fetch(`${process.env.NEXT_PUBLIC_CW_URL}/service/tickets/${id}?fields=${fields?.toString()}`, { headers: baseHeaders });
+	const response = await fetch(`${process.env.NEXT_PUBLIC_CW_URL}/service/tickets/${id}?fields=${fields?.toString()}`, {
+		headers: baseHeaders,
+	});
 
 	if (!response.ok) {
 		throw Error('Error fetching ticket...', { cause: response.statusText });
@@ -317,7 +345,8 @@ export const getCatalogItems = async (searchText?: string, identifier?: string, 
 		{ headers: baseHeaders }
 	);
 
-	if (!catalogItemsResponse.ok) throw Error('Error fetching catalog items...', { cause: catalogItemsResponse.statusText });
+	if (!catalogItemsResponse.ok)
+		throw Error('Error fetching catalog items...', { cause: catalogItemsResponse.statusText });
 
 	const catalogItems: CatalogItem[] = await catalogItemsResponse.json();
 
@@ -330,12 +359,15 @@ export const getCatalogItems = async (searchText?: string, identifier?: string, 
 		{ headers: baseHeaders }
 	);
 
-	if (!catalogItemsCountResponse.ok) throw Error('Error fetching catalog items count...', { cause: catalogItemsCountResponse.statusText });
+	if (!catalogItemsCountResponse.ok)
+		throw Error('Error fetching catalog items count...', { cause: catalogItemsCountResponse.statusText });
 
 	const { count }: { count: number } = await catalogItemsCountResponse.json();
 
 	const bundles = catalogItems.filter((item) => item.productClass === 'Bundle');
-	const bItems = (await Promise.all(bundles.map((b) => getCatalogItemComponents(b.id)))).flat().filter((i) => i !== undefined);
+	const bItems = (await Promise.all(bundles.map((b) => getCatalogItemComponents(b.id))))
+		.flat()
+		.filter((i) => i !== undefined);
 
 	const mappedData = catalogItems.map((item) => {
 		return {
@@ -348,9 +380,12 @@ export const getCatalogItems = async (searchText?: string, identifier?: string, 
 };
 
 export const getSystemMembers = async (email: string): Promise<SystemMember[]> => {
-	const response = await fetch(`${process.env.NEXT_PUBLIC_CW_URL}/system/members?conditions=primaryEmail like '${email}'`, {
-		headers: baseHeaders,
-	});
+	const response = await fetch(
+		`${process.env.NEXT_PUBLIC_CW_URL}/system/members?conditions=primaryEmail like '${email}'`,
+		{
+			headers: baseHeaders,
+		}
+	);
 
 	const data = await response.json();
 

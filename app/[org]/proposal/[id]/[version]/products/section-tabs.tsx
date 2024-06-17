@@ -84,15 +84,17 @@ const SectionTabs = ({
 				const section = state.sections.find((s) => s.id === source.droppableId);
 				const items = reorder(section?.products ?? [], source.index, destination.index);
 
-				console.log(section);
-
 				const updatedSection = { ...section, products: items };
 
-				console.log(updatedSection);
+				console.log(section, items);
 
-				mutate({
-					updatedSection,
-					pending: true,
+				startTransition(async () => {
+					mutate({
+						updatedSection,
+						pending: true,
+					});
+
+					await Promise.all(items.map(({ unique_id, order }) => updateProduct(unique_id, { order })));
 				});
 
 				return;
@@ -101,12 +103,6 @@ const SectionTabs = ({
 				const sourceSection = state.sections.find((s) => s.id === source.droppableId);
 
 				const result = move(sourceSection?.products ?? [], destinationSection?.products ?? [], source, destination);
-
-				// console.log(
-				// 	result[source.droppableId],
-				// 	{ ...sourceSection, products: result[source.droppableId] },
-				// 	{ ...destinationSection, products: result[destination.droppableId] }
-				// );
 
 				const updatedSource = { ...sourceSection, products: result[source.droppableId] };
 				const updatedDestination = {
@@ -142,8 +138,6 @@ const SectionTabs = ({
 		}
 
 		const updatedSections = reorder(state.sections, source.index, destination.index);
-
-		// console.log(updatedSections);
 
 		startTransition(async () => {
 			mutate({ updatedSections, pending: true });

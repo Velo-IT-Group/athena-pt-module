@@ -69,7 +69,7 @@ const SectionItem = ({ section, dragHandleProps, catalogItems, params, page, cou
 		if (Number(a.order) < Number(b.order)) return -1;
 
 		// If scores are equal, then sort by created_at in ascending order
-		return Number(a.id) - Number(b.id);
+		return 0;
 		// return new Date(a.=).getTime() - new Date(b.created_at).getTime();
 	});
 

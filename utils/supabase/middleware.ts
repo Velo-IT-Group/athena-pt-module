@@ -55,31 +55,29 @@ export async function updateSession(request: NextRequest) {
 			}
 		);
 
-		const { data, error } = await supabase.auth.getUser();
+		// const { data, error } = await supabase.auth.getUser();
 
-		if (error || !data.user) throw new Error('No user signed in...');
+		// if (error || !data.user) throw new Error('No user signed in...');
 
-		// if user is signed in and the current path is / redirect the user to /account
-		if (request.nextUrl.pathname === '/') {
-			console.log('is on homepage');
-			return NextResponse.redirect(new URL(`/velo-it-group`, request.url));
-		}
+		// // if user is signed in and the current path is / redirect the user to /account
+		// if (request.nextUrl.pathname === '/') {
+		// 	console.log('is on homepage');
+		// 	return NextResponse.redirect(new URL(`/velo-it-group`, request.url));
+		// }
 
-		if (request.nextUrl.pathname === '/login') {
-			console.log('is on login');
-			return NextResponse.redirect(new URL(`/velo-it-group`, request.url));
-		}
+		// if (request.nextUrl.pathname === '/login') {
+		// 	console.log('is on login');
+		// 	return NextResponse.redirect(new URL(`/velo-it-group`, request.url));
+		// }
 	} catch (e) {
 		// if user is not signed in and the current path is not / redirect the user to /
-		if (request.nextUrl.pathname.includes('review')) {
-			return response;
-		}
-
-		if (request.nextUrl.pathname === '/login') {
-			return response;
-		}
-
-		return NextResponse.redirect(new URL('/login', request.url));
+		// if (request.nextUrl.pathname.includes('review')) {
+		// 	return response;
+		// }
+		// if (request.nextUrl.pathname === '/login') {
+		// 	return response;
+		// }
+		// return NextResponse.redirect(new URL('/login', request.url));
 	}
 
 	return response;

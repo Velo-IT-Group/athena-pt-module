@@ -74,10 +74,7 @@ const OverviewPage = async ({ params, searchParams }: Props) => {
 	return (
 		<OrganizationLayout org={params.org}>
 			<div className='grow flex-1 px-6 py-4 w-full space-y-4 flex flex-col'>
-				<div
-					method='GET'
-					className='flex gap-4 items-center w-full'
-				>
+				<div className='flex gap-4 items-center w-full'>
 					<Search
 						baseUrl={`/${params.org}`}
 						placeholder='Search quotes'

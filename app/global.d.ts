@@ -46,6 +46,8 @@ declare global {
 	type VersionInsert = DB['public']['Tables']['versions']['Insert'];
 	type VersionUpdate = DB['public']['Tables']['versions']['Update'];
 
+	type StatusEnum = DB['public']['Enums']['status'];
+
 	type NestedProposal = Proposal & {
 		working_version?: Version & {
 			products: NestedProduct[];

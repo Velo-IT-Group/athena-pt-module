@@ -4,7 +4,15 @@ import { DataTableColumnHeader } from '@/components/ui/DataTableColumnHeader';
 import { Button } from '@/components/ui/button';
 import { CatalogItem } from '@/types/manage';
 import { getCurrencyString } from '@/utils/money';
-import { CheckIcon, ChevronDownIcon, ChevronRightIcon, DragHandleDots2Icon, Pencil2Icon, PlusIcon, TrashIcon } from '@radix-ui/react-icons';
+import {
+	CheckIcon,
+	ChevronDownIcon,
+	ChevronRightIcon,
+	DragHandleDots2Icon,
+	Pencil2Icon,
+	PlusIcon,
+	TrashIcon,
+} from '@radix-ui/react-icons';
 import { ColumnDef, RowData } from '@tanstack/react-table';
 import { HoverCard, HoverCardTrigger } from '@/components/ui/hover-card';
 import IntegrationPricingCard from '@/components/IntegrationPricingCard';
@@ -45,7 +53,12 @@ export const columns: ColumnDef<Product>[] = [
 	{
 		accessorKey: 'manufacturer_part_number',
 		header: ({ column }) => {
-			return <DataTableColumnHeader column={column} title='Manufacturer Part Number' />;
+			return (
+				<DataTableColumnHeader
+					column={column}
+					title='Manufacturer Part Number'
+				/>
+			);
 		},
 		cell: ({ row }) => {
 			return (
@@ -61,7 +74,11 @@ export const columns: ColumnDef<Product>[] = [
 								}}
 								className='inline-block'
 							>
-								{row.getIsExpanded() ? <ChevronDownIcon className='w-4 h-4' /> : <ChevronRightIcon className='w-4 h-4' />}
+								{row.getIsExpanded() ? (
+									<ChevronDownIcon className='w-4 h-4' />
+								) : (
+									<ChevronRightIcon className='w-4 h-4' />
+								)}
 							</Button>
 						</>
 					)}
@@ -74,7 +91,13 @@ export const columns: ColumnDef<Product>[] = [
 	{
 		accessorKey: 'description',
 		header: ({ column }) => {
-			return <DataTableColumnHeader column={column} title='Product Description' className='w-[500px]' />;
+			return (
+				<DataTableColumnHeader
+					column={column}
+					title='Product Description'
+					className='w-[500px]'
+				/>
+			);
 		},
 		size: 500,
 		cell: ({ row, table }) => {
@@ -100,10 +123,17 @@ export const columns: ColumnDef<Product>[] = [
 	},
 	{
 		accessorKey: 'cost',
-		header: ({ column }) => <DataTableColumnHeader column={column} title='Quote Item Cost' className='text-right w-[100px]' />,
+		header: ({ column }) => (
+			<DataTableColumnHeader
+				column={column}
+				title='Quote Item Cost'
+				className='text-right w-[100px]'
+			/>
+		),
 		cell: ({ row, table }) => {
 			const handleUpdate = async (amount: number | null | undefined) => {
-				table.options.meta?.updateProduct && table.options.meta?.updateProduct(row.original.unique_id, { cost: amount });
+				table.options.meta?.updateProduct &&
+					table.options.meta?.updateProduct(row.original.unique_id, { cost: amount });
 			};
 
 			const amount =
@@ -130,10 +160,17 @@ export const columns: ColumnDef<Product>[] = [
 	},
 	{
 		accessorKey: 'price',
-		header: ({ column }) => <DataTableColumnHeader column={column} title='Quote Item Price' className='text-right w-[100px]' />,
+		header: ({ column }) => (
+			<DataTableColumnHeader
+				column={column}
+				title='Quote Item Price'
+				className='text-right w-[100px]'
+			/>
+		),
 		cell: ({ row, table }) => {
 			const handleUpdate = async (amount: number | null | undefined) => {
-				table.options.meta?.updateProduct && table.options.meta?.updateProduct(row.original.unique_id, { price: amount });
+				table.options.meta?.updateProduct &&
+					table.options.meta?.updateProduct(row.original.unique_id, { price: amount });
 			};
 
 			const amount =
@@ -160,7 +197,13 @@ export const columns: ColumnDef<Product>[] = [
 	},
 	{
 		accessorKey: 'quantity',
-		header: ({ column }) => <DataTableColumnHeader column={column} title='Quantity' className='w-[100px]' />,
+		header: ({ column }) => (
+			<DataTableColumnHeader
+				column={column}
+				title='Quantity'
+				className='w-[100px]'
+			/>
+		),
 		cell: ({ row, table }) => {
 			return (
 				<span className='text-right justify-self-end'>
@@ -187,14 +230,22 @@ export const columns: ColumnDef<Product>[] = [
 	},
 	{
 		accessorKey: 'calculated_price',
-		header: ({ column }) => <DataTableColumnHeader column={column} title='Extended Price' className='w-[100px]' />,
+		header: ({ column }) => (
+			<DataTableColumnHeader
+				column={column}
+				title='Extended Price'
+				className='w-[100px]'
+			/>
+		),
 		cell: ({ row }) => {
 			const calculatedPrice = row.subRows.reduce((accumulator, currentValue) => {
 				return (accumulator ?? 0) + (currentValue.original.price ?? 0);
 			}, 0);
 
 			const amount =
-				row.subRows.length > 0 ? calculatedPrice * (row.original.quantity ?? 1) : (row.original.price ?? 0) * (row.original.quantity ?? 1);
+				row.subRows.length > 0
+					? calculatedPrice * (row.original.quantity ?? 1)
+					: (row.original.price ?? 0) * (row.original.quantity ?? 1);
 
 			return <span className='w-[100px] text-right font-medium'>{getCurrencyString(amount)}</span>;
 		},
@@ -207,7 +258,11 @@ export const columns: ColumnDef<Product>[] = [
 
 			return (
 				<>
-					<Button variant='ghost' className='h-8 w-8 p-0' asChild>
+					<Button
+						variant='ghost'
+						className='h-8 w-8 p-0'
+						asChild
+					>
 						<Link href={`products/${product.unique_id}`}>
 							<span className='sr-only'>Open menu</span>
 							<Pencil2Icon className='h-4 w-4' />
@@ -215,7 +270,10 @@ export const columns: ColumnDef<Product>[] = [
 					</Button>
 					<AlertDialog>
 						<AlertDialogTrigger asChild>
-							<Button variant='ghost' className='h-8 w-8 p-0'>
+							<Button
+								variant='ghost'
+								className='h-8 w-8 p-0'
+							>
 								<span className='sr-only'>Delete iem</span>
 								<TrashIcon className='h-4 w-4' />
 							</Button>
@@ -262,10 +320,9 @@ export const catalogColumns: ColumnDef<CatalogItem>[] = [
 								const snakedObj = convertToSnakeCase(b);
 								// @ts-ignore
 								const snakedFixed = { ...snakedObj, id: b.catalogItem.id, version: '' };
-
-								const newObj = convertToProduct(snakedFixed);
-								console.log(snakedFixed);
 								// @ts-ignore
+								const newObj = convertToProduct(snakedFixed);
+
 								return newObj;
 							});
 
@@ -276,7 +333,9 @@ export const catalogColumns: ColumnDef<CatalogItem>[] = [
 						}
 					}}
 				>
-					<span className='flex h-3.5 w-3.5'>{row.getIsSelected() ? <CheckIcon className='h-4 w-4' /> : <PlusIcon className='h-4 w-4' />}</span>
+					<span className='flex h-3.5 w-3.5'>
+						{row.getIsSelected() ? <CheckIcon className='h-4 w-4' /> : <PlusIcon className='h-4 w-4' />}
+					</span>
 				</Button>
 			</div>
 		),
@@ -286,7 +345,12 @@ export const catalogColumns: ColumnDef<CatalogItem>[] = [
 	{
 		accessorKey: 'identifier',
 		header: ({ column }) => {
-			return <DataTableColumnHeader column={column} title='ID' />;
+			return (
+				<DataTableColumnHeader
+					column={column}
+					title='ID'
+				/>
+			);
 		},
 		cell: ({ row }) => <span>{row.getValue('identifier')}</span>,
 		enableSorting: false,
@@ -295,7 +359,12 @@ export const catalogColumns: ColumnDef<CatalogItem>[] = [
 	{
 		accessorKey: 'description',
 		header: ({ column }) => {
-			return <DataTableColumnHeader column={column} title='Name' />;
+			return (
+				<DataTableColumnHeader
+					column={column}
+					title='Name'
+				/>
+			);
 		},
 		cell: ({ row }) => (
 			<HoverCard>
@@ -311,7 +380,11 @@ export const catalogColumns: ColumnDef<CatalogItem>[] = [
 								}}
 								className='inline-block'
 							>
-								{row.getIsExpanded() ? <ChevronDownIcon className='w-4 h-4' /> : <ChevronRightIcon className='w-4 h-4' />}
+								{row.getIsExpanded() ? (
+									<ChevronDownIcon className='w-4 h-4' />
+								) : (
+									<ChevronRightIcon className='w-4 h-4' />
+								)}
 							</Button>
 						</>
 					) : (
@@ -319,7 +392,10 @@ export const catalogColumns: ColumnDef<CatalogItem>[] = [
 					)}
 
 					<HoverCardTrigger className='text-muted-foreground '>
-						<div className='flex space-x-2' style={{ paddingLeft: `${row.depth * 2}rem` }}>
+						<div
+							className='flex space-x-2'
+							style={{ paddingLeft: `${row.depth * 2}rem` }}
+						>
 							{row.original.productClass === 'Bundle' && <Badge variant='outline'>Bundle</Badge>}
 							<span className='max-w-[500px] truncate font-medium decoration-dashed underline decoration-muted-foreground '>
 								{row.getValue('description')}
@@ -328,7 +404,11 @@ export const catalogColumns: ColumnDef<CatalogItem>[] = [
 					</HoverCardTrigger>
 				</div>
 
-				<IntegrationPricingCard description={row.original.description ?? ''} id={String(row.original.id)} vendorSku='' />
+				<IntegrationPricingCard
+					description={row.original.description ?? ''}
+					id={String(row.original.id)}
+					vendorSku=''
+				/>
 			</HoverCard>
 		),
 		enableSorting: false,

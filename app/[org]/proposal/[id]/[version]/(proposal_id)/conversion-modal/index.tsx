@@ -9,14 +9,27 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { createOpportunity, createProject, createProjectPhase } from '@/lib/functions/create';
-import { getOpportunityStatuses, getOpportunityTypes, getProjectBoards, getProjectStatuses } from '@/lib/functions/read';
+import {
+	getOpportunityStatuses,
+	getOpportunityTypes,
+	getProjectBoards,
+	getProjectStatuses,
+} from '@/lib/functions/read';
 import { ServiceTicket } from '@/types/manage';
 import { CheckIcon, CopyIcon } from '@radix-ui/react-icons';
 import { useEffect, useState } from 'react';
 import { toast } from 'sonner';
 import { convertToManageProject } from '../actions';
 
-export default function ConversionModal({ proposal, ticket, phases }: { proposal: NestedProposal; ticket: ServiceTicket; phases: NestedPhase[] }) {
+export default function ConversionModal({
+	proposal,
+	ticket,
+	phases,
+}: {
+	proposal: NestedProposal;
+	ticket: ServiceTicket;
+	phases: NestedPhase[];
+}) {
 	const [selectedTab, setSelectedTab] = useState(proposal.opportunity_id ? 'project' : 'opportunity');
 
 	const [statuses, setStatuses] = useState<{ id: number; name: string }[] | undefined>();
@@ -47,7 +60,12 @@ export default function ConversionModal({ proposal, ticket, phases }: { proposal
 	return (
 		<>
 			{!isCompleted ? (
-				<Tabs defaultValue='opportunity' value={selectedTab} onValueChange={(e) => setSelectedTab(e)} className=''>
+				<Tabs
+					defaultValue='opportunity'
+					value={selectedTab}
+					onValueChange={(e) => setSelectedTab(e)}
+					className=''
+				>
 					<TabsList className='grid w-full grid-cols-2'>
 						<TabsTrigger value='opportunity'>Opportunity Info</TabsTrigger>
 						<TabsTrigger value='project'>Project Info</TabsTrigger>
@@ -60,7 +78,7 @@ export default function ConversionModal({ proposal, ticket, phases }: { proposal
 									try {
 										const opportunity = await convertToManageProject(proposal, ticket, phases);
 										toast('Opportunity created!');
-										setOpportunityId(opportunity?.id);
+										setOpportunityId(opportunity);
 										setSelectedTab('project');
 									} catch (error) {
 										toast('Error creating opportunity...', { description: <p>{JSON.stringify(error, null, 2)}</p> });
@@ -74,7 +92,11 @@ export default function ConversionModal({ proposal, ticket, phases }: { proposal
 								<CardContent className='space-y-2'>
 									<div className='space-y-1'>
 										<Label htmlFor='name'>Name</Label>
-										<Input id='name' name='name' defaultValue={proposal.name} />
+										<Input
+											id='name'
+											name='name'
+											defaultValue={proposal.name}
+										/>
 									</div>
 
 									<div className='space-y-1'>
@@ -85,7 +107,10 @@ export default function ConversionModal({ proposal, ticket, phases }: { proposal
 											</SelectTrigger>
 											<SelectContent>
 												{statuses?.map((status) => (
-													<SelectItem key={status.id} value={status.id.toString()}>
+													<SelectItem
+														key={status.id}
+														value={status.id.toString()}
+													>
 														{status.name}
 													</SelectItem>
 												))}
@@ -101,7 +126,10 @@ export default function ConversionModal({ proposal, ticket, phases }: { proposal
 											</SelectTrigger>
 											<SelectContent>
 												{types?.map((type) => (
-													<SelectItem key={type.id} value={type.id.toString()}>
+													<SelectItem
+														key={type.id}
+														value={type.id.toString()}
+													>
 														{type.description}
 													</SelectItem>
 												))}
@@ -159,18 +187,30 @@ export default function ConversionModal({ proposal, ticket, phases }: { proposal
 								<CardContent className='space-y-2'>
 									<div className='space-y-1'>
 										<Label htmlFor='projectName'>Project Name</Label>
-										<Input required id='projectName' name='projectName' defaultValue={proposal.name} />
+										<Input
+											required
+											id='projectName'
+											name='projectName'
+											defaultValue={proposal.name}
+										/>
 									</div>
 
 									<div className='space-y-1'>
 										<Label htmlFor='status'>Project Status</Label>
-										<Select name='status' defaultValue='8' required>
+										<Select
+											name='status'
+											defaultValue='8'
+											required
+										>
 											<SelectTrigger>
 												<SelectValue placeholder='Select a status' />
 											</SelectTrigger>
 											<SelectContent>
 												{projectStatuses?.map((status) => (
-													<SelectItem key={status.id} value={status.id.toString()}>
+													<SelectItem
+														key={status.id}
+														value={status.id.toString()}
+													>
 														{status.name}
 													</SelectItem>
 												))}
@@ -180,13 +220,20 @@ export default function ConversionModal({ proposal, ticket, phases }: { proposal
 
 									<div className='space-y-1'>
 										<Label htmlFor='board'>Project Board</Label>
-										<Select name='board' defaultValue='25' required>
+										<Select
+											name='board'
+											defaultValue='25'
+											required
+										>
 											<SelectTrigger>
 												<SelectValue placeholder='Select a board' />
 											</SelectTrigger>
 											<SelectContent>
 												{projectBoards?.map((status) => (
-													<SelectItem key={status.id} value={status.id.toString()}>
+													<SelectItem
+														key={status.id}
+														value={status.id.toString()}
+													>
 														{status.name}
 													</SelectItem>
 												))}
@@ -195,11 +242,17 @@ export default function ConversionModal({ proposal, ticket, phases }: { proposal
 									</div>
 									<div className='space-y-1'>
 										<Label htmlFor='estimatedStart'>Estimated Start Date</Label>
-										<DatePicker date={estimatedStart} setDate={setEstimatedStart} />
+										<DatePicker
+											date={estimatedStart}
+											setDate={setEstimatedStart}
+										/>
 									</div>
 									<div className='space-y-1'>
 										<Label htmlFor='estimatedEnd'>Estimated End Date </Label>
-										<DatePicker date={estimatedEnd} setDate={setEstimatedEnd} />
+										<DatePicker
+											date={estimatedEnd}
+											setDate={setEstimatedEnd}
+										/>
 									</div>
 								</CardContent>
 
@@ -273,7 +326,10 @@ export default function ConversionModal({ proposal, ticket, phases }: { proposal
 					</Card>
 					<DialogFooter>
 						<DialogClose asChild>
-							<Button variant='secondary' type='button'>
+							<Button
+								variant='secondary'
+								type='button'
+							>
 								Close
 							</Button>
 						</DialogClose>
