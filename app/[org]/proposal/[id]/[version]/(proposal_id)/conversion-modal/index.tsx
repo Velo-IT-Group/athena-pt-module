@@ -66,9 +66,20 @@ export default function ConversionModal({
 					onValueChange={(e) => setSelectedTab(e)}
 					className=''
 				>
-					<TabsList className='grid w-full grid-cols-2'>
-						<TabsTrigger value='opportunity'>Opportunity Info</TabsTrigger>
-						<TabsTrigger value='project'>Project Info</TabsTrigger>
+					<TabsList className='grid w-full grid-cols-3'>
+						<TabsTrigger value='opportunity'>Opportunity</TabsTrigger>
+						<TabsTrigger
+							disabled={!opportunityId}
+							value='project'
+						>
+							Project
+						</TabsTrigger>
+						<TabsTrigger
+							// disabled
+							value='workplan'
+						>
+							Workplan
+						</TabsTrigger>
 					</TabsList>
 
 					<TabsContent value='opportunity'>
@@ -138,7 +149,12 @@ export default function ConversionModal({
 									</div>
 								</CardContent>
 								<CardFooter>
-									<SubmitButton className='ml-auto'>Create Opportunity</SubmitButton>
+									<SubmitButton
+										disabled={opportunityId !== undefined}
+										className='ml-auto'
+									>
+										{opportunityId !== undefined ? 'Opportunity Created' : 'Create Opportunity'}
+									</SubmitButton>
 								</CardFooter>
 							</form>
 						</Card>
@@ -262,13 +278,67 @@ export default function ConversionModal({
 							</form>
 						</Card>
 					</TabsContent>
+
+					<TabsContent value='workplan'>
+						<Card>
+							<form
+								action={async (data: FormData) => {
+									const name = data.get('projectName') as string;
+									const status = parseInt(data.get('status') as string);
+									const board = parseInt(data.get('board') as string);
+
+									try {
+										const project = await createProject(
+											{
+												board: { id: board },
+												estimatedStart: estimatedStart!.toISOString().split('.')[0] + 'Z',
+												estimatedEnd: estimatedEnd!.toISOString().split('.')[0] + 'Z',
+											},
+											proposal.id,
+											opportunityId ? opportunityId : 0
+										);
+
+										toast('Project created!');
+
+										if (proposal.phases) {
+											await Promise.all(proposal.phases?.map((phase) => createProjectPhase(project!.id, phase)));
+
+											toast('Phases added');
+										}
+
+										setIsCompleted(true);
+									} catch (error) {
+										toast('Error creating project...', { description: <p>{JSON.stringify(error, null, 2)}</p> });
+									}
+								}}
+							>
+								<CardHeader>
+									<CardTitle>Workplan</CardTitle>
+									<CardDescription>Project info description.</CardDescription>
+								</CardHeader>
+
+								<CardContent className='space-y-2'>
+									{phases?.map((phase) => (
+										<Card key={phase.id}>
+											<CardHeader>
+												<CardTitle>{phase.description}</CardTitle>
+											</CardHeader>
+										</Card>
+									))}
+								</CardContent>
+
+								<CardFooter>
+									<SubmitButton className='ml-auto'>Create Project</SubmitButton>
+								</CardFooter>
+							</form>
+						</Card>
+					</TabsContent>
 				</Tabs>
 			) : (
 				<>
 					<Card>
 						<CardHeader>
 							<CardTitle>Successfully Transfered</CardTitle>
-							{/* <CardDescription>View.</CardDescription> */}
 						</CardHeader>
 						<CardContent className='space-y-2'>
 							<div className='space-y-1'>

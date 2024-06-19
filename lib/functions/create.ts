@@ -354,22 +354,22 @@ export const createOpportunity = async (
 ): Promise<Opportunity | undefined> => {
 	try {
 		const data = JSON.stringify({
-			name: `NICK'S TESTING - ${proposal.name}`,
+			name: proposal.name,
 			type: {
 				id: 5,
 			},
-			site: { id: 1002 },
+			// site: { id: 1002 },
 			primarySalesRep: {
 				// @ts-ignore
 				id: proposal.created_by?.manage_reference_id,
 			},
 			company: {
-				// id: ticket.company?.id,
-				id: 19297,
+				id: ticket.company?.id,
+				// id: 19297,
 			},
 			contact: {
-				id: 17804,
-				// id: ticket.contact?.id,
+				// id: 17804,
+				id: ticket.contact?.id,
 			},
 			stage: {
 				id: 6,
@@ -548,12 +548,20 @@ export const createProjectPhase = async (projectId: number, phase: NestedPhase):
 		const data = await response.json();
 
 		if (phase.tickets) {
-			const results = await Promise.allSettled(
-				phase.tickets?.sort((a, b) => a.order - b.order)?.map((ticket) => createProjectTicket(data.id, ticket))
-			);
-
-			const errors = results.filter((r) => r.status === 'rejected');
-			console.error(`Failed Creation Of Tickets: ${errors}`);
+			const { tickets } = phase;
+			for (const ticket of tickets.sort((a, b) => a.order - b.order)) {
+				try {
+					await createProjectTicket(data.id, ticket);
+				} catch (error) {
+					console.error(`Failed to create phase: ${phase.description}`, error);
+				}
+				// Wait for 500ms before making the next request
+				await wait(1000);
+			}
+			// const ticketPromises = phase.tickets.map(
+			// 	(t) => new Promise((resolve, reject) => setTimeout(resolve, 100, createProjectTicket(data.id, t)))
+			// );
+			// await Promise.all(ticketPromises);
 		}
 
 		return data;
@@ -596,12 +604,20 @@ export const createProjectTicket = async (
 		const data = await response.json();
 
 		if (ticket.tasks && ticket.tasks.length) {
-			const results = await Promise.allSettled(
-				ticket.tasks?.sort((a, b) => a.priority - b.priority)?.map((task) => createProjectTask(data.id, task))
-			);
-
-			const errors = results.filter((r) => r.status === 'rejected');
-			console.error(`Failed Creation Of Tasks: ${errors}`);
+			const { tasks } = ticket;
+			for (const task of tasks.sort((a, b) => a.priority - b.priority)) {
+				try {
+					await createProjectTask(data.id, task);
+				} catch (error) {
+					console.error(`Failed to create phase: ${task.id}`, error);
+				}
+				// Wait for 500ms before making the next request
+				await wait(1000);
+			}
+			// const ticketPromises = ticket.tasks.map(
+			// 	(t) => new Promise((resolve, reject) => setTimeout(resolve, 100, createProjectTask(data.id, t)))
+			// );
+			// await Promise.all(ticketPromises);
 		}
 
 		return data;
