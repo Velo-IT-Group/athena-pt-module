@@ -69,7 +69,6 @@ export async function updateSession(request: NextRequest) {
 			return NextResponse.redirect(new URL(`/velo-it-group`, request.url));
 		}
 	} catch (e) {
-		console.log(e, request.nextUrl.pathname);
 		// if user is not signed in and the current path is not / redirect the user to /
 		if (request.nextUrl.pathname.includes('review')) {
 			return response;
