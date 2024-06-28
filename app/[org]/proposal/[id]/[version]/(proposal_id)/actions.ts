@@ -144,6 +144,7 @@ export const convertToManageProject = async (
 
 	const project = await createProject(
 		{
+			name: '',
 			board: { id: 51 },
 			estimatedStart: new Date().toISOString().split('.')[0] + 'Z',
 			estimatedEnd: new Date(new Date().setDate(new Date().getDate() + 30)).toISOString().split('.')[0] + 'Z',
