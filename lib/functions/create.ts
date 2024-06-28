@@ -3,7 +3,6 @@ import {
 	CatalogComponent,
 	CatalogItem,
 	Opportunity,
-	ProductClass,
 	ProductsItem,
 	Project,
 	ProjectPhase,
@@ -13,7 +12,7 @@ import {
 	ServiceTicket,
 } from '@/types/manage';
 import { createClient } from '@/utils/supabase/server';
-import { revalidateTag } from 'next/cache';
+import { revalidatePath, revalidateTag } from 'next/cache';
 import { headers } from 'next/headers';
 import { redirect } from 'next/navigation';
 import { baseConfig, baseHeaders } from '@/lib/utils';
@@ -88,7 +87,6 @@ export const createTask = async (task: TaskInsert) => {
  * @param {TaskInsert[]} tasks - The object that will be used to create the task.
  */
 export const createTasks = async (tasks: TaskInsert[]) => {
-	'use server';
 	try {
 		const cookieStore = cookies();
 		const supabase = createClient(cookieStore);
@@ -349,7 +347,7 @@ export const signUp = async (formData: FormData, data?: MetaData) => {
 };
 
 export const createOpportunity = async (
-	proposal: NestedProposal,
+	proposal: Proposal,
 	ticket: ServiceTicket
 ): Promise<Opportunity | undefined> => {
 	try {
@@ -456,7 +454,7 @@ export const createManageProduct = async (
 };
 
 interface ProjectCreate {
-	// name: string;
+	name: string;
 	board: { id: number };
 	// status: { id: number };
 	// company: { id: number };
@@ -474,8 +472,7 @@ export const createSection = async (section: SectionInsert) => {
 			throw new Error('Error creating section', { cause: error.message });
 		}
 
-		revalidateTag('sections');
-		revalidateTag('proposals');
+		revalidatePath('/');
 	} catch (error) {
 		console.error('createSection Error:', error);
 		throw error; // Rethrow the error after logging it
@@ -489,6 +486,7 @@ export const createProject = async (
 ): Promise<Project | undefined> => {
 	const cookieStore = cookies();
 	const supabase = createClient(cookieStore);
+
 	let config: RequestInit = {
 		method: 'POST',
 		headers: baseHeaders,
@@ -512,7 +510,7 @@ export const createProject = async (
 
 		const data = await response.json();
 
-		// await supabase.from('proposals').update({ project_id: data.id }).eq('id', proposalId);
+		await supabase.from('proposals').update({ project_id: data.id }).eq('id', proposalId);
 
 		return data;
 	} catch (error) {

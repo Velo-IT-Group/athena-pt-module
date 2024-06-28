@@ -8,7 +8,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { createOpportunity, createProject, createProjectPhase } from '@/lib/functions/create';
+import { createProject, createProjectPhase } from '@/lib/functions/create';
 import {
 	getOpportunityStatuses,
 	getOpportunityTypes,
@@ -16,19 +16,24 @@ import {
 	getProjectStatuses,
 } from '@/lib/functions/read';
 import { ServiceTicket } from '@/types/manage';
-import { CheckIcon, CopyIcon } from '@radix-ui/react-icons';
+import { CheckCircledIcon, CheckIcon, CopyIcon, SymbolIcon } from '@radix-ui/react-icons';
 import { useEffect, useState } from 'react';
 import { toast } from 'sonner';
-import { convertToManageProject } from '../actions';
+import { createOpportunityAction } from '../actions';
+import { updateManageProject } from '@/utils/manage/update';
+import { wait } from '@/utils/helpers';
+import { cn } from '@/lib/utils';
 
 export default function ConversionModal({
 	proposal,
 	ticket,
 	phases,
+	products,
 }: {
 	proposal: NestedProposal;
 	ticket: ServiceTicket;
 	phases: NestedPhase[];
+	products: NestedProduct[];
 }) {
 	const [selectedTab, setSelectedTab] = useState(proposal.opportunity_id ? 'project' : 'opportunity');
 
@@ -40,6 +45,12 @@ export default function ConversionModal({
 	const [hasCopied, setHasCopied] = useState(false);
 	const [projectLinkIsCopied, setProjectLinkIsCopied] = useState(false);
 	const [isCompleted, setIsCompleted] = useState(proposal?.project_id !== null);
+
+	type Loading = 'done' | 'loading' | 'incomplete';
+	const map = new Map<string, Loading>();
+	phases.map((p) => {
+		return map.set(p.id, 'incomplete');
+	});
 
 	const [estimatedStart, setEstimatedStart] = useState<Date | undefined>();
 	const [estimatedEnd, setEstimatedEnd] = useState<Date | undefined>();
@@ -87,7 +98,7 @@ export default function ConversionModal({
 							<form
 								action={async () => {
 									try {
-										const opportunity = await convertToManageProject(proposal, ticket, phases);
+										const opportunity = await createOpportunityAction(proposal, ticket, phases, products);
 										toast('Opportunity created!');
 										setOpportunityId(opportunity);
 										setSelectedTab('project');
@@ -100,6 +111,7 @@ export default function ConversionModal({
 									<CardTitle>Opportunity Information</CardTitle>
 									<CardDescription>Opportunity Description</CardDescription>
 								</CardHeader>
+
 								<CardContent className='space-y-2'>
 									<div className='space-y-1'>
 										<Label htmlFor='name'>Name</Label>
@@ -148,6 +160,7 @@ export default function ConversionModal({
 										</Select>
 									</div>
 								</CardContent>
+
 								<CardFooter>
 									<SubmitButton
 										disabled={opportunityId !== undefined}
@@ -168,25 +181,39 @@ export default function ConversionModal({
 									const status = parseInt(data.get('status') as string);
 									const board = parseInt(data.get('board') as string);
 
-									console.log(name, status, board);
+									if (!opportunityId) return;
 
 									try {
 										const project = await createProject(
 											{
+												name,
 												board: { id: board },
 												estimatedStart: estimatedStart!.toISOString().split('.')[0] + 'Z',
 												estimatedEnd: estimatedEnd!.toISOString().split('.')[0] + 'Z',
 											},
 											proposal.id,
-											opportunityId ? opportunityId : 0
+											opportunityId
 										);
 
-										toast('Project created!');
+										if (!project) throw new Error('Error creating project...');
 
-										if (proposal.phases) {
-											await Promise.all(proposal.phases?.map((phase) => createProjectPhase(project!.id, phase)));
+										await updateManageProject(
+											project.id,
+											phases.reduce((acc, current) => acc + current.hours, 0)
+										);
 
-											toast('Phases added');
+										setSelectedTab('workplan');
+
+										for (const phase of phases.sort((a, b) => a.order - b.order)) {
+											try {
+												map.set(phase.id, 'loading');
+												await createProjectPhase(project.id, phase);
+											} catch (error) {
+												console.error(`Failed to create phase: ${phase.description}`, error);
+											}
+											map.set(phase.id, 'done');
+											// Wait for 500ms before making the next request
+											await wait(500);
 										}
 
 										setIsCompleted(true);
@@ -281,37 +308,7 @@ export default function ConversionModal({
 
 					<TabsContent value='workplan'>
 						<Card>
-							<form
-								action={async (data: FormData) => {
-									const name = data.get('projectName') as string;
-									const status = parseInt(data.get('status') as string);
-									const board = parseInt(data.get('board') as string);
-
-									try {
-										const project = await createProject(
-											{
-												board: { id: board },
-												estimatedStart: estimatedStart!.toISOString().split('.')[0] + 'Z',
-												estimatedEnd: estimatedEnd!.toISOString().split('.')[0] + 'Z',
-											},
-											proposal.id,
-											opportunityId ? opportunityId : 0
-										);
-
-										toast('Project created!');
-
-										if (proposal.phases) {
-											await Promise.all(proposal.phases?.map((phase) => createProjectPhase(project!.id, phase)));
-
-											toast('Phases added');
-										}
-
-										setIsCompleted(true);
-									} catch (error) {
-										toast('Error creating project...', { description: <p>{JSON.stringify(error, null, 2)}</p> });
-									}
-								}}
-							>
+							<form>
 								<CardHeader>
 									<CardTitle>Workplan</CardTitle>
 									<CardDescription>Project info description.</CardDescription>
@@ -320,16 +317,24 @@ export default function ConversionModal({
 								<CardContent className='space-y-2'>
 									{phases?.map((phase) => (
 										<Card key={phase.id}>
-											<CardHeader>
-												<CardTitle>{phase.description}</CardTitle>
+											<CardHeader className='p-3'>
+												<CardTitle className='text-sm flex items-center justify-between'>
+													{phase.description}
+
+													{map.get(phase.id) === 'loading' && (
+														<SymbolIcon className='transition-transform animate-spin' />
+													)}
+
+													{map.get(phase.id) === 'incomplete' && <CheckCircledIcon className='text-red-500' />}
+
+													{map.get(phase.id) === 'done' && (
+														<CheckCircledIcon className={cn('animate-spin text-green-500')} />
+													)}
+												</CardTitle>
 											</CardHeader>
 										</Card>
 									))}
 								</CardContent>
-
-								<CardFooter>
-									<SubmitButton className='ml-auto'>Create Project</SubmitButton>
-								</CardFooter>
 							</form>
 						</Card>
 					</TabsContent>

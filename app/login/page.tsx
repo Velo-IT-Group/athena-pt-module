@@ -1,10 +1,10 @@
 import React from 'react';
-import AuthForm from '@/components/forms/AuthForm';
-import Link from 'next/link';
-import VeloLogo from '@/components/icons/VeloLogo';
-import { cookies } from 'next/headers';
-import { createClient } from '@/utils/supabase/server';
-import { redirect } from 'next/navigation';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import Image from 'next/image';
+import { signInWithAzure } from '@/lib/functions/read';
 
 const Page = async ({
 	searchParams,
@@ -16,82 +16,83 @@ const Page = async ({
 		error?: string;
 	};
 }) => {
-	const cookieStore = cookies();
-	const supabase = createClient(cookieStore);
-	const {
-		data: { session },
-	} = await supabase.auth.getSession();
+	// const cookieStore = cookies();
+	// const supabase = createClient(cookieStore);
+	// const {
+	// 	data: { session },
+	// } = await supabase.auth.getSession();
 
-	if (session) {
-		redirect('/velo-it-group');
-	}
+	// if (session) {
+	// 	redirect('/velo-it-group');
+	// }
 
-	console.log(searchParams?.error);
+	// console.log(searchParams?.error);
 
-	const hasError = searchParams?.error !== undefined;
+	// const hasError = searchParams?.error !== undefined;
 
-	if (!hasError) {
-		const { data, error } = await supabase.auth.signInWithOAuth({
-			provider: 'azure',
-			options: {
-				scopes: 'email profile',
-				redirectTo: `${process.env.NEXT_PUBLIC_LOCAL_URL}/auth/callback`,
-			},
-		});
+	// if (!hasError) {
+	// 	const { data, error } = await supabase.auth.signInWithOAuth({
+	// 		provider: 'azure',
+	// 		options: {
+	// 			scopes: 'email profile',
+	// 			redirectTo: `${process.env.NEXT_PUBLIC_LOCAL_URL}/auth/callback`,
+	// 		},
+	// 	});
 
-		console.log(data, error);
+	// 	console.log(data, error);
 
-		if (data.url) {
-			return redirect(data.url); // use the redirect API for your server framework
-		}
-	}
+	// 	if (data.url) {
+	// 		return redirect(data.url); // use the redirect API for your server framework
+	// 	}
+	// }
 
 	return (
-		<div className='container relative hidden h-screen flex-col items-center justify-center md:grid lg:max-w-none lg:grid-cols-2 lg:px-0'>
-			<div className='relative hidden h-full flex-1 flex-col bg-muted p-10 text-white lg:flex dark:border-r'>
-				<div className='absolute inset-0 bg-zinc-900' />
-				<div className='relative z-20 flex items-center text-lg font-medium'>
-					<VeloLogo classname='mr-2 h-6 w-6 ' />
-					Velo
-				</div>
-				<div className='relative z-20 mt-auto'>
-					<blockquote className='space-y-2'>
-						<p className='text-lg'>
-							&ldquo;We&apos;ve been with Velo IT Group for several years now, and these guys are the real thing. They
-							are highly responsive, committed to excellence, and they&apos;ve helped us to modernize our IT
-							infrastructure across multiple states. Velo delivered on all of their promises, and we couldn&apos;t be
-							happier to work with them.&rdquo;
-						</p>
-						<footer className='text-sm'>Todd Trahan - President, Cal-Chlor</footer>
-					</blockquote>
-				</div>
-			</div>
-			<div className='lg:p-8'>
-				<div className='mx-auto flex w-full flex-col justify-center space-y-6 sm:w-[350px]'>
-					<div className='flex flex-col space-y-2 text-center'>
-						<h1 className='text-2xl font-semibold tracking-tight'>Create an account</h1>
-						<p className='text-sm text-muted-foreground'>Enter your email below to create your account</p>
-					</div>
-					<AuthForm />
-					<p className='px-8 text-center text-sm text-muted-foreground'>
-						By clicking continue, you agree to our{' '}
-						<Link
-							href='/terms'
-							className='underline underline-offset-4 hover:text-primary'
+		<div className='grid place-items-center w-screen h-screen bg-muted/50'>
+			<form className='flex flex-col justify-center items-center gap-3 pb-28'>
+				<Image
+					src='/velo-logo-black.svg'
+					alt='Velo logo'
+					height={208}
+					width={208}
+					className='object-contain'
+				/>
+
+				<Card className='w-full max-w-sm'>
+					<CardHeader>
+						<CardTitle className='text-2xl'>Login</CardTitle>
+						<CardDescription>Enter your email below to login to your account.</CardDescription>
+					</CardHeader>
+
+					<CardContent className='grid gap-4'>
+						<div className='grid gap-2'>
+							<Label htmlFor='email'>Email</Label>
+							<Input
+								id='email'
+								type='email'
+								placeholder='m@example.com'
+								required
+							/>
+						</div>
+					</CardContent>
+
+					<CardFooter>
+						<Button
+							variant='outline'
+							className='text-card-foreground w-full'
+							formAction={signInWithAzure}
 						>
-							Terms of Service
-						</Link>{' '}
-						and{' '}
-						<Link
-							href='/privacy'
-							className='underline underline-offset-4 hover:text-primary'
-						>
-							Privacy Policy
-						</Link>
-						.
-					</p>
-				</div>
-			</div>
+							<Image
+								src='/microsoftLogo.png'
+								alt='Microsoft logo'
+								height={12}
+								width={12}
+								className='inline-block mr-1.5 rounded-sm'
+							/>
+							Login With Microsoft
+						</Button>
+					</CardFooter>
+				</Card>
+			</form>
 		</div>
 	);
 };

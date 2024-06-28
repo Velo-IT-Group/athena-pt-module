@@ -12,11 +12,12 @@ const ProposalProductPage = async ({ params, searchParams }: Props) => {
 	const search = typeof searchParams.search === 'string' ? String(searchParams.search) : undefined;
 	const identifier = typeof searchParams.identifier === 'string' ? String(searchParams.identifier) : undefined;
 	const page = typeof searchParams.page === 'string' ? Number(searchParams.page) : 1;
-	const { catalogItems, count } = await getCatalogItems(search, identifier, page);
-	const proposal = await getProposal(params.id, params.version);
-	const sections = await getSections(params.version);
 
-	console.log(sections);
+	const [{ catalogItems, count }, proposal, sections] = await Promise.all([
+		getCatalogItems(search, identifier, page),
+		getProposal(params.id),
+		getSections(params.version),
+	]);
 
 	if (!proposal) {
 		return <div></div>;

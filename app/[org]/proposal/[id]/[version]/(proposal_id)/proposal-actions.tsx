@@ -2,16 +2,7 @@
 
 import * as React from 'react';
 import { Dialog } from '@radix-ui/react-dialog';
-import {
-	ArrowRightIcon,
-	CopyIcon,
-	DotsHorizontalIcon,
-	EnterIcon,
-	MixerHorizontalIcon,
-	ResetIcon,
-	TrashIcon,
-} from '@radix-ui/react-icons';
-
+import { CopyIcon, DotsHorizontalIcon, EnterIcon, ResetIcon, TrashIcon } from '@radix-ui/react-icons';
 import {
 	AlertDialog,
 	AlertDialogAction,
@@ -23,14 +14,7 @@ import {
 	AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
 import { Button } from '@/components/ui/button';
-import {
-	DialogClose,
-	DialogContent,
-	DialogDescription,
-	DialogFooter,
-	DialogHeader,
-	DialogTitle,
-} from '@/components/ui/dialog';
+import { DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import {
 	DropdownMenu,
 	DropdownMenuContent,
@@ -41,21 +25,15 @@ import {
 	DropdownMenuSubTrigger,
 	DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { Label } from '@/components/ui/label';
-import { Switch } from '@/components/ui/switch';
-import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 import { deleteProposal } from '@/lib/functions/delete';
 import SubmitButton from '@/components/SubmitButton';
-import { Card, CardContent, CardTitle } from '@/components/ui/card';
-import { updatePhase, updateProposal } from '@/lib/functions/update';
+import { updateProposal } from '@/lib/functions/update';
 import { ServiceTicket } from '@/types/manage';
 import ConversionModal from './conversion-modal';
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from '@/components/ui/command';
-import { createProjectPhase, createVersion } from '@/lib/functions/create';
+import { createVersion } from '@/lib/functions/create';
 import { Badge } from '@/components/ui/badge';
 import { redirect, useRouter } from 'next/navigation';
-import { createClient } from '@/utils/supabase/client';
-import { convertToManageProject } from './actions';
 
 type Props = {
 	proposal: NestedProposal;
@@ -63,13 +41,12 @@ type Props = {
 	tickets: Ticket[];
 	versions: Version[];
 	ticket: ServiceTicket;
+	products: NestedProduct[];
 	params: { org: string; id: string; version: string };
 };
 
-const ProposalActions = ({ proposal, phases, tickets, versions, ticket, params }: Props) => {
+const ProposalActions = ({ proposal, phases, tickets, versions, ticket, params, products }: Props) => {
 	const router = useRouter();
-	const supabase = createClient();
-	const [open, setIsOpen] = React.useState(false);
 	const [showDeleteDialog, setShowDeleteDialog] = React.useState(false);
 	const [showOpportunityDialog, setShowOpportunityDialog] = React.useState(false);
 	const [showNewVersionDialog, setShowNewVersionDialog] = React.useState(false);
@@ -236,162 +213,10 @@ const ProposalActions = ({ proposal, phases, tickets, versions, ticket, params }
 						proposal={proposal}
 						ticket={ticket}
 						phases={phases}
+						products={products}
 					/>
-
-					{/* <DialogFooter>
-						<DialogClose>Cancel</DialogClose>
-						<SubmitButton>
-							<ArrowRightIcon className='mr-2' /> Transfer
-						</SubmitButton>
-					</DialogFooter> */}
-					{/* <form
-						action={async () => {
-							console.log(phases);
-							// await Promise.all(phases.map((phase) => createProjectPhase(1031, phase)));
-							await convertToManageProject(proposal, ticket, phases);
-							// await supabase.rpc('convert_to_manage', { proposal_id: proposal.id });
-							setShowOpportunityDialog(false);
-						}}
-					>
-						<DialogHeader>
-							<DialogTitle>Transfer To Manage</DialogTitle>
-						</DialogHeader>
-
-						<DialogFooter>
-							<DialogClose>Cancel</DialogClose>
-							<SubmitButton>
-								<ArrowRightIcon className='mr-2' /> Transfer
-							</SubmitButton>
-						</DialogFooter>
-
-						<ConversionModal proposal={proposal} ticket={ticket} phases={phases} />
-					</form> */}
 				</DialogContent>
 			</Dialog>
-
-			{/* <Dialog
-				open={open}
-				onOpenChange={setIsOpen}
-			>
-				<DialogContent className='max-h-w-padding-padding min-h-0 flex flex-col overflow-auto'>
-					<DialogHeader>
-						<DialogTitle>Content filter preferences</DialogTitle>
-						<DialogDescription>
-							The content filter flags text that may violate our content policy. It&apos;s powered by our moderation
-							endpoint which is free to use to moderate your OpenAI API traffic. Learn more.
-						</DialogDescription>
-					</DialogHeader>
-
-					<Accordion
-						type='single'
-						collapsible
-						className='w-full py-6'
-					>
-						<h4 className='text-sm text-muted-foreground'>Playground Warnings</h4>
-
-						<AccordionItem value='show_phases'>
-							<div className='flex items-start space-x-4 pt-3'>
-								<Switch
-									name='show_phases'
-									id='show_phases'
-									defaultChecked={true}
-								/>
-								<Label
-									className='grid gap-1 font-normal'
-									htmlFor='show_phases'
-								>
-									<span className='font-semibold'>Show phases</span>
-									<AccordionTrigger className='text-sm text-muted-foreground pt-0'>
-										Customize which phases are shown?
-									</AccordionTrigger>
-								</Label>
-							</div>
-							<AccordionContent className='space-y-2'>
-								{phases.map((phase) => (
-									<Card key={phase.id}>
-										<CardContent className='flex items-center gap-2 justify-between w-full p-3'>
-											<CardTitle>{phase.description}</CardTitle>
-											<Switch
-												onClick={(e) => {
-													console.log(e);
-												}}
-												formAction={async (data) => {
-													console.log(data);
-													const visible = data.get('visible') as unknown as boolean;
-													console.log(visible);
-													await updatePhase(phase.id, { visible });
-												}}
-												type='submit'
-												name='visible'
-												defaultChecked={phase.visible ?? false}
-											/>
-										</CardContent>
-									</Card>
-								))}
-							</AccordionContent>
-						</AccordionItem>
-
-						<AccordionItem value='show_tickets'>
-							<div className='flex items-start space-x-4 pt-3'>
-								<Switch
-									name='show_tickets'
-									id='show_tickets'
-									defaultChecked={true}
-								/>
-								<Label
-									className='grid gap-1 font-normal'
-									htmlFor='show_tickets'
-								>
-									<span className='font-semibold'>Show tickets</span>
-									<AccordionTrigger className='text-sm text-muted-foreground pt-0'>
-										Customize which tickets are shown?
-									</AccordionTrigger>
-								</Label>
-							</div>
-							<AccordionContent className='space-y-2'>
-								{tickets.map((ticket) => (
-									<Card key={ticket.id}>
-										<CardContent className='flex items-center gap-2 justify-between w-full p-3'>
-											<CardTitle>{ticket.summary}</CardTitle>
-											<Switch defaultChecked={ticket.visible ?? false} />
-										</CardContent>
-									</Card>
-								))}
-							</AccordionContent>
-						</AccordionItem>
-
-						<AccordionItem value='show_tasks'>
-							<div className='flex items-start space-x-4 pt-3'>
-								<Switch name='show_tasks' id='show_tasks' defaultChecked={true} />
-								<Label className='grid gap-1 font-normal' htmlFor='show_tasks'>
-									<span className='font-semibold'>Show tasks</span>
-									<AccordionTrigger className='text-sm text-muted-foreground pt-0'>Customize which tasks are shown?</AccordionTrigger>
-								</Label>
-							</div>
-
-							<AccordionContent className='space-y-2'>
-								{tasks.map((ticket) => (
-									<Card key={ticket.id}>
-										<CardContent className='flex items-center gap-2 justify-between w-full p-3'>
-											<CardTitle>{ticket.summary}</CardTitle>
-											<Switch defaultChecked={false} />
-										</CardContent>
-									</Card>
-								))}
-							</AccordionContent>
-						</AccordionItem>
-					</Accordion>
-
-					<DialogFooter>
-						<Button
-							variant='secondary'
-							onClick={() => setIsOpen(false)}
-						>
-							Close
-						</Button>
-					</DialogFooter>
-				</DialogContent>
-			</Dialog> */}
 
 			<AlertDialog
 				open={showDeleteDialog}

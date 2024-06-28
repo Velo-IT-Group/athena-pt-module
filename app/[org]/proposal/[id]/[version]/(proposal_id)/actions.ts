@@ -171,3 +171,92 @@ export const convertToManageProject = async (
 
 	return opportunity.id;
 };
+
+export const createOpportunityAction = async (
+	proposal: Proposal,
+	ticket: ServiceTicket,
+	phases: NestedPhase[],
+	proposalProducts: NestedProduct[]
+) => {
+	const cookieStore = cookies();
+	const supabase = createClient(cookieStore);
+
+	const products = proposalProducts?.sort((a, b) => {
+		// First, compare by created_at in descending order
+		if (Number(a!.created_at) > Number(b!.created_at)) return -1;
+		if (Number(a!.created_at) < Number(b!.created_at)) return 1;
+		return 0;
+	});
+
+	if (!products || products.length === 0) throw new Error('No products provided...');
+
+	// Create opportunity
+	const opportunity = await createOpportunity(proposal, ticket);
+
+	if (!opportunity) throw new Error("Couldn't create opportunity...");
+
+	await createManageProduct(
+		opportunity.id,
+		{ id: 15, productClass: 'Service' },
+		{
+			...defaultServiceProduct,
+			price: proposal.labor_rate,
+			quantity: phases.reduce((acc, current) => acc + current.hours, 0),
+		}
+	);
+
+	await Promise.all(
+		products.map(async (p) => {
+			try {
+				await createManageProduct(opportunity.id, { id: p.id!, productClass: p.product_class! as ProductClass }, p);
+			} catch (error) {
+				console.error('Error creating manage product:', error);
+				throw error; // Rethrow the error to propagate it upwards
+			}
+		})
+	);
+
+	const { error } = await supabase.from('proposals').update({ opportunity_id: opportunity.id }).eq('id', proposal.id);
+
+	if (error) throw new Error(`Error updating proposal: ${error.message}`);
+
+	// Get all products from opportunity
+	const opportunityProducts = await getOpportunityProducts(opportunity.id);
+	if (!opportunityProducts) throw new Error('No products returned...');
+
+	const flattendProducts = products.flatMap((product: NestedProduct) => product.products ?? []);
+
+	// Filter bundled products to update the sub items prices
+	const bundledProducts = opportunityProducts.filter((product) =>
+		flattendProducts.some((p) => p && p.id === product.catalogItem.id)
+	);
+
+	const bundledChanges = bundledProducts
+		.map((b) => {
+			const product = flattendProducts.find((p) => p!.id === b.catalogItem.id);
+			if (!product) return null;
+
+			return {
+				id: b!.id,
+				values: [
+					{ op: 'replace', path: '/price', value: product!.price },
+					{ op: 'replace', path: '/cost', value: product!.cost },
+				],
+			} as ManageProductUpdate;
+		})
+		.filter(Boolean); // Filter out any null values
+
+	await Promise.all(
+		bundledChanges.map(async (product) => {
+			console.log(product);
+			try {
+				await updateManageProduct(product!);
+			} catch (error) {
+				console.error('Error updating manage product:', error);
+				throw error; // Rethrow the error to propagate it upwards
+			}
+		})
+	);
+
+	return opportunity.id;
+};

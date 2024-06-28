@@ -83,7 +83,7 @@ export const columns: ColumnDef<Product>[] = [
 						</>
 					)}
 
-					<span className=''>{row.getValue('manufacturer_part_number') ?? row.original.identifier}</span>
+					<span className=''>{row.original.identifier ?? row.getValue('manufacturer_part_number')}</span>
 				</div>
 			);
 		},
@@ -102,22 +102,16 @@ export const columns: ColumnDef<Product>[] = [
 		size: 500,
 		cell: ({ row, table }) => {
 			return (
-				<span>
-					<Input
-						// className='max-w-[500px] truncate font-medium decoration-muted-foreground'
-						className='w-[500px] border border-transparent hover:border-border hover:cursor-default rounded-lg shadow-none px-2 -mx-2 py-2 -my-2 truncate font-medium flex-1'
-						defaultValue={row.getValue('description')}
-						onBlur={(e) => {
-							if (e.currentTarget.value !== row.getValue('description')) {
-								table.options.meta?.updateProduct &&
-									table.options.meta?.updateProduct(row.original.unique_id, { description: e.currentTarget.value });
-							}
-						}}
-					/>
-				</span>
-				// <div className='flex space-x-2 flex-1 max-w-[500px] w-full'>
-				// {/* <span className='max-w-[500px] truncate font-medium decoration-muted-foreground '>{row.getValue('description')}</span> */}
-				// </div>
+				<Input
+					className='w-[500px] border border-transparent hover:border-border hover:cursor-default rounded-lg shadow-none px-2 -mx-2 py-2 -my-2 truncate font-medium flex-1'
+					defaultValue={row.getValue('description')}
+					onBlur={(e) => {
+						if (e.currentTarget.value !== row.getValue('description')) {
+							table.options.meta?.updateProduct &&
+								table.options.meta?.updateProduct(row.original.unique_id, { description: e.currentTarget.value });
+						}
+					}}
+				/>
 			);
 		},
 	},
@@ -136,12 +130,7 @@ export const columns: ColumnDef<Product>[] = [
 					table.options.meta?.updateProduct(row.original.unique_id, { cost: amount });
 			};
 
-			const amount =
-				row.subRows.length > 0
-					? row.subRows.reduce((accumulator, currentValue) => {
-							return (accumulator ?? 0) + (currentValue.original.cost ?? 0);
-					  }, 0)
-					: (row.getValue('cost') as number);
+			const amount = row.subRows.length > 0 ? row.original.calculated_cost ?? 0 : (row.getValue('cost') as number);
 
 			return (
 				<span className='text-right'>
@@ -173,12 +162,7 @@ export const columns: ColumnDef<Product>[] = [
 					table.options.meta?.updateProduct(row.original.unique_id, { price: amount });
 			};
 
-			const amount =
-				row.subRows.length > 0
-					? row.subRows.reduce((accumulator, currentValue) => {
-							return (accumulator ?? 0) + (currentValue.original.price ?? 0);
-					  }, 0)
-					: (row.getValue('price') as number);
+			const amount = row.subRows.length > 0 ? row.original.calculated_price ?? 0 : (row.getValue('price') as number);
 
 			return (
 				<span className='text-right'>
@@ -206,30 +190,28 @@ export const columns: ColumnDef<Product>[] = [
 		),
 		cell: ({ row, table }) => {
 			return (
-				<span className='text-right justify-self-end'>
-					{row.depth > 0 ? (
-						table.getRowModel().rows.find((c) => c.original?.unique_id == row.parentId)?.original.quantity
-					) : (
-						<Input
-							type='number'
-							defaultValue={row.getValue('quantity')}
-							onBlur={async (e) => {
-								if (e.currentTarget.valueAsNumber !== row.original.quantity) {
-									table.options.meta?.updateProduct &&
-										table.options.meta?.updateProduct(row.original.unique_id, {
-											quantity: e.currentTarget.valueAsNumber,
-										});
-								}
-							}}
-							className='w-[100px] border border-transparent hover:border-border hover:cursor-default rounded-lg shadow-none px-2 -mx-2 py-2 -my-2 truncate font-medium flex-1'
-						/>
-					)}
-				</span>
+				<Input
+					type='number'
+					defaultValue={
+						row.depth > 0
+							? (row.getParentRow()?.getValue('quantity') as number) * (row.getValue('quantity') as number)
+							: row.getValue('quantity')
+					}
+					onBlur={async (e) => {
+						if (e.currentTarget.valueAsNumber !== row.original.quantity) {
+							table.options.meta?.updateProduct &&
+								table.options.meta?.updateProduct(row.original.unique_id, {
+									quantity: e.currentTarget.valueAsNumber,
+								});
+						}
+					}}
+					className='w-[100px] border border-transparent hover:border-border hover:cursor-default rounded-lg shadow-none px-2 -mx-2 py-2 -my-2 truncate font-medium flex-1'
+				/>
 			);
 		},
 	},
 	{
-		accessorKey: 'calculated_price',
+		accessorKey: 'extended_price',
 		header: ({ column }) => (
 			<DataTableColumnHeader
 				column={column}
@@ -238,14 +220,15 @@ export const columns: ColumnDef<Product>[] = [
 			/>
 		),
 		cell: ({ row }) => {
-			const calculatedPrice = row.subRows.reduce((accumulator, currentValue) => {
-				return (accumulator ?? 0) + (currentValue.original.price ?? 0);
-			}, 0);
+			let amount: number = 0;
 
-			const amount =
-				row.subRows.length > 0
-					? calculatedPrice * (row.original.quantity ?? 1)
-					: (row.original.price ?? 0) * (row.original.quantity ?? 1);
+			if (row.depth > 0) {
+				amount = ((row.getValue('extended_price') as number) * (row.getParentRow()?.original.quantity ?? 1)) as number;
+			} else if (row.subRows.length > 0) {
+				amount = (row.original.calculated_price ?? 0) * (row.original.quantity ?? 1);
+			} else {
+				amount = row.getValue('extended_price');
+			}
 
 			return <span className='w-[100px] text-right font-medium'>{getCurrencyString(amount)}</span>;
 		},
@@ -319,7 +302,7 @@ export const catalogColumns: ColumnDef<CatalogItem>[] = [
 								// @ts-ignore
 								const snakedObj = convertToSnakeCase(b);
 								// @ts-ignore
-								const snakedFixed = { ...snakedObj, id: b.catalogItem.id, version: '' };
+								const snakedFixed = { ...snakedObj, id: b.catalogItem.id, version: '', identifier: b.identifier };
 								// @ts-ignore
 								const newObj = convertToProduct(snakedFixed);
 

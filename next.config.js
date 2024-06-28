@@ -4,6 +4,13 @@ const nextConfig = {
 	devIndicators: {
 		autoPrerender: true,
 	},
+	redirects: () => [
+		{
+			source: '/',
+			destination: '/login',
+			permanent: true,
+		},
+	],
 };
 
 module.exports = nextConfig;

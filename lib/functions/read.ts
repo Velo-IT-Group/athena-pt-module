@@ -34,7 +34,8 @@ export const getPhases = async (
 		.from('phases')
 		.select('*, tickets(*, tasks(*))')
 		.eq('version', id)
-		.order('order');
+		.order('order')
+		.order('order', { referencedTable: 'tickets' });
 
 	if (!data || error) {
 		throw Error('Error in getting phases', { cause: error });
@@ -213,19 +214,6 @@ export const getCatalogItem = async (id: number) => {
 	}
 };
 
-export const getComments = async (id: string) => {
-	const cookieStore = cookies();
-	const supabase = createClient(cookieStore);
-
-	const { data, error } = await supabase.from('comments').select('*, user(*)').eq('proposal', id);
-
-	if (!data || error) {
-		throw Error('Error in getting comments', { cause: error });
-	}
-
-	return data;
-};
-
 export const getCatalogItemComponents = async (id: number) => {
 	let config: AxiosRequestConfig = {
 		...baseConfig,
@@ -354,6 +342,7 @@ export const getSections = async (id: string) => {
 		.eq('version', id)
 		.is('products.parent', null)
 		.order('order')
+		.order('order', { referencedTable: 'products' })
 		.returns<Array<Section & { products: NestedProduct[] }>>();
 
 	if (!sections || error) {
@@ -425,33 +414,12 @@ export const getMembers = async () => {
 
 	return data.profiles;
 };
-export const getProposal = async (id: string, version: string) => {
+export const getProposal = async (id: string) => {
 	const cookieStore = cookies();
 	const supabase = createClient(cookieStore);
 
 	try {
-		const { data, error } = await supabase
-			.from('proposals')
-			.select(
-				`*,
-					working_version(*,
-						sections(*, products(*)),
-						products(*, products(*)),
-						phases(*, 
-							tickets(*, 
-								tasks(*)
-							)
-						)
-					),
-					versions:versions!public_versions_proposal_fkey(*),
-					created_by(*)
-					)
-				`
-			)
-			.eq('id', id)
-			.eq('working_version', version)
-			.is('working_version.products.parent', null)
-			.single();
+		const { data, error } = await supabase.from('proposals').select().eq('id', id).single();
 
 		if (!data || error) {
 			throw Error('Error in getting proposal', { cause: error });
@@ -464,7 +432,6 @@ export const getProposal = async (id: string, version: string) => {
 };
 
 export const getOrganization = async () => {
-	'use server';
 	const cookieStore = cookies();
 	const supabase = createClient(cookieStore);
 	const { data, error } = await supabase
@@ -478,25 +445,13 @@ export const getOrganization = async () => {
 
 	return data;
 };
+
 export const getIntegrations = async () => {
 	'use server';
 	const cookieStore = cookies();
 	const supabase = createClient(cookieStore);
 
 	const { data, error } = await supabase.from('integrations').select().order('name', { ascending: true });
-
-	if (!data || error) {
-		throw Error('Error in getting integrations', { cause: error });
-	}
-
-	return data;
-};
-
-export const getActivity = async () => {
-	const cookieStore = cookies();
-	const supabase = createClient(cookieStore);
-
-	const { data, error } = await supabase.from('activity_log').select().order('event_timestamp', { ascending: true });
 
 	if (!data || error) {
 		throw Error('Error in getting integrations', { cause: error });
@@ -791,6 +746,18 @@ export const getVersions = async (id: string) => {
 
 	if (error || !data) {
 		throw Error("Can't fetch versions...", { cause: error });
+	}
+
+	return data;
+};
+
+export const getVersion = async (id: string) => {
+	const cookieStore = cookies();
+	const supabase = createClient(cookieStore);
+	const { data, error } = await supabase.from('versions').select().eq('id', id).single();
+
+	if (error || !data) {
+		throw Error("Can't fetch version...", { cause: error });
 	}
 
 	return data;

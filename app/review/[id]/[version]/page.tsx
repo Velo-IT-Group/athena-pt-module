@@ -3,7 +3,7 @@ import { Separator } from '@/components/ui/separator';
 import { Button } from '@/components/ui/button';
 import React from 'react';
 import { Dialog, DialogTrigger } from '@/components/ui/dialog';
-import { getPhases, getProducts, getProposal, getSections } from '@/lib/functions/read';
+import { getPhases, getProducts, getProposal, getSections, getVersion, getVersions } from '@/lib/functions/read';
 import { getCurrencyString } from '@/utils/money';
 import Navbar from '@/components/Navbar';
 import { calculateTotals } from '@/utils/helpers';
@@ -19,19 +19,20 @@ type Props = {
 };
 
 export async function generateMetadata({ params }: Props, parent: ResolvingMetadata): Promise<Metadata> {
-	const { id, version } = params;
-	const proposal = await getProposal(id, version);
+	const { id } = params;
+	const proposal = await getProposal(id);
 	return {
 		title: `Review - ${proposal?.name}`,
 	};
 }
 
 const ProposalReviewPage = async ({ params }: Props) => {
-	const [proposal, products, sections, phases] = await Promise.all([
-		getProposal(params.id, params.version),
-		getProducts(params.id),
+	const [proposal, products, sections, phases, version] = await Promise.all([
+		getProposal(params.id),
+		getProducts(params.version),
 		getSections(params.version),
 		getPhases(params.version),
+		getVersion(params.version),
 	]);
 
 	if (!proposal || !products) return notFound();
@@ -42,15 +43,22 @@ const ProposalReviewPage = async ({ params }: Props) => {
 
 	const ticket = await getTicket(proposal?.service_ticket ?? 0);
 
-	const { productTotal, recurringTotal, laborTotal, totalPrice } = calculateTotals(
+	const { recurringTotal, laborTotal, totalPrice } = calculateTotals(
 		sections.flatMap((s) => s.products),
 		phases ?? [],
 		proposal.labor_rate
 	);
 
+	const todayWithoutTime = new Date(today.getFullYear(), today.getMonth(), today.getDate());
+	const dateToCompareWithoutTime = new Date(
+		proposalExpirationDate.getFullYear(),
+		proposalExpirationDate.getMonth(),
+		proposalExpirationDate.getDate()
+	);
+
 	return (
 		<div className='relative bg-secondary/25 dark:bg-background flex-1 min-h-screen'>
-			{today.getDay() > proposalExpirationDate.getDay() && <ExpiredProposal />}
+			{todayWithoutTime > dateToCompareWithoutTime && <ExpiredProposal />}
 
 			<div className='absolute p-4 z-50 grid place-items-center bg-black/25 h-screen w-screen backdrop-blur-md sm:hidden'>
 				<div className='bg-card p-4 rounded-md text-center'>
@@ -62,7 +70,7 @@ const ProposalReviewPage = async ({ params }: Props) => {
 			<Navbar
 				title={proposal.name}
 				org=''
-				version={proposal.working_version.number ? proposal.working_version.number : undefined}
+				version={version && version.number && version?.number > 0 ? version?.number : undefined}
 			>
 				<Dialog>
 					<DialogTrigger asChild>
