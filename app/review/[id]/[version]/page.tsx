@@ -77,10 +77,7 @@ const ProposalReviewPage = async ({ params }: Props) => {
 						<Button className='mr-2'>Approve</Button>
 					</DialogTrigger>
 
-					<ApprovalForm
-						proposal={proposal}
-						ticket={ticket}
-					/>
+					<ApprovalForm proposal={proposal} />
 				</Dialog>
 			</Navbar>
 

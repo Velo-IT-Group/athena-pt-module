@@ -1,52 +1,60 @@
 'use client';
 import React from 'react';
-import { DialogClose, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { ServiceTicket } from '@/types/manage';
+import { DialogClose, DialogContent, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { updateProposal } from '@/lib/functions/update';
-import { convertToManageProject } from '@/app/[org]/proposal/[id]/[version]/(proposal_id)/actions';
 import SubmitButton from '@/components/SubmitButton';
 import { Button } from '@/components/ui/button';
+import LabeledInput from '@/components/ui/labeled-input';
 
 type Props = {
 	proposal: NestedProposal;
-	ticket: ServiceTicket;
 };
 
-const ApprovalForm = ({ proposal, ticket }: Props) => {
+const ApprovalForm = ({ proposal }: Props) => {
 	return (
 		<form
-			action={async () => {
-				await updateProposal(proposal.id, { status: 'signed' });
-				await convertToManageProject(proposal, ticket, proposal.phases ?? []);
+			action={async (data: FormData) => {
+				await updateProposal(proposal.id, {
+					status: 'signed',
+					approval_info: {
+						po: data.get('po') as string,
+						name: data.get('name') as string,
+						initials: data.get('initials') as string,
+						dateSigned: new Date().toISOString(),
+					},
+				});
 			}}
 		>
 			<DialogContent>
 				<DialogHeader>
-					<DialogTitle>Are you absolutely sure?</DialogTitle>
-					<DialogDescription>
-						This action cannot be undone. This will permanently delete your account and remove your data from our servers.
-					</DialogDescription>
+					<DialogTitle>Approval Proposal</DialogTitle>
 				</DialogHeader>
+
 				<div className='grid w-full items-center gap-4'>
 					<div className='flex flex-col space-y-1.5'>
-						<Label htmlFor='name'>
-							Name<span className='text-red-500'>*</span>
-						</Label>
-						<Input required name='name' placeholder='John Doe' />
+						<LabeledInput
+							label='Name'
+							name='name'
+							required
+							placeholder='John Doe'
+						/>
 					</div>
 
 					<div className='flex flex-col space-y-1.5'>
-						<Label htmlFor='initals'>
-							Initals<span className='text-red-500'>*</span>
-						</Label>
-						<Input required name='initals' placeholder='JD' />
+						<LabeledInput
+							label='Initals'
+							name='initals'
+							required
+							placeholder='JD'
+						/>
 					</div>
 
 					<div className='flex flex-col space-y-1.5'>
-						<Label htmlFor='po'>PO Number (optional)</Label>
-						<Input name='po' placeholder='123-45678' />
+						<LabeledInput
+							label='PO Number (optional)'
+							name='po'
+							placeholder='123-45678'
+						/>
 					</div>
 				</div>
 				<DialogFooter>

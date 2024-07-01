@@ -671,7 +671,7 @@ export const signInWithAzure = async (formData: FormData) => {
 		provider: 'azure',
 		options: {
 			scopes: 'email profile',
-			redirectTo: 'http://localhost:3000/auth/callback',
+			redirectTo: `${process.env.NEXT_PUBLIC_LOCAL_URL}/auth/callback`,
 		},
 	});
 

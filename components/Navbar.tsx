@@ -2,7 +2,6 @@ import Link from 'next/link';
 import React from 'react';
 import VeloLogo from './icons/VeloLogo';
 import { SlashIcon } from '@radix-ui/react-icons';
-import { getOrganization } from '@/lib/functions/read';
 import NavigationTabs from './NavigationTabs';
 import UserNav from './UserNav';
 import { createClient } from '@/utils/supabase/server';
@@ -28,12 +27,9 @@ const Navbar = async ({ title, titleEditable, titleId, children, org, version, t
 	const cookieStore = cookies();
 	const supabase = createClient(cookieStore);
 
-	const [
-		organization,
-		{
-			data: { user },
-		},
-	] = await Promise.all([getOrganization(), supabase.auth.getUser()]);
+	const {
+		data: { user },
+	} = await supabase.auth.getUser();
 
 	return (
 		<>
@@ -54,7 +50,7 @@ const Navbar = async ({ title, titleEditable, titleId, children, org, version, t
 						href={`/${org}`}
 						className='font-semibold hover:underline'
 					>
-						{organization?.name ?? ''}
+						Velo IT Group
 					</Link>
 				)}
 
@@ -88,10 +84,6 @@ const Navbar = async ({ title, titleEditable, titleId, children, org, version, t
 						{children}
 						{user && (
 							<>
-								{/* <Button variant='outline' size='icon'>
-									<BellIcon className='h-4 w-4' />
-								</Button> */}
-
 								<UserNav user={user} />
 							</>
 						)}

@@ -308,6 +308,7 @@ export type Database = {
       }
       proposals: {
         Row: {
+          approval_info: Json | null
           catalog_items: number[] | null
           company_id: number | null
           company_name: string | null
@@ -329,6 +330,7 @@ export type Database = {
           working_version: string | null
         }
         Insert: {
+          approval_info?: Json | null
           catalog_items?: number[] | null
           company_id?: number | null
           company_name?: string | null
@@ -350,6 +352,7 @@ export type Database = {
           working_version?: string | null
         }
         Update: {
+          approval_info?: Json | null
           catalog_items?: number[] | null
           company_id?: number | null
           company_name?: string | null
