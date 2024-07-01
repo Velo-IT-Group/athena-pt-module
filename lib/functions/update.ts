@@ -46,7 +46,7 @@ export const updateProposal = async (id: string, proposal: ProposalUpdate) => {
 	}
 
 	revalidatePath('/');
-	revalidateTag('proposals');
+	// revalidateTag('proposals');
 };
 
 /**
@@ -64,7 +64,7 @@ export const updateTicket = async (id: string, ticket: TicketUpdate) => {
 		return;
 	}
 
-	revalidateTag('proposals');
+	revalidatePath('/');
 };
 
 /**
@@ -100,7 +100,7 @@ export const updateTask = async (id: string, task: TaskUpdate) => {
 		return;
 	}
 
-	revalidateTag('proposals');
+	revalidatePath('/');
 };
 
 /**
@@ -118,8 +118,7 @@ export const updateOrganization = async (id: string, organization: OrganizationU
 		return;
 	}
 
-	revalidateTag('organizations');
-	revalidateTag('proposals');
+	revalidatePath('/');
 };
 
 /**
@@ -137,8 +136,7 @@ export const updateOrganizationIntegration = async (id: string, orgIntegration: 
 		return;
 	}
 
-	revalidateTag('organizations');
-	revalidateTag('proposals');
+	revalidatePath('/');
 };
 
 export const updateHomeSortCookie = (sort: keyof Proposal) => {
@@ -155,7 +153,7 @@ export const updateMyProposalsCookie = (ids: string[]) => {
 	} else {
 		cookieStore.delete('myProposals');
 	}
-	revalidateTag('proposals');
+	revalidatePath('/');
 };
 
 type Operation = 'replace';
@@ -209,8 +207,7 @@ export const updateSection = async (section: SectionUpdate) => {
 		throw Error('Error updating section...', { cause: error });
 	}
 
-	revalidateTag('sections');
-	revalidateTag('proposals');
+	revalidatePath('/');
 };
 
 export const updateVersion = async (version: VersionUpdate) => {
@@ -224,7 +221,7 @@ export const updateVersion = async (version: VersionUpdate) => {
 		throw Error('Error updating version...', { cause: error });
 	}
 
-	revalidateTag('versions');
+	revalidatePath('/');
 };
 
 export const updateUserMetadata = async (data: FormData, user_metadata: UserMetadata) => {

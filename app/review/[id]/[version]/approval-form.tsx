@@ -12,24 +12,24 @@ type Props = {
 
 const ApprovalForm = ({ proposal }: Props) => {
 	return (
-		<form
-			action={async (data: FormData) => {
-				await updateProposal(proposal.id, {
-					status: 'signed',
-					approval_info: {
-						po: data.get('po') as string,
-						name: data.get('name') as string,
-						initials: data.get('initials') as string,
-						dateSigned: new Date().toISOString(),
-					},
-				});
-			}}
-		>
-			<DialogContent>
-				<DialogHeader>
-					<DialogTitle>Approval Proposal</DialogTitle>
-				</DialogHeader>
-
+		<DialogContent>
+			<DialogHeader>
+				<DialogTitle>Approve Proposal</DialogTitle>
+			</DialogHeader>
+			<form
+				action={async (data: FormData) => {
+					console.log(data);
+					await updateProposal(proposal.id, {
+						status: 'signed',
+						approval_info: {
+							po: data.get('po') as string,
+							name: data.get('name') as string,
+							initials: data.get('initials') as string,
+							dateSigned: new Date().toISOString(),
+						},
+					});
+				}}
+			>
 				<div className='grid w-full items-center gap-4'>
 					<div className='flex flex-col space-y-1.5'>
 						<LabeledInput
@@ -57,14 +57,16 @@ const ApprovalForm = ({ proposal }: Props) => {
 						/>
 					</div>
 				</div>
-				<DialogFooter>
+
+				<DialogFooter className='pt-3'>
 					<DialogClose asChild>
 						<Button variant={'secondary'}>Cancel</Button>
 					</DialogClose>
-					<SubmitButton>Sign</SubmitButton>
+
+					<SubmitButton type='submit'>Sign</SubmitButton>
 				</DialogFooter>
-			</DialogContent>
-		</form>
+			</form>
+		</DialogContent>
 	);
 };
 

@@ -72,7 +72,10 @@ const ProposalActions = ({ proposal, phases, tickets, versions, ticket, params, 
 						<MixerHorizontalIcon className='w-4 h-4 mr-2' /> Content preferences
 					</DropdownMenuItem> */}
 
-					<DropdownMenuItem onSelect={() => setShowOpportunityDialog(true)}>
+					<DropdownMenuItem
+						onSelect={() => setShowOpportunityDialog(true)}
+						disabled={proposal.status !== 'signed'}
+					>
 						<EnterIcon className='w-4 h-4 mr-2' /> Transfer to Manage
 					</DropdownMenuItem>
 

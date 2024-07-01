@@ -17,6 +17,7 @@ const NewProposalForm = ({ templates, tickets }: Props) => {
 			<LabeledInput
 				name='service_ticket'
 				label='Service Ticket'
+				required
 			>
 				<Select
 					name='service_ticket'
@@ -53,6 +54,7 @@ const NewProposalForm = ({ templates, tickets }: Props) => {
 				placeholder='Name'
 				defaultValue={selectedTicket ? `#${selectedTicket.id} - ${selectedTicket.summary}` : ''}
 				tabIndex={1}
+				required
 			/>
 
 			<LabeledInput
