@@ -43,6 +43,7 @@ const SectionTabs = ({
 	url,
 }: Props) => {
 	const [pending, startTransition] = useTransition();
+
 	const [state, mutate] = useOptimistic({ sections, pending: false }, (state, newState: SectionState) => {
 		if (newState.newSection) {
 			return {

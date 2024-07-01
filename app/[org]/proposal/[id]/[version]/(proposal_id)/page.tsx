@@ -15,7 +15,7 @@ type Props = {
 
 const ProposalPage = async ({ params }: Props) => {
 	const [proposal, products, phases] = await Promise.all([
-		getProposal(params.id, params.version),
+		getProposal(params.id),
 		getProducts(params.version),
 		getPhases(params.version),
 	]);
@@ -47,7 +47,10 @@ const ProposalPage = async ({ params }: Props) => {
 					<div className='space-y-4'>
 						<h2 className='text-xl font-semibold'>Expiration date</h2>
 						<div className=''>
-							<ExpirationDatePicker id={params.id} expiration_date={proposal.expiration_date ?? undefined} />
+							<ExpirationDatePicker
+								id={params.id}
+								expiration_date={proposal.expiration_date ?? undefined}
+							/>
 						</div>
 					</div>
 
@@ -85,7 +88,6 @@ const ProposalPage = async ({ params }: Props) => {
 			<div className='border-l py-16 pl-12 pr-16 w-full col-span-3 space-y-16 bg-muted/50'>
 				<div className='space-y-2'>
 					<h2 className='text-xl font-semibold'>Summary</h2>
-					<p className='text-muted-foreground text-xs uppercase'>Quote exprires {relativeDate(new Date())}</p>
 				</div>
 
 				<section className='flex items-start gap-4'>
@@ -93,7 +95,6 @@ const ProposalPage = async ({ params }: Props) => {
 					<div className='space-y-3'>
 						<h2 className='text-xs'>TOTAL AMOUNT</h2>
 						<p className='text-muted-foreground font-medium text-sm uppercase'>{getCurrencyString(totalPrice)}</p>
-						<p className='text-muted-foreground text-xs'>Bills when quote is accepted</p>
 					</div>
 				</section>
 

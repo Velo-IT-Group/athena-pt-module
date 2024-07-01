@@ -48,7 +48,14 @@ export default function AuthForm({ searchParams }: { searchParams?: { message: s
 				Microsoft
 			</Button>
 
-			<div className='flex items-center gap-4'>
+			<Label htmlFor='email'>Email</Label>
+			<Input
+				name='email'
+				placeholder='you@example.com'
+				autoComplete='email'
+			/>
+
+			{/* <div className='flex items-center gap-4'>
 				<Separator
 					orientation='horizontal'
 					className='shrink'
@@ -60,14 +67,10 @@ export default function AuthForm({ searchParams }: { searchParams?: { message: s
 					orientation='horizontal'
 					className='shrink'
 				/>
-			</div>
+			</div> */}
 
-			<Label htmlFor='email'>Email</Label>
-			<Input
-				name='email'
-				placeholder='you@example.com'
-				autoComplete='email'
-			/>
+			{/* <Label htmlFor='email'>Email</Label>
+			
 
 			<Label htmlFor='password'>Password</Label>
 			<Input
@@ -100,7 +103,7 @@ export default function AuthForm({ searchParams }: { searchParams?: { message: s
 				variant='outline'
 			>
 				Sign Up
-			</Button>
+			</Button> */}
 
 			<AlertDialog
 				open={showAlertDialog}
