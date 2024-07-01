@@ -214,7 +214,7 @@ const SectionTabs = ({
 									id: uuid(),
 									name: data.get('name') as string,
 									created_at: new Date().toISOString(),
-									version,
+									version: params.version,
 									order: sections.length + 1,
 								};
 
