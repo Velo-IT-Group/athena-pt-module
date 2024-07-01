@@ -671,7 +671,7 @@ export const signInWithAzure = async (formData: FormData) => {
 		provider: 'azure',
 		options: {
 			scopes: 'email profile',
-			redirectTo: `${process.env.NEXT_PUBLIC_LOCAL_URL}/auth/callback`,
+			redirectTo: `https://${process.env.VERCEL_PROJECT_PRODUCTION_URL}/auth/callback`,
 		},
 	});
 
