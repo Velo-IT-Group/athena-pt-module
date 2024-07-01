@@ -71,13 +71,13 @@ const UserNav = ({ user, className, url }: { user: User; className?: string; url
 
 					<DropdownMenuSeparator />
 
-					<DropdownMenuGroup>
+					{/* <DropdownMenuGroup>
 						<DialogTrigger asChild>
 							<DropdownMenuItem>Profile</DropdownMenuItem>
 						</DialogTrigger>
-					</DropdownMenuGroup>
+					</DropdownMenuGroup> */}
 
-					<DropdownMenuSeparator />
+					{/* <DropdownMenuSeparator /> */}
 
 					<DropdownMenuItem
 						onClick={async () => {
