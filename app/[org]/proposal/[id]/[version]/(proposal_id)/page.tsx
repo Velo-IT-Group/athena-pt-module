@@ -53,21 +53,6 @@ const ProposalPage = async ({ params }: Props) => {
 							/>
 						</div>
 					</div>
-
-					{/* <div className='space-y-4'>
-						<h2 className='text-xl font-semibold flex items-center justify-between gap-2'>Labor Hours</h2>
-						<div className='grid gap-3'>
-							<div className='grid sm:grid-cols-3 items-center gap-4'>
-								<Label>Sales Hours</Label>
-								<BlurredInput defaultValue={proposal.sales_hours} proposalKey='sales_hours' id={proposal.id} />
-							</div>
-
-							<div className='grid sm:grid-cols-3 items-center gap-4'>
-								<Label>Management Hours</Label>
-								<BlurredInput defaultValue={proposal.management_hours} proposalKey='management_hours' id={proposal.id} />
-							</div>
-						</div>
-					</div> */}
 				</section>
 
 				<section className='space-y-4'>
