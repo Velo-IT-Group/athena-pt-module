@@ -105,14 +105,14 @@ const ProposalActions = ({ proposal, phases, tickets, versions, ticket, params, 
 												<CommandItem
 													key={version.id}
 													value={version.id}
-													disabled={version.id === proposal.working_version.id}
+													disabled={version.id === proposal.working_version}
 													onSelect={() => {
 														setShowRevertDialog(true);
 														setRevertVersion(version);
 													}}
 												>
 													{`V${version.number}`}
-													{version.id === proposal.working_version.id && (
+													{version.id === proposal.working_version && (
 														<Badge
 															className='ml-2'
 															variant='outline'
