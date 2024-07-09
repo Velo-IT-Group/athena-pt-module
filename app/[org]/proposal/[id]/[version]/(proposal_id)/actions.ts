@@ -61,7 +61,7 @@ export const convertToManageProject = async (
 	phases: NestedPhase[]
 ) => {
 	const cookieStore = cookies();
-	const supabase = createClient(cookieStore);
+	const supabase = createClient();
 
 	const products = proposal.working_version.products?.sort((a, b) => {
 		// First, compare by created_at in descending order
@@ -180,7 +180,7 @@ export const createOpportunityAction = async (
 	proposalProducts: NestedProduct[]
 ) => {
 	const cookieStore = cookies();
-	const supabase = createClient(cookieStore);
+	const supabase = createClient();
 
 	const products = proposalProducts?.sort((a, b) => {
 		// First, compare by created_at in descending order

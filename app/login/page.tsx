@@ -19,7 +19,7 @@ const Page = async ({
 	};
 }) => {
 	const cookieStore = cookies();
-	const supabase = createClient(cookieStore);
+	const supabase = createClient();
 	const {
 		data: { session },
 	} = await supabase.auth.getSession();
