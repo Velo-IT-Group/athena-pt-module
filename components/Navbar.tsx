@@ -25,7 +25,7 @@ type Props = {
 
 const Navbar = async ({ title, titleEditable, titleId, children, org, version, tabs }: Props) => {
 	const cookieStore = cookies();
-	const supabase = createClient(cookieStore);
+	const supabase = createClient();
 
 	const {
 		data: { user },

@@ -6,7 +6,7 @@ import { redirect } from 'next/navigation';
 export const handleSignOut = async () => {
 	try {
 		const cookieStore = cookies();
-		const supabase = createClient(cookieStore);
+		const supabase = createClient();
 		const { error } = await supabase.auth.signOut();
 
 		if (error) throw new Error("Can't sign out user...");

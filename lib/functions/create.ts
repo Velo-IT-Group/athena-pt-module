@@ -67,7 +67,7 @@ export const newTemplate = async (template: ProjectTemplate, order: number, vers
 export const createTask = async (task: TaskInsert) => {
 	try {
 		const cookieStore = cookies();
-		const supabase = createClient(cookieStore);
+		const supabase = createClient();
 		const { error } = await supabase.from('tasks').insert(task);
 		console.log('CREATE TASK FUNCTION', task);
 
@@ -89,7 +89,7 @@ export const createTask = async (task: TaskInsert) => {
 export const createTasks = async (tasks: TaskInsert[]) => {
 	try {
 		const cookieStore = cookies();
-		const supabase = createClient(cookieStore);
+		const supabase = createClient();
 		const { error } = await supabase.from('tasks').insert(tasks);
 
 		if (error) {
@@ -110,7 +110,7 @@ export const createTasks = async (tasks: TaskInsert[]) => {
 export const createProposal = async (proposal: ProposalInsert) => {
 	try {
 		const cookieStore = cookies();
-		const supabase = createClient(cookieStore);
+		const supabase = createClient();
 
 		const { data, error } = await supabase
 			.from('proposals')
@@ -145,7 +145,7 @@ export const createProposal = async (proposal: ProposalInsert) => {
 export const duplicateProposal = async (proposal: ProposalInsert) => {
 	try {
 		const cookieStore = cookies();
-		const supabase = createClient(cookieStore);
+		const supabase = createClient();
 		delete proposal['updated_at'];
 
 		const { data: returnedProposal, error } = await supabase
@@ -179,7 +179,7 @@ export const duplicateProposal = async (proposal: ProposalInsert) => {
 export const createPhase = async (phase: PhaseInsert, tickets: Array<ProjectTemplateTicket>) => {
 	try {
 		const cookieStore = cookies();
-		const supabase = createClient(cookieStore);
+		const supabase = createClient();
 		const { data, error } = await supabase.from('phases').insert(phase).select().single();
 
 		if (error || !data) {
@@ -219,7 +219,7 @@ export const createTicket = async (
 ): Promise<Ticket | undefined> => {
 	try {
 		const cookieStore = cookies();
-		const supabase = createClient(cookieStore);
+		const supabase = createClient();
 
 		console.log(ticket);
 		const { data, error } = await supabase.from('tickets').insert(ticket).select().single();
@@ -250,7 +250,7 @@ export const createTicket = async (
 export const createProduct = async (product: ProductInsert, bundledItems?: ProductInsert[]) => {
 	try {
 		const cookieStore = cookies();
-		const supabase = createClient(cookieStore);
+		const supabase = createClient();
 
 		const { data, error } = await supabase.from('products').insert(product).select('unique_id').single();
 
@@ -280,7 +280,7 @@ export const createProduct = async (product: ProductInsert, bundledItems?: Produ
 export const createProducts = async (products: ProductInsert[], bundledItems?: CatalogComponent[]) => {
 	try {
 		const cookieStore = cookies();
-		const supabase = createClient(cookieStore);
+		const supabase = createClient();
 
 		const { error } = await supabase.from('products').insert(products);
 
@@ -300,7 +300,7 @@ export const createProducts = async (products: ProductInsert[], bundledItems?: C
 export const createOrganizationIntegration = async (organization: OrganizationIntegrationInsert) => {
 	try {
 		const cookieStore = cookies();
-		const supabase = createClient(cookieStore);
+		const supabase = createClient();
 		const { error } = await supabase.from('organization_integrations').insert(organization);
 
 		if (error) {
@@ -328,7 +328,7 @@ export const signUp = async (formData: FormData, data?: MetaData) => {
 	const email = formData.get('email') as string;
 	const password = formData.get('password') as string;
 	const cookieStore = cookies();
-	const supabase = createClient(cookieStore);
+	const supabase = createClient();
 
 	const { error } = await supabase.auth.signUp({
 		email,
@@ -465,7 +465,7 @@ interface ProjectCreate {
 export const createSection = async (section: SectionInsert) => {
 	try {
 		const cookieStore = cookies();
-		const supabase = createClient(cookieStore);
+		const supabase = createClient();
 		const { error } = await supabase.from('sections').insert(section);
 
 		if (error) {
@@ -485,7 +485,7 @@ export const createProject = async (
 	opportunityId: number
 ): Promise<Project | undefined> => {
 	const cookieStore = cookies();
-	const supabase = createClient(cookieStore);
+	const supabase = createClient();
 
 	let config: RequestInit = {
 		method: 'POST',
@@ -685,7 +685,7 @@ export const convertOpportunityToProject = async (opportunity: Opportunity, proj
 
 export const createVersion = async (proposal: string): Promise<string> => {
 	const cookieStore = cookies();
-	const supabase = createClient(cookieStore);
+	const supabase = createClient();
 
 	try {
 		const { data, error } = await supabase.from('versions').insert({ proposal }).select('id').single();

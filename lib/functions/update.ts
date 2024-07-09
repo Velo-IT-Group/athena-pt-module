@@ -14,7 +14,7 @@ import { UserMetadata } from '@supabase/supabase-js';
  */
 export const updateProduct = async (id: string, product: ProductUpdate) => {
 	const cookieStore = cookies();
-	const supabase = createClient(cookieStore);
+	const supabase = createClient();
 	const { error } = await supabase.from('products').update(product).eq('unique_id', id);
 
 	console.log(id, product, error);
@@ -37,7 +37,7 @@ export const updateProduct = async (id: string, product: ProductUpdate) => {
  */
 export const updateProposal = async (id: string, proposal: ProposalUpdate) => {
 	const cookieStore = cookies();
-	const supabase = createClient(cookieStore);
+	const supabase = createClient();
 	const { error } = await supabase.from('proposals').update(proposal).eq('id', id);
 
 	if (error) {
@@ -56,7 +56,7 @@ export const updateProposal = async (id: string, proposal: ProposalUpdate) => {
  */
 export const updateTicket = async (id: string, ticket: TicketUpdate) => {
 	const cookieStore = cookies();
-	const supabase = createClient(cookieStore);
+	const supabase = createClient();
 	const { error } = await supabase.from('tickets').update(ticket).eq('id', id);
 
 	if (error) {
@@ -74,7 +74,7 @@ export const updateTicket = async (id: string, ticket: TicketUpdate) => {
  */
 export const updatePhase = async (id: string, phase: PhaseUpdate) => {
 	const cookieStore = cookies();
-	const supabase = createClient(cookieStore);
+	const supabase = createClient();
 	const { error } = await supabase.from('phases').update(phase).eq('id', id);
 
 	if (error) {
@@ -92,7 +92,7 @@ export const updatePhase = async (id: string, phase: PhaseUpdate) => {
  */
 export const updateTask = async (id: string, task: TaskUpdate) => {
 	const cookieStore = cookies();
-	const supabase = createClient(cookieStore);
+	const supabase = createClient();
 	const { error } = await supabase.from('tasks').update(task).eq('id', id);
 
 	if (error) {
@@ -110,7 +110,7 @@ export const updateTask = async (id: string, task: TaskUpdate) => {
  */
 export const updateOrganization = async (id: string, organization: OrganizationUpdate) => {
 	const cookieStore = cookies();
-	const supabase = createClient(cookieStore);
+	const supabase = createClient();
 	const { error } = await supabase.from('organizations').update(organization).eq('id', id);
 
 	if (error) {
@@ -128,7 +128,7 @@ export const updateOrganization = async (id: string, organization: OrganizationU
  */
 export const updateOrganizationIntegration = async (id: string, orgIntegration: OrganizationIntegrationUpdate) => {
 	const cookieStore = cookies();
-	const supabase = createClient(cookieStore);
+	const supabase = createClient();
 	const { error } = await supabase.from('organization_integrations').update(orgIntegration).eq('id', id);
 
 	if (error) {
@@ -198,7 +198,7 @@ export const updateManageProduct = async (product: ManageProductUpdate): Promise
 
 export const updateSection = async (section: SectionUpdate) => {
 	const cookieStore = cookies();
-	const supabase = createClient(cookieStore);
+	const supabase = createClient();
 	const { error } = await supabase.from('sections').update(section).eq('id', section.id!);
 
 	console.log('SECTION ID', section.id);
@@ -212,7 +212,7 @@ export const updateSection = async (section: SectionUpdate) => {
 
 export const updateVersion = async (version: VersionUpdate) => {
 	const cookieStore = cookies();
-	const supabase = createClient(cookieStore);
+	const supabase = createClient();
 	const { error } = await supabase.from('versions').update(version).eq('id', version.id!);
 
 	console.log('SECTION ID', version.id);
@@ -226,7 +226,7 @@ export const updateVersion = async (version: VersionUpdate) => {
 
 export const updateUserMetadata = async (data: FormData, user_metadata: UserMetadata) => {
 	const cookieStore = cookies();
-	const supabase = createClient(cookieStore);
+	const supabase = createClient();
 
 	const { error } = await supabase.auth.updateUser({
 		data: {
