@@ -5,6 +5,8 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import Image from 'next/image';
 import { signInWithAzure } from '@/lib/functions/read';
+import { cookies } from 'next/headers';
+import { createClient } from '@/utils/supabase/server';
 
 const Page = async ({
 	searchParams,
@@ -16,35 +18,15 @@ const Page = async ({
 		error?: string;
 	};
 }) => {
-	// const cookieStore = cookies();
-	// const supabase = createClient(cookieStore);
-	// const {
-	// 	data: { session },
-	// } = await supabase.auth.getSession();
+	const cookieStore = cookies();
+	const supabase = createClient(cookieStore);
+	const {
+		data: { session },
+	} = await supabase.auth.getSession();
 
-	// if (session) {
-	// 	redirect('/velo-it-group');
-	// }
-
-	// console.log(searchParams?.error);
-
-	// const hasError = searchParams?.error !== undefined;
-
-	// if (!hasError) {
-	// 	const { data, error } = await supabase.auth.signInWithOAuth({
-	// 		provider: 'azure',
-	// 		options: {
-	// 			scopes: 'email profile',
-	// 			redirectTo: `${process.env.NEXT_PUBLIC_LOCAL_URL}/auth/callback`,
-	// 		},
-	// 	});
-
-	// 	console.log(data, error);
-
-	// 	if (data.url) {
-	// 		return redirect(data.url); // use the redirect API for your server framework
-	// 	}
-	// }
+	if (session) {
+		await supabase.auth.signOut();
+	}
 
 	return (
 		<div className='grid place-items-center w-screen h-screen bg-muted/50'>
