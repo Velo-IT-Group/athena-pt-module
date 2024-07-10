@@ -435,6 +435,7 @@ export type Database = {
           created_at: string
           id: string
           notes: string
+          order: number
           priority: number
           reference_id: number | null
           summary: string
@@ -446,6 +447,7 @@ export type Database = {
           created_at?: string
           id?: string
           notes: string
+          order?: number
           priority: number
           reference_id?: number | null
           summary: string
@@ -457,6 +459,7 @@ export type Database = {
           created_at?: string
           id?: string
           notes?: string
+          order?: number
           priority?: number
           reference_id?: number | null
           summary?: string
