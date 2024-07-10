@@ -5,8 +5,8 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import Image from 'next/image';
 import { signInWithAzure } from '@/lib/functions/read';
-import { cookies } from 'next/headers';
 import { createClient } from '@/utils/supabase/server';
+import { redirect } from 'next/navigation';
 
 const Page = async ({
 	searchParams,
@@ -18,14 +18,13 @@ const Page = async ({
 		error?: string;
 	};
 }) => {
-	const cookieStore = cookies();
 	const supabase = createClient();
 	const {
 		data: { session },
 	} = await supabase.auth.getSession();
 
 	if (session) {
-		await supabase.auth.signOut();
+		redirect('/velo-it-group');
 	}
 
 	return (
