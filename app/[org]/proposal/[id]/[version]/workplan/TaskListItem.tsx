@@ -18,6 +18,7 @@ import { TaskState } from '@/types/optimisticTypes';
 import { deleteTask } from '@/lib/functions/delete';
 import { Textarea } from '@/components/ui/textarea';
 import { toast } from 'sonner';
+import { Input } from '@/components/ui/input';
 
 type Props = {
 	task: Task;
@@ -35,20 +36,23 @@ const TaskListItem = ({ task, order, pending, taskMutation }: Props) => {
 		<div className='flex items-center space-x-2 pl-2 w-full'>
 			<CornerDownRightIcon />
 
-			<div className='rounded-md border px-4 py-2 font-mono text-sm shadow-sm flex flex-1 flex-col items-start justify-between p-3 sm:flex-row sm:items-center gap-2 '>
+			<div className='rounded-md border px-4 py-2 text-sm shadow-sm flex flex-1 flex-col items-start justify-between p-3 sm:flex-row sm:items-center gap-2 '>
 				<div className='flex items-start flex-1 gap-2 flex-shrink-0 flex-grow'>
 					<DragHandleDots2Icon className='w-4 h-4 mt-2' />
 
-					<Badge variant='secondary' className='flex-shrink-0 mt-2'>
+					<Badge
+						variant='secondary'
+						className='flex-shrink-0 mt-2'
+					>
 						Task {order}
 					</Badge>
+
 					<Textarea
-						readOnly={pending}
 						onBlur={(e) => {
-							if (e.currentTarget.value !== task.summary) {
+							if (e.currentTarget.value !== task.notes) {
 								startTransition(async () => {
-									taskMutation({ updatedTask: { ...task, summary: e.currentTarget.value }, pending: true });
-									await updateTask(task.id, { summary: e.currentTarget.value });
+									taskMutation({ updatedTask: { ...task, notes: e.currentTarget.value }, pending: true });
+									await updateTask(task.id, { notes: e.currentTarget.value });
 								});
 								toast('Task has been updated!', {
 									description: Intl.DateTimeFormat('en-US', { dateStyle: 'medium' }).format(new Date()),
@@ -57,20 +61,53 @@ const TaskListItem = ({ task, order, pending, taskMutation }: Props) => {
 						}}
 						className='border border-transparent hover:border-border hover:cursor-default shadow-none px-2'
 						maxLength={100}
-						defaultValue={task.summary}
+						minRows={2}
+						defaultValue={task.notes}
 					/>
+
 					<span className='text-muted-foreground line-clamp-1 flex-1 flex-'>{task.summary}</span>
 				</div>
 
 				<div className='flex flex-shrink flex-grow-0'>
+					<Input
+						type='number'
+						readOnly={pending || isPending}
+						onBlur={(e) => {
+							if (e.currentTarget.valueAsNumber !== task.budget_hours) {
+								startTransition(async () => {
+									taskMutation({
+										updatedTask: { ...task, budget_hours: e.currentTarget.valueAsNumber },
+										pending: true,
+									});
+
+									await updateTask(task.id, { budget_hours: e.currentTarget.valueAsNumber });
+								});
+							}
+						}}
+						min={0}
+						step={0.25}
+						className='hover:cursor-default shadow-none px-2 max-w-20 text-right'
+						defaultValue={task.budget_hours || undefined}
+						placeholder='0'
+					/>
+
 					<Dialog>
-						<DropdownMenu open={open} onOpenChange={setOpen}>
+						<DropdownMenu
+							open={open}
+							onOpenChange={setOpen}
+						>
 							<DropdownMenuTrigger asChild>
-								<Button variant='ghost' size='sm'>
+								<Button
+									variant='ghost'
+									size='sm'
+								>
 									<DotsHorizontalIcon />
 								</Button>
 							</DropdownMenuTrigger>
-							<DropdownMenuContent align='end' className='w-[200px]'>
+							<DropdownMenuContent
+								align='end'
+								className='w-[200px]'
+							>
 								<DropdownMenuLabel>Actions</DropdownMenuLabel>
 								<DropdownMenuGroup>
 									<DialogTrigger asChild>
