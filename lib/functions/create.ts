@@ -88,7 +88,6 @@ export const createTask = async (task: TaskInsert) => {
  */
 export const createTasks = async (tasks: TaskInsert[]) => {
 	try {
-		const cookieStore = cookies();
 		const supabase = createClient();
 		const { error } = await supabase.from('tasks').insert(tasks);
 
@@ -178,7 +177,6 @@ export const duplicateProposal = async (proposal: ProposalInsert) => {
 
 export const createPhase = async (phase: PhaseInsert, tickets: Array<ProjectTemplateTicket>) => {
 	try {
-		const cookieStore = cookies();
 		const supabase = createClient();
 		const { data, error } = await supabase.from('phases').insert(phase).select().single();
 
@@ -228,11 +226,13 @@ export const createTicket = async (
 			throw new Error('Error creating ticket.', { cause: error });
 		}
 
-		let mappedTasks: Array<TaskInsert> = tasks.map(({ summary, notes, priority }) => ({
+		let mappedTasks: Array<TaskInsert> = tasks.map(({ summary, notes, priority }, index) => ({
 			summary: summary!,
 			notes: notes!,
 			priority: priority!,
 			ticket: data.id,
+			order: index + 1,
+			budget_hours: tasks.length ? (ticket?.budget_hours ?? 0) / tasks.length : null,
 		}));
 
 		if (mappedTasks.length) {
