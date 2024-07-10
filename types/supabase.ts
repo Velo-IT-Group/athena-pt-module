@@ -431,6 +431,7 @@ export type Database = {
       }
       tasks: {
         Row: {
+          budget_hours: number | null
           created_at: string
           id: string
           notes: string
@@ -441,6 +442,7 @@ export type Database = {
           visibile: boolean
         }
         Insert: {
+          budget_hours?: number | null
           created_at?: string
           id?: string
           notes: string
@@ -451,6 +453,7 @@ export type Database = {
           visibile?: boolean
         }
         Update: {
+          budget_hours?: number | null
           created_at?: string
           id?: string
           notes?: string
@@ -661,6 +664,12 @@ export type Database = {
           new_id: string
         }
         Returns: undefined
+      }
+      get_member: {
+        Args: {
+          email: string
+        }
+        Returns: number
       }
       get_opportunity_products: {
         Args: {
