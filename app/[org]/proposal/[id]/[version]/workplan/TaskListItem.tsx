@@ -39,16 +39,19 @@ const TaskListItem = ({ task, order, pending, taskMutation }: Props) => {
 				<div className='flex items-start flex-1 gap-2 flex-shrink-0 flex-grow'>
 					<DragHandleDots2Icon className='w-4 h-4 mt-2' />
 
-					<Badge variant='secondary' className='flex-shrink-0 mt-2'>
+					<Badge
+						variant='secondary'
+						className='flex-shrink-0 mt-2'
+					>
 						Task {order}
 					</Badge>
 					<Textarea
 						readOnly={pending}
 						onBlur={(e) => {
-							if (e.currentTarget.value !== task.summary) {
+							if (e.currentTarget.value !== task.notes) {
 								startTransition(async () => {
-									taskMutation({ updatedTask: { ...task, summary: e.currentTarget.value }, pending: true });
-									await updateTask(task.id, { summary: e.currentTarget.value });
+									taskMutation({ updatedTask: { ...task, notes: e.currentTarget.value }, pending: true });
+									await updateTask(task.id, { notes: e.currentTarget.value });
 								});
 								toast('Task has been updated!', {
 									description: Intl.DateTimeFormat('en-US', { dateStyle: 'medium' }).format(new Date()),
@@ -56,21 +59,29 @@ const TaskListItem = ({ task, order, pending, taskMutation }: Props) => {
 							}
 						}}
 						className='border border-transparent hover:border-border hover:cursor-default shadow-none px-2'
-						maxLength={100}
-						defaultValue={task.summary}
+						defaultValue={task.notes}
 					/>
-					<span className='text-muted-foreground line-clamp-1 flex-1 flex-'>{task.summary}</span>
+					<span className='text-muted-foreground line-clamp-1 flex-1 flex-'>{task.notes}</span>
 				</div>
 
 				<div className='flex flex-shrink flex-grow-0'>
 					<Dialog>
-						<DropdownMenu open={open} onOpenChange={setOpen}>
+						<DropdownMenu
+							open={open}
+							onOpenChange={setOpen}
+						>
 							<DropdownMenuTrigger asChild>
-								<Button variant='ghost' size='sm'>
+								<Button
+									variant='ghost'
+									size='sm'
+								>
 									<DotsHorizontalIcon />
 								</Button>
 							</DropdownMenuTrigger>
-							<DropdownMenuContent align='end' className='w-[200px]'>
+							<DropdownMenuContent
+								align='end'
+								className='w-[200px]'
+							>
 								<DropdownMenuLabel>Actions</DropdownMenuLabel>
 								<DropdownMenuGroup>
 									<DialogTrigger asChild>

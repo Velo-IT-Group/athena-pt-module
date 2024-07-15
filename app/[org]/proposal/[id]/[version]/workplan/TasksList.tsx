@@ -31,8 +31,11 @@ const TasksList = ({ tasks, ticketId }: { tasks: Task[]; ticketId: string }) => 
 	return (
 		<div className='space-y-2'>
 			{state.tasks?.map((task) => (
-				<div key={task.id} className='rounded-md border px-4 py-2 font-mono text-sm shadow-sm p-3'>
-					{task.summary}
+				<div
+					key={task.id}
+					className='rounded-md border px-4 py-2 font-mono text-sm shadow-sm p-3'
+				>
+					{task.notes}
 				</div>
 			))}
 			<form
@@ -59,7 +62,10 @@ const TasksList = ({ tasks, ticketId }: { tasks: Task[]; ticketId: string }) => 
 				}}
 				className='flex items-center gap-4'
 			>
-				<Input name='summary' placeholder='Task summary...' />
+				<Input
+					name='summary'
+					placeholder='Task summary...'
+				/>
 				<SubmitButton>
 					<PlusIcon className='w-4 h-4' />
 				</SubmitButton>
