@@ -1,6 +1,6 @@
 import React, { Suspense } from 'react';
 import type { Metadata, ResolvingMetadata } from 'next';
-import { getOrganization, getTemplates, getTickets, getUsers } from '@/lib/functions/read';
+import { getOrganization, getTemplates, getUsers } from '@/lib/functions/read';
 import { Button } from '@/components/ui/button';
 import { PlusIcon } from '@radix-ui/react-icons';
 import OrganizationLayout from './organization-layout';
@@ -20,7 +20,7 @@ import NewProposalForm from '@/components/forms/NewProposalForm';
 import { createProposal } from '@/lib/functions/create';
 import SubmitButton from '@/components/SubmitButton';
 import UserSelector from './user-selector';
-import { getTicket } from '@/utils/manage/read';
+import { getTicket, getTickets } from '@/utils/manage/read';
 import ProposalList from './proposal-list';
 import CardSkeleton from '@/components/CardSkeleton';
 
