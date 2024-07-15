@@ -327,7 +327,7 @@ export const getCompany = async (id: number) => {
 export const getTickets = async () => {
 	const response = await fetch(
 		`${process.env.NEXT_PUBLIC_CW_URL}/service/tickets?conditions=closedFlag = false and board/id = 38 and type/id = 200&pageSize=1000&orderBy=id`,
-		{ headers: baseHeaders }
+		{ headers: baseHeaders, cache: 'no-store' }
 	);
 
 	if (!response.ok) {
