@@ -1,5 +1,12 @@
 'use client';
-import { ArrowDownIcon, ArrowUpIcon, CaretSortIcon, DotsHorizontalIcon, DragHandleDots2Icon, PlusIcon } from '@radix-ui/react-icons';
+import {
+	ArrowDownIcon,
+	ArrowUpIcon,
+	CaretSortIcon,
+	DotsHorizontalIcon,
+	DragHandleDots2Icon,
+	PlusIcon,
+} from '@radix-ui/react-icons';
 import {
 	DropdownMenu,
 	DropdownMenuContent,
@@ -39,24 +46,27 @@ const TicketListItem = ({ ticket, tasks, order, pending, ticketMutation }: Props
 	const [open, setOpen] = React.useState(false);
 	const [collapsibleOpen, setCollapsibleOpen] = React.useState(false);
 
-	const [state, taskMutation] = useOptimistic({ tasks, pending: false }, function createReducer(state, newState: TaskState) {
-		if (newState.newTask) {
-			return {
-				tasks: [...state.tasks, newState.newTask] as Task[],
-				pending: newState.pending,
-			};
-		} else if (newState.updatedTask) {
-			return {
-				tasks: [...state.tasks.filter((f) => f.id !== newState.updatedTask!.id), newState.updatedTask] as Task[],
-				pending: newState.pending,
-			};
-		} else {
-			return {
-				tasks: [...state.tasks.filter((f) => f.id !== newState.deletedTask)] as Task[],
-				pending: newState.pending,
-			};
+	const [state, taskMutation] = useOptimistic(
+		{ tasks, pending: false },
+		function createReducer(state, newState: TaskState) {
+			if (newState.newTask) {
+				return {
+					tasks: [...state.tasks, newState.newTask] as Task[],
+					pending: newState.pending,
+				};
+			} else if (newState.updatedTask) {
+				return {
+					tasks: [...state.tasks.filter((f) => f.id !== newState.updatedTask!.id), newState.updatedTask] as Task[],
+					pending: newState.pending,
+				};
+			} else {
+				return {
+					tasks: [...state.tasks.filter((f) => f.id !== newState.deletedTask)] as Task[],
+					pending: newState.pending,
+				};
+			}
 		}
-	});
+	);
 
 	const taskStub: TaskInsert = {
 		summary: 'New Ticket',
@@ -66,9 +76,22 @@ const TicketListItem = ({ ticket, tasks, order, pending, ticketMutation }: Props
 		created_at: new Date().toISOString(),
 	};
 
+	const sortedTasks = state.tasks.sort((a, b) => {
+		// First, compare by score in descending order
+		if (Number(a.order) > Number(b.order)) return 1;
+		if (Number(a.order) < Number(b.order)) return -1;
+
+		// Then, compare by created_at in ascending order
+		return new Date(a.created_at).getTime() - new Date(b.created_at).getTime();
+	});
+
 	return (
 		<div>
-			<Collapsible open={collapsibleOpen} onOpenChange={setCollapsibleOpen} className='space-y-2 bg-background'>
+			<Collapsible
+				open={collapsibleOpen}
+				onOpenChange={setCollapsibleOpen}
+				className='space-y-2 bg-background'
+			>
 				<div className='flex w-full flex-col items-start rounded-md border p-3 sm:flex-row sm:items-center gap-4'>
 					<DragHandleDots2Icon className='w-4 h-4' />
 
@@ -99,7 +122,10 @@ const TicketListItem = ({ ticket, tasks, order, pending, ticketMutation }: Props
 							onBlur={(e) => {
 								if (e.currentTarget.valueAsNumber !== ticket.budget_hours) {
 									startTransition(async () => {
-										ticketMutation({ updatedTicket: { ...ticket, budget_hours: e.currentTarget.valueAsNumber }, pending: true });
+										ticketMutation({
+											updatedTicket: { ...ticket, budget_hours: e.currentTarget.valueAsNumber },
+											pending: true,
+										});
 
 										// @ts-ignore
 										await updateTicket(ticket.id, { budget_hours: e.currentTarget.valueAsNumber });
@@ -114,13 +140,25 @@ const TicketListItem = ({ ticket, tasks, order, pending, ticketMutation }: Props
 							className='border border-transparent hover:border-border hover:cursor-default shadow-none px-2 max-w-20 text-right'
 							defaultValue={ticket.budget_hours}
 						/>
-						<DropdownMenu open={open} onOpenChange={setOpen}>
-							<DropdownMenuTrigger asChild disabled={pending}>
-								<Button variant='ghost' size='sm'>
+						<DropdownMenu
+							open={open}
+							onOpenChange={setOpen}
+						>
+							<DropdownMenuTrigger
+								asChild
+								disabled={pending}
+							>
+								<Button
+									variant='ghost'
+									size='sm'
+								>
 									<DotsHorizontalIcon />
 								</Button>
 							</DropdownMenuTrigger>
-							<DropdownMenuContent align='end' className='w-[200px]'>
+							<DropdownMenuContent
+								align='end'
+								className='w-[200px]'
+							>
 								<DropdownMenuLabel>Actions</DropdownMenuLabel>
 								<DropdownMenuGroup>
 									<DropdownMenuItem
@@ -142,7 +180,10 @@ const TicketListItem = ({ ticket, tasks, order, pending, ticketMutation }: Props
 							</DropdownMenuContent>
 						</DropdownMenu>
 						<CollapsibleTrigger asChild>
-							<Button variant='ghost' size='sm'>
+							<Button
+								variant='ghost'
+								size='sm'
+							>
 								<CaretSortIcon className='h-4 w-4' />
 								<span className='sr-only'>Toggle</span>
 							</Button>
@@ -151,8 +192,14 @@ const TicketListItem = ({ ticket, tasks, order, pending, ticketMutation }: Props
 				</div>
 				<CollapsibleContent className='space-y-2'>
 					<div className='w-full flex flex-col space-y-2'>
-						{state.tasks.map((task, index) => (
-							<TaskListItem key={task.id} taskMutation={taskMutation} order={index + 1} pending={state.pending} task={task} />
+						{sortedTasks.map((task, index) => (
+							<TaskListItem
+								key={task.id}
+								taskMutation={taskMutation}
+								order={index + 1}
+								pending={state.pending}
+								task={task}
+							/>
 						))}
 						<form
 							action={() => {
