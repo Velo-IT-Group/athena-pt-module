@@ -431,6 +431,24 @@ export const getProposal = async (id: string) => {
 	}
 };
 
+export const getProposalSettings = async (id: string) => {
+	const supabase = createClient();
+
+	console.log(id);
+
+	try {
+		const { data, error } = await supabase.from('proposal_settings').select().eq('version', id).single();
+
+		if (!data || error) {
+			throw Error('Error in getting proposal settings', { cause: error });
+		}
+
+		return data;
+	} catch (error) {
+		console.error(error);
+	}
+};
+
 export const getOrganization = async () => {
 	const cookieStore = cookies();
 	const supabase = createClient();

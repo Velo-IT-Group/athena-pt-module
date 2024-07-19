@@ -3,7 +3,15 @@ import { Separator } from '@/components/ui/separator';
 import { Button } from '@/components/ui/button';
 import React from 'react';
 import { Dialog, DialogTrigger } from '@/components/ui/dialog';
-import { getPhases, getProducts, getProposal, getSections, getVersion, getVersions } from '@/lib/functions/read';
+import {
+	getPhases,
+	getProducts,
+	getProposal,
+	getProposalSettings,
+	getSections,
+	getVersion,
+	getVersions,
+} from '@/lib/functions/read';
 import { getCurrencyString } from '@/utils/money';
 import Navbar from '@/components/Navbar';
 import { calculateTotals } from '@/utils/helpers';
@@ -27,12 +35,13 @@ export async function generateMetadata({ params }: Props, parent: ResolvingMetad
 }
 
 const ProposalReviewPage = async ({ params }: Props) => {
-	const [proposal, products, sections, phases, version] = await Promise.all([
+	const [proposal, products, sections, phases, version, settings] = await Promise.all([
 		getProposal(params.id),
 		getProducts(params.version),
 		getSections(params.version),
 		getPhases(params.version),
 		getVersion(params.version),
+		getProposalSettings(params.version),
 	]);
 
 	if (!proposal || !products) return notFound();
@@ -85,16 +94,20 @@ const ProposalReviewPage = async ({ params }: Props) => {
 				<div className='grid items-start gap-6 py-6 sm:grid-cols-5 sm:gap-12 sm:py-12 container'>
 					<div className='sm:col-span-3'>
 						<div className='space-y-4'>
-							<h1 className='text-lg font-semibold'>Proposal breakdown</h1>
+							<h1 className='text-lg font-semibold'>Proposal Breakdown</h1>
 
 							<div className='rounded-xl border bg-secondary/50 dark:bg-card/50 p-4 space-y-4'>
 								{sections?.map((section) => {
 									return (
-										<ProductCard
-											key={section.id}
-											title={section.name}
-											products={section.products}
-										/>
+										<>
+											{section.products.length > 0 && (
+												<ProductCard
+													key={section.id}
+													title={section.name}
+													products={section.products}
+												/>
+											)}
+										</>
 									);
 								})}
 
@@ -183,40 +196,51 @@ const ProposalReviewPage = async ({ params }: Props) => {
 						</div>
 					</div>
 
-					<Card className='sm:col-span-2'>
-						<CardHeader>
-							<CardTitle>Scope Of Work</CardTitle>
-						</CardHeader>
+					<div className='sm:col-span-2 space-y-4'>
+						<h1 className='text-lg font-semibold'>Scope of Work</h1>
 
-						<CardContent>
-							<div className='space-y-4'>
-								<Separator />
-								{phases?.map((phase) => (
-									<div
-										className='space-y-4'
-										key={phase.id}
-									>
-										<div className='flex items-center gap-2'>
-											<h3 className='font-medium tracking-tight'>
-												{phase.description} - {phase.hours}hrs
-											</h3>
-										</div>
-
-										<ul className='list-disc list-inside px-4'>
-											{phase.tickets?.map((ticket) => (
-												<li
-													key={ticket.id}
-													className='text-sm'
+						<Card>
+							<CardContent className='p-4'>
+								<div className='space-y-4'>
+									{phases?.map((phase) => (
+										<>
+											{!phase.description.includes('Backoffice Coordination') && (
+												<div
+													className='space-y-4'
+													key={phase.id}
 												>
-													{ticket.summary}
-												</li>
-											))}
-										</ul>
-									</div>
-								))}
-							</div>
-						</CardContent>
-					</Card>
+													<div className='flex items-center gap-2'>
+														<h3 className='font-medium tracking-tight'>
+															{phase.description}
+															{phase.hours > 0 && `- ${phase.hours}${phase.hours > 1 ? 'hrs' : 'hr'}`}
+														</h3>
+													</div>
+
+													<ul className='list-disc list-inside px-4'>
+														{phase.tickets?.map((ticket) => (
+															<li
+																key={ticket.id}
+																className='text-sm'
+															>
+																{ticket.summary}
+															</li>
+														))}
+													</ul>
+												</div>
+											)}
+										</>
+									))}
+								</div>
+							</CardContent>
+						</Card>
+
+						<h2 className='font-semibold px-2'>Assumptions</h2>
+
+						<div
+							className='marker:font-semibold px-2 text-sm'
+							dangerouslySetInnerHTML={{ __html: settings?.assumptions ?? '' }}
+						/>
+					</div>
 				</div>
 			</div>
 		</div>
