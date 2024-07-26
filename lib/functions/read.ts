@@ -419,7 +419,7 @@ export const getProposal = async (id: string) => {
 	const supabase = createClient();
 
 	try {
-		const { data, error } = await supabase.from('proposals').select().eq('id', id).single();
+		const { data, error } = await supabase.from('proposals').select('*, created_by(*)').eq('id', id).single();
 
 		if (!data || error) {
 			throw Error('Error in getting proposal', { cause: error });

@@ -19,18 +19,17 @@ const AssumptionsEditor = ({ content, version, proposal }: Props) => {
 		transaction,
 	}: {
 		editor: Editor;
-		event: FocusEvent;
+		event: FocusEvent<Element, Element>;
 		transaction: Transaction;
 	}) => {
 		if (content === editor.getHTML()) return;
 
 		const { data, error } = await supabase
 			.from('proposal_settings')
-			.upsert({
+			.update({
 				assumptions: editor.getHTML(),
-				version,
-				proposal,
 			})
+			.match({ version, proposal })
 			.select();
 
 		if (error) {
@@ -43,6 +42,7 @@ const AssumptionsEditor = ({ content, version, proposal }: Props) => {
 	return (
 		<Tiptap
 			content={content}
+			// @ts-ignore
 			onBlur={handleBlur}
 		/>
 	);

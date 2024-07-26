@@ -8,8 +8,8 @@ import ProductList from './product-list';
 import ExpirationDatePicker from './expiration-date-picker';
 import { calculateTotals } from '@/utils/helpers';
 import { getTicket } from '@/utils/manage/read';
-import Tiptap from '@/components/tip-tap';
 import AssumptionsEditor from './assumptions-editor';
+import DescriptionEditor from './description-editor';
 
 type Props = {
 	params: { id: string; version: string };
@@ -58,7 +58,17 @@ const ProposalPage = async ({ params }: Props) => {
 					</div>
 				</section>
 
-				<section>
+				<section className='space-y-4'>
+					<h2 className='text-xl font-semibold'>Description</h2>
+
+					<DescriptionEditor
+						version={params.version}
+						proposal={params.id}
+						description={settings?.description ?? undefined}
+					/>
+				</section>
+
+				<section className='space-y-4'>
 					<h2 className='text-xl font-semibold'>Assumptions</h2>
 
 					<AssumptionsEditor

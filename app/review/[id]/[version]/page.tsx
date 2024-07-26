@@ -10,7 +10,6 @@ import {
 	getProposalSettings,
 	getSections,
 	getVersion,
-	getVersions,
 } from '@/lib/functions/read';
 import { getCurrencyString } from '@/utils/money';
 import Navbar from '@/components/Navbar';
@@ -50,7 +49,7 @@ const ProposalReviewPage = async ({ params }: Props) => {
 	const proposalExpirationDate = new Date(proposal.expiration_date ?? '');
 	const today = new Date(); // Get today's date
 
-	const ticket = await getTicket(proposal?.service_ticket ?? 0);
+	const ticket = await getTicket(proposal?.service_ticket ?? 0, ['contactName', 'contactEmailAddress']);
 
 	const { recurringTotal, laborTotal, totalPrice } = calculateTotals(
 		sections.flatMap((s) => s.products),
@@ -94,7 +93,31 @@ const ProposalReviewPage = async ({ params }: Props) => {
 				<div className='grid items-start gap-6 py-6 sm:grid-cols-5 sm:gap-12 sm:py-12 container'>
 					<div className='sm:col-span-3'>
 						<div className='space-y-4'>
-							<h1 className='text-lg font-semibold'>Proposal Breakdown</h1>
+							<div className='grid grid-cols-2 gap-4'>
+								<div className='space-y-4'>
+									<h1 className='text-lg font-semibold'>Ship To</h1>
+
+									<div>
+										<div className='font-medium'>{ticket?.contactName}</div>
+										<div className='text-muted-foreground text-sm'>{ticket?.contactEmailAddress}</div>
+									</div>
+								</div>
+
+								<div className='space-y-4'>
+									<h1 className='text-lg font-semibold'>Prepared By</h1>
+
+									<div>
+										<div className='font-medium'>
+											{/* @ts-ignore */}
+											{proposal?.created_by?.first_name} {proposal?.created_by?.last_name}
+										</div>
+									</div>
+								</div>
+							</div>
+
+							<Separator />
+
+							<h1 className='font-semibold text-lg'>Proposal Details</h1>
 
 							<div className='rounded-xl border bg-secondary/50 dark:bg-card/50 p-4 space-y-4'>
 								{sections?.map((section) => {
@@ -197,7 +220,17 @@ const ProposalReviewPage = async ({ params }: Props) => {
 					</div>
 
 					<div className='sm:col-span-2 space-y-4'>
-						<h1 className='text-lg font-semibold'>Scope of Work</h1>
+						{settings?.description && (
+							<>
+								<h2 className='text-lg font-semibold'>Summary</h2>
+								<div
+									className='text-sm pr-4 [&>p]:my-5 [&_p:first-child]:mt-0 [&_p:last-child]:mb-0'
+									dangerouslySetInnerHTML={{ __html: settings?.description ?? '' }}
+								/>
+							</>
+						)}
+
+						<h2 className='text-lg font-semibold'>Scope of Work</h2>
 
 						<Card>
 							<CardContent className='p-4'>
@@ -234,10 +267,10 @@ const ProposalReviewPage = async ({ params }: Props) => {
 							</CardContent>
 						</Card>
 
-						<h2 className='font-semibold px-2'>Assumptions</h2>
+						<h2 className='font-semibold'>Assumptions</h2>
 
 						<div
-							className='marker:font-semibold px-2 text-sm'
+							className='marker:font-semibold text-sm'
 							dangerouslySetInnerHTML={{ __html: settings?.assumptions ?? '' }}
 						/>
 					</div>

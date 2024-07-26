@@ -15,20 +15,28 @@ export default function ProposalBreakdown({
 	return (
 		<Card className={cn('overflow-hidden', className)}>
 			<CardHeader className='bg-muted/40'>
-				<CardTitle className='group flex items-center gap-2 text-lg'>Proposal Breakdown</CardTitle>
-				<CardDescription>Based on your proposal, you can see what you&apos;ll be able to expect as your monthly expense.</CardDescription>
+				<CardTitle className='group flex items-center gap-2 text-lg'>Proposal Details</CardTitle>
+				<CardDescription>
+					Based on your proposal, you can see what you&apos;ll be able to expect as your monthly expense.
+				</CardDescription>
 			</CardHeader>
 			<CardContent className='p-6 text-sm'>
 				<div className='grid gap-3'>
 					{sections.map(({ id, name, products }) => (
 						<>
-							<div key={id} className='font-semibold'>
+							<div
+								key={id}
+								className='font-semibold'
+							>
 								{name}
 							</div>
 
 							<ul className='grid gap-3'>
 								{products.map((product) => (
-									<li key={product.id} className='flex items-center justify-between'>
+									<li
+										key={product.id}
+										className='flex items-center justify-between'
+									>
 										<span className='text-muted-foreground'>
 											{product.description} x <span>{product.quantity}</span>
 										</span>
@@ -53,7 +61,10 @@ export default function ProposalBreakdown({
 								return (accumulator ?? 0) + (currentValue.price ?? 0);
 							}, 0);
 							return (
-								<li key={id} className='flex items-center justify-between'>
+								<li
+									key={id}
+									className='flex items-center justify-between'
+								>
 									<span className='text-muted-foreground'>{name}</span>
 									<span>{getCurrencyString(totalPrice)}</span>
 								</li>
