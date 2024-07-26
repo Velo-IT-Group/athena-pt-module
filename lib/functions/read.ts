@@ -419,13 +419,31 @@ export const getProposal = async (id: string) => {
 	const supabase = createClient();
 
 	try {
-		const { data, error } = await supabase.from('proposals').select().eq('id', id).single();
+		const { data, error } = await supabase.from('proposals').select('*, created_by(*)').eq('id', id).single();
 
 		if (!data || error) {
 			throw Error('Error in getting proposal', { cause: error });
 		}
 
 		return data as unknown as NestedProposal & { versions: Version[] };
+	} catch (error) {
+		console.error(error);
+	}
+};
+
+export const getProposalSettings = async (id: string) => {
+	const supabase = createClient();
+
+	console.log(id);
+
+	try {
+		const { data, error } = await supabase.from('proposal_settings').select().eq('version', id).single();
+
+		if (!data || error) {
+			throw Error('Error in getting proposal settings', { cause: error });
+		}
+
+		return data;
 	} catch (error) {
 		console.error(error);
 	}

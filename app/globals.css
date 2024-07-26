@@ -59,6 +59,9 @@
 		font-synthesis-weight: none;
 		text-rendering: optimizeLegibility;
 	}
+	ol {
+		@apply list-decimal ps-5 mt-4 [&>li]:my-2 [&>li]:ps-2;
+	}
 }
 
 @layer utilities {

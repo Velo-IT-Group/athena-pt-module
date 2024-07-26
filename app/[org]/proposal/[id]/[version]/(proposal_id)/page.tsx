@@ -1,5 +1,5 @@
 import { Separator } from '@/components/ui/separator';
-import { getPhases, getProducts, getProposal } from '@/lib/functions/read';
+import { getPhases, getProducts, getProposal, getProposalSettings } from '@/lib/functions/read';
 import { relativeDate } from '@/utils/date';
 import { getCurrencyString } from '@/utils/money';
 import { CalendarIcon, FileTextIcon, StopwatchIcon } from '@radix-ui/react-icons';
@@ -8,16 +8,19 @@ import ProductList from './product-list';
 import ExpirationDatePicker from './expiration-date-picker';
 import { calculateTotals } from '@/utils/helpers';
 import { getTicket } from '@/utils/manage/read';
+import AssumptionsEditor from './assumptions-editor';
+import DescriptionEditor from './description-editor';
 
 type Props = {
 	params: { id: string; version: string };
 };
 
 const ProposalPage = async ({ params }: Props) => {
-	const [proposal, products, phases] = await Promise.all([
+	const [proposal, products, phases, settings] = await Promise.all([
 		getProposal(params.id),
 		getProducts(params.version),
 		getPhases(params.version),
+		getProposalSettings(params.version),
 	]);
 
 	if (!proposal) return <div></div>;
@@ -53,6 +56,26 @@ const ProposalPage = async ({ params }: Props) => {
 							/>
 						</div>
 					</div>
+				</section>
+
+				<section className='space-y-4'>
+					<h2 className='text-xl font-semibold'>Description</h2>
+
+					<DescriptionEditor
+						version={params.version}
+						proposal={params.id}
+						description={settings?.description ?? undefined}
+					/>
+				</section>
+
+				<section className='space-y-4'>
+					<h2 className='text-xl font-semibold'>Assumptions</h2>
+
+					<AssumptionsEditor
+						content={settings?.assumptions}
+						version={params.version}
+						proposal={params.id}
+					/>
 				</section>
 
 				<section className='space-y-4'>

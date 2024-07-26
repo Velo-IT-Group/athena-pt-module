@@ -125,6 +125,12 @@ export const createProposal = async (proposal: ProposalInsert) => {
 
 		const version = await createVersion(data.id);
 		await createSection({ name: 'Hardware', version, order: 0 });
+		await createProposalSettings({
+			proposal: data.id,
+			version,
+			assumptions:
+				'<p>The following assumptions were used to frame this proposal. Should these assumptions not hold true, Velo will provide you with options for proceeding and come to an agreement regarding any changes to the schedule, deliverables, or investment before proceeding.</p><ol><li><p>All work will be completed during business hours (0800-1700 CST)</p></li><li><p>Any changes to the agreed-upon project scope after the initiation phase will require a formal change request, possibly leading to adjustments in cost and timeline.</p></li><li><p>Any work that requires downtime will be scheduled with client to be completed either after hours or when the downtime is allowed.&nbsp; Client will manage communications to all end users in timely manner.</p></li><li><p>Key stakeholders, including project sponsors and high-level management, will provide the necessary support and backing for the project.</p></li><li><p>Criteria for what constitutes a successful project completion have been clearly defined in the scope and business outcome, with communication to all involved parties.</p></li><li><p>External vendors or third-party solutions will deliver on their commitments within the stipulated timeframes and specifications.</p></li></ol>',
+		});
 
 		if (proposal.templates_used && proposal.templates_used.length) {
 			const templates = await Promise.all(proposal.templates_used.map(getTemplate));
@@ -207,6 +213,21 @@ export const createPhase = async (phase: PhaseInsert, tickets: Array<ProjectTemp
 
 		revalidateTag('proposals');
 		revalidateTag('phases');
+	} catch (error) {
+		console.error('createPhase Error:', error);
+		throw error; // Rethrow the error after logging it
+	}
+};
+
+export const createProposalSettings = async (data: ProposalSettingsInsert) => {
+	try {
+		const supabase = createClient();
+		const { error } = await supabase.from('proposal_settings').insert(data);
+
+		if (error) {
+			console.error(error);
+			throw new Error('Error creating phase.', { cause: error });
+		}
 	} catch (error) {
 		console.error('createPhase Error:', error);
 		throw error; // Rethrow the error after logging it

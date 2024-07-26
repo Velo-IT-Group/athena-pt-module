@@ -15,6 +15,10 @@ declare global {
 
 	type Member = DB['public']['Tables']['profiles']['Row'];
 
+	type ProposalSettings = DB['public']['Tables']['proposal_settings']['Row'];
+	type ProposalSettingsUpdate = DB['public']['Tables']['proposal_settings']['Update'];
+	type ProposalSettingsInsert = DB['public']['Tables']['proposal_settings']['Insert'];
+
 	type Phase = DB['public']['Tables']['phases']['Row'];
 	type PhaseInsert = DB['public']['Tables']['phases']['Insert'];
 	type PhaseUpdate = DB['public']['Tables']['phases']['Update'];
