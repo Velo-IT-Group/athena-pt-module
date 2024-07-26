@@ -21,6 +21,7 @@ const Tiptap = ({ className, content, onBlur }: Props) => {
 				),
 			},
 		},
+		// @ts-ignore
 		onBlur: (props) => onBlur(props),
 		extensions: [StarterKit],
 		immediatelyRender: false,
